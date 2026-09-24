@@ -127,7 +127,6 @@
             background: #00f0ff;
             color: #000;
         }
-        /* استایل‌های پنل مدیریت داخل صفحه */
         .admin-panel-box {
             background: rgba(17, 24, 39, 0.95);
             border: 2px solid #facc15;
@@ -162,7 +161,6 @@
 </head>
 <body>
     <div class="main-container">
-        <!-- لوگو و هدر سایت -->
         <div class="logo-box">
             <img id="display-logo" src="https://i.ibb.co/5W2Q429/vortex-logo.png" alt="Logo">
         </div>
@@ -173,21 +171,18 @@
             <span class="status-badge" id="display-status">⚡ SYSTEM STATUS: ONLINE ⚡</span>
         </div>
 
-        <!-- محتوای اصلی که بر اساس کلیک کاربر تغییر می‌کند -->
         <div id="dynamic-content" style="width: 100%;"></div>
 
-        <!-- دکمه ورود/خروج به پنل مدیریت -->
         <div id="admin-trigger-container">
             <button onclick="toggleAdminPanel()" class="btn-custom" id="admin-toggle-btn">⚙️ ورود به پنل مدیریت</button>
         </div>
 
-        <!-- پنل مدیریت مخفی که با کلیک باز می‌شود -->
         <div id="admin-panel" class="admin-panel-box" style="display: none;">
             <h4 class="text-warning mb-3">🛠️ اتاق فرمان مدیریت</h4>
             
             <div class="mb-3">
-                <label class="form-label text-info">رمز عبور مدیریت:</label>
-                <input type="password" id="admin-pass-input" class="form-control" placeholder="رمز ۳۲ رقمی را وارد کنید">
+                <label class="form-label text-info">رمز عبور مدیریت (۱۶ رقمی):</label>
+                <input type="password" id="admin-pass-input" class="form-control" placeholder="رمز ۱۶ رقمی را وارد کنید">
                 <button onclick="verifyAdmin()" class="btn btn-warning btn-sm mt-2 w-100 fw-bold">باز کردن پنل</button>
             </div>
 
@@ -202,7 +197,7 @@
                     <label class="form-label">متن پیام (لینک، توضیحات...):</label>
                     <textarea id="msg-text-input" class="form-control" rows="3" placeholder="متن پیام را بنویسید..."></textarea>
                 </div>
-                <button onclick="sendNewMessage()" class="btn btn-success btn-sm w-100 fw-bold mb-3">ارسال پیام برای همه‌ی کاربران</button>
+                <button onclick="sendNewMessage()" class="btn btn-success btn-sm w-100 fw-bold mb-3">ارسال پیام برای کاربران</button>
 
                 <h6 class="text-info mt-3">مدیریت دسته‌بندی‌ها</h6>
                 <div class="mb-2">
@@ -218,7 +213,8 @@
     </div>
 
     <script>
-        const ADMIN_PASS = "p7K#m9X$vL2@zQ4!wR8*yT3&bN5%cH1-j";
+        // رمز عبور ۱۶ رقمی امن
+        const ADMIN_PASS = "Vortex99#Admin2026";
 
         const defaultData = {
             logo_url: "https://i.ibb.co/5W2Q429/vortex-logo.png",
@@ -235,20 +231,17 @@
 
         let siteData = JSON.parse(localStorage.getItem('vortex_site_data')) || defaultData;
 
-        // تنظیم هدرهای اصلی سایت
         document.getElementById('display-logo').src = siteData.logo_url;
         document.getElementById('display-title').innerText = siteData.main_title;
         document.getElementById('display-subtitle').innerText = siteData.subtitle;
         document.getElementById('display-status').innerText = "⚡ " + siteData.status + " ⚡";
 
-        // مدیریت مسیریابی داخلی صفحه (بدون نیاز به فایل مجزا)
         function renderRoute() {
             const urlParams = new URLSearchParams(window.location.search);
             const catId = urlParams.get('cat');
             const container = document.getElementById('dynamic-content');
 
             if (!catId) {
-                // نمایش صفحه اصلی (لیست دسته‌ها)
                 let html = '';
                 siteData.categories.forEach(cat => {
                     let msgCount = siteData.messages && siteData.messages[cat.id] ? siteData.messages[cat.id].length : 0;
@@ -267,7 +260,6 @@
                 });
                 container.innerHTML = html;
             } else {
-                // نمایش صفحه پیام‌رسان دسته انتخاب شده
                 let currentCat = siteData.categories.find(c => c.id === catId);
                 let catTitle = currentCat ? currentCat.title : "پیام‌ها";
                 
@@ -297,7 +289,6 @@
 
         renderRoute();
 
-        // توابع پنل مدیریت
         function toggleAdminPanel() {
             let panel = document.getElementById('admin-panel');
             panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
@@ -380,7 +371,7 @@
             siteData.messages[catId].push({text: text, date: now});
             localStorage.setItem('vortex_site_data', JSON.stringify(siteData));
             document.getElementById('msg-text-input').value = '';
-            alert("پیام با موفقیت ارسال شد و برای کاربران قابل مشاهده است!");
+            alert("پیام با موفقیت ارسال شد!");
             renderRoute();
         }
 
