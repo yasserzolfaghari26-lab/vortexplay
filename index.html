@@ -181,8 +181,8 @@
             <h4 class="text-warning mb-3">🛠️ اتاق فرمان مدیریت</h4>
             
             <div class="mb-3">
-                <label class="form-label text-info">رمز عبور مدیریت (۱۶ رقمی):</label>
-                <input type="password" id="admin-pass-input" class="form-control" placeholder="رمز ۱۶ رقمی را وارد کنید">
+                <label class="form-label text-info">رمز عبور (عدد 1):</label>
+                <input type="password" id="admin-pass-input" class="form-control" placeholder="عدد 1 را وارد کنید">
                 <button onclick="verifyAdmin()" class="btn btn-warning btn-sm mt-2 w-100 fw-bold">باز کردن پنل</button>
             </div>
 
@@ -213,10 +213,9 @@
     </div>
 
     <script>
-        // رمز عبور ۱۶ رقمی امن
-        const ADMIN_PASS = "Vortex99#Admin2026";
+        const ADMIN_PASS = "1";
 
-        const defaultData = {
+        let defaultData = {
             logo_url: "https://i.ibb.co/5W2Q429/vortex-logo.png",
             main_title: "VORTEXPLAY",
             subtitle: "♦ GAMING EMPIRE ♦",
