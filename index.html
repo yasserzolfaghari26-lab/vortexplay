@@ -3,8 +3,6 @@ import sys
 import asyncio
 import threading
 import logging
-import time
-from datetime import datetime
 from flask import Flask, render_template_string, request, redirect, url_for, session
 from werkzeug.security import generate_password_hash, check_password_hash
 from rubpy import Client
@@ -15,12 +13,11 @@ logger = logging.getLogger("VortexPlayApp")
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
 
-# تنظیمات امنیتی پنل مدیریت
+# نام کاربری و رمز عبور ۳۲ رقمی امن برای پنل مدیریت
 ADMIN_USERNAME = "admin"
-# رمز عبور ۳۲ رقمی امن
 ADMIN_PASSWORD_HASH = generate_password_hash("p7K#m9X$vL2@zQ4!wR8*yT3&bN5%cH1-j")
 
-# داده‌های قابل مدیریت از پنل (لوگو، متن‌ها و دسته‌بندی‌ها)
+# داده‌های سایت (قابل ویرایش از پنل مدیریت)
 site_data = {
     "logo_url": "https://via.placeholder.com/150",
     "main_title": "سایت رسمی و ربات هوشمند VortexPlay",
@@ -33,7 +30,7 @@ system_stats = {
     "messages_count": 0
 }
 
-# قالب صفحه اصلی سایت (کاربر پسند، پس‌زمینه، متن‌ها و دسته‌بندی‌های زرد در پایین)
+# قالب ظاهر سایت اصلی (با دسته‌بندی‌های زرد در پایین)
 INDEX_HTML = """
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
@@ -55,7 +52,7 @@ INDEX_HTML = """
             text-align: center;
         }
         .content-container {
-            padding: 40px 20px;
+            padding: 50px 20px;
         }
         .logo-img {
             width: 130px;
@@ -69,7 +66,6 @@ INDEX_HTML = """
         h1 { color: #38bdf8; font-weight: bold; margin-bottom: 15px; }
         p { color: #9ca3af; font-size: 1.1rem; }
         
-        /* بخش دسته‌بندی‌ها در پایین صفحه با رنگ زرد */
         .categories-footer {
             background-color: #111827;
             padding: 20px;
@@ -77,7 +73,7 @@ INDEX_HTML = """
             width: 100%;
         }
         .category-badge {
-            color: #facc15 !important; /* رنگ زرد */
+            color: #facc15 !important;
             border: 1px solid #facc15;
             background-color: rgba(250, 204, 21, 0.05);
             padding: 8px 16px;
@@ -86,11 +82,6 @@ INDEX_HTML = """
             display: inline-block;
             font-weight: bold;
             text-decoration: none;
-            transition: all 0.3s ease;
-        }
-        .category-badge:hover {
-            background-color: #facc15;
-            color: #0b0f19 !important;
         }
         .admin-link {
             position: fixed;
@@ -115,7 +106,6 @@ INDEX_HTML = """
         <p>{{ data.description }}</p>
     </div>
 
-    <!-- دسته‌بندی‌ها در پایین صفحه با رنگ زرد -->
     <div class="categories-footer">
         <h5 class="text-light mb-3">دسته‌بندی‌های سایت</h5>
         <div>
@@ -129,7 +119,7 @@ INDEX_HTML = """
 </html>
 """
 
-# قالب پنل مدیریت (مدیریت کامل لوگو، متن‌ها، افزودن و حذف دسته‌بندی‌ها)
+# قالب پنل مدیریت (برای تغییر لوگو، متن‌ها و مدیریت دسته‌بندی‌ها)
 ADMIN_HTML = """
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
@@ -154,12 +144,11 @@ ADMIN_HTML = """
             <a href="/" class="btn btn-outline-light btn-sm">مشاهده سایت</a>
         </div>
 
-        <!-- ویرایش اطلاعات اصلی و لوگو -->
         <div class="card">
             <h4 class="text-info mb-3">تنظیمات ظاهر و متن‌ها</h4>
             <form method="POST" action="/update_content">
                 <div class="mb-3">
-                    <label class="form-label">لینک تصویر لوگو (پس‌زمینه / آواتار):</label>
+                    <label class="form-label">لینک تصویر لوگو:</label>
                     <input type="text" name="logo_url" class="form-control" value="{{ data.logo_url }}" required>
                 </div>
                 <div class="mb-3">
@@ -174,9 +163,8 @@ ADMIN_HTML = """
             </form>
         </div>
 
-        <!-- مدیریت دسته‌بندی‌ها (افزودن و حذف) -->
         <div class="card">
-            <h4 class="text-info mb-3">مدیریت دسته‌بندی‌های پایین صفحه (رنگ زرد)</h4>
+            <h4 class="text-info mb-3">مدیریت دسته‌بندی‌ها (رنگ زرد در پایین)</h4>
             <form method="POST" action="/add_category" class="mb-4">
                 <div class="input-group">
                     <input type="text" name="new_category" class="form-control" placeholder="نام دسته‌بندی جدید..." required>
@@ -205,6 +193,7 @@ ADMIN_HTML = """
 </html>
 """
 
+# صفحه لاگین پنل مدیریت
 LOGIN_HTML = """
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
@@ -281,7 +270,6 @@ def logout():
     session.clear()
     return redirect(url_for('index'))
 
-# اجرای ربات در پس‌زمینه
 def run_bot():
     async def main():
         while True:
