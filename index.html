@@ -8,21 +8,18 @@
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
         :root {
-            --bg-grad-1: rgba(255,120,0,0.45); --bg-grad-2: rgba(0,120,255,0.45);
             --gold: #ffd700; --orange: #ff8c00; --cyan: #00d9ff; --purple: #8b5cf6;
             --bg-dark: #05051a; --card-bg: rgba(15,23,42,0.75);
         }
         body {
             min-height: 100vh; position: relative; overflow-x: hidden; color: #fff;
             background: 
-                radial-gradient(ellipse at top left, var(--bg-grad-1) 0%, transparent 55%),
-                radial-gradient(ellipse at bottom left, var(--bg-grad-2) 0%, transparent 55%),
+                radial-gradient(ellipse at top left, rgba(255,120,0,0.45) 0%, transparent 55%),
+                radial-gradient(ellipse at bottom left, rgba(0,120,255,0.45) 0%, transparent 55%),
                 linear-gradient(180deg, #05051a, #0f172a, #05051a);
-            transition: background 0.5s ease;
         }
-        .custom-bg { position: fixed; inset: 0; z-index: 0; background-size: cover; background-position: center; opacity: 0.35; pointer-events: none; }
+        .custom-bg { position: fixed; inset: 0; z-index: 0; background-size: cover; background-position: center; opacity: 0.4; pointer-events: none; }
 
-        /* === صفحه اصلی === */
         .container { position: relative; z-index: 10; max-width: 480px; margin: 0 auto; padding: 30px 20px 50px; display: flex; flex-direction: column; align-items: center; }
         
         .logo-wrapper { position: relative; margin-bottom: 15px; }
@@ -68,11 +65,12 @@
         .cards-container { width: 100%; }
         .cat-card {
             width: 100%; padding: 18px 22px; border-radius: 14px; margin-bottom: 14px;
-            border: 2px solid transparent; background: var(--card-bg); cursor: pointer; transition: 0.3s;
+            border: 2px solid transparent; background: var(--card-bg);
+            transition: 0.3s;
         }
-        .cat-card:nth-child(1) { border-color: rgba(0,200,255,0.5); background: linear-gradient(90deg, rgba(0,80,150,0.5), rgba(0,100,180,0.3)); }
-        .cat-card:nth-child(2) { border-color: rgba(255,200,0,0.5); background: linear-gradient(90deg, rgba(255,200,0,0.15), rgba(255,150,0,0.1)); }
-        .cat-card:nth-child(3) { border-color: rgba(139,92,246,0.5); background: linear-gradient(90deg, rgba(100,40,200,0.3), rgba(80,60,180,0.2)); }
+        .cat-card:nth-child(1) { border-color: rgba(0,200,255,0.5); }
+        .cat-card:nth-child(2) { border-color: rgba(255,200,0,0.5); }
+        .cat-card:nth-child(3) { border-color: rgba(139,92,246,0.5); }
         .cat-card:hover { transform: translateY(-2px); }
         .cat-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
         .cat-card-title { font-size: 1.15rem; font-weight: 800; }
@@ -83,16 +81,15 @@
             font-size: 0.9rem; display: flex; justify-content: space-between; align-items: center;
         }
         .msg-text { flex: 1; }
-        .msg-del { background: rgba(220,38,38,0.6); border: none; color: #fff; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; cursor: pointer; }
 
         .admin-open-btn {
             margin-top: 25px; padding: 12px 30px; background: rgba(80,60,180,0.3);
             border: 1px solid rgba(139,92,246,0.5); border-radius: 50px; color: #a78bfa;
-            cursor: pointer; display: flex; align-items: center; gap: 8px;
+            cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 0.9rem;
         }
         .admin-open-btn:hover { background: rgba(139,92,246,0.35); color: #e9d5ff; }
 
-        /* === مودال ورود رمز === */
+        /* === مودال ورود === */
         .modal-overlay {
             position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 999;
             display: flex; align-items: center; justify-content: center; padding: 20px;
@@ -122,7 +119,7 @@
 
         /* === پنل مدیریت === */
         .admin-panel {
-            position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,0.92);
+            position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,0.95);
             opacity: 0; visibility: hidden; transition: 0.3s; overflow-y: auto;
         }
         .admin-panel.active { opacity: 1; visibility: visible; }
@@ -151,7 +148,6 @@
             border-radius: 10px; color: #a78bfa; cursor: pointer; font-size: 0.85rem; margin-bottom: 12px;
         }
         .upload-btn:hover { background: rgba(139,92,246,0.3); }
-        .row { margin-bottom: 12px; }
         label { font-size: 0.85rem; color: #94a3b8; margin-bottom: 6px; display: block; }
         .btn-danger { background: linear-gradient(90deg, #b91c1c, #dc2626); color: #fff; margin-top: 8px; }
         .btn-success { background: linear-gradient(90deg, #059669, #10b981); color: #fff; margin-top: 8px; }
@@ -160,26 +156,24 @@
         }
         .cat-item-actions { display: flex; gap: 8px; margin-top: 10px; }
         .cat-item-actions button { flex: 1; padding: 8px; border: none; border-radius: 8px; cursor: pointer; font-size: 0.85rem; }
-        .add-msg-row { display: flex; gap: 8px; margin-top: 8px; }
-        .add-msg-row input { flex: 1; }
-        .save-all-note {
-            margin-top: 20px; padding: 12px; background: rgba(0,255,136,0.08);
-            border: 1px solid rgba(0,255,136,0.3); border-radius: 10px; color: #00ff88; text-align: center; display: none;
-        }
         select.form-input { height: 44px; }
+        .save-note {
+            margin-top: 15px; padding: 12px; background: rgba(0,255,136,0.1);
+            border: 1px solid rgba(0,255,136,0.4); border-radius: 10px; color: #00ff88;
+            text-align: center; display: none;
+        }
     </style>
 </head>
 <body>
     <div class="custom-bg" id="customBg"></div>
 
     <div class="container">
-        <!-- لوگو -->
         <div class="logo-wrapper">
             <div class="logo-ring">
                 <div class="logo-inner" id="logoDisplay">
                     <span class="logo-vp">VP</span>
                     <span class="logo-text-below">VORTEX PLAY</span>
-                    <img id="logoImg" src="" alt="لوگو">
+                    <img id="logoImg" alt="لوگو">
                 </div>
             </div>
         </div>
@@ -192,94 +186,82 @@
             <span id="statusDisplay">SYSTEM STATUS: ONLINE</span>
         </div>
 
-        <!-- کاور بنر -->
         <div class="banner-card" id="bannerDisplay">
             <span>VP</span>
-            <img id="bannerImg" src="" alt="کاور">
+            <img id="bannerImg" alt="کاور">
         </div>
 
-        <!-- لیست دسته‌بندی‌ها -->
-        <div class="cards-container" id="cardsContainer">
-            <!-- کارت‌ها از JS اضافه می‌شوند -->
-        </div>
+        <div class="cards-container" id="cardsContainer"></div>
 
-        <button class="admin-open-btn" onclick="openLogin()">
+        <button class="admin-open-btn" id="openAdminBtn">
             <i class="fas fa-cog"></i> ورود به پنل مدیریت
         </button>
     </div>
 
-    <!-- مودال ورود رمز -->
+    <!-- مودال ورود -->
     <div class="modal-overlay" id="loginOverlay">
         <div class="modal-box">
             <h2 class="modal-title">ورود به پنل مدیریت</h2>
             <input type="password" class="form-input" id="passInput" placeholder="رمز ۳۲ رقمی" maxlength="32">
             <div class="error-msg" id="passError">رمز نادرست است!</div>
-            <button class="btn btn-primary" onclick="checkPassword()">ورود</button>
+            <button class="btn btn-primary" id="loginBtn">ورود</button>
         </div>
     </div>
 
-    <!-- پنل مدیریت کامل -->
+    <!-- پنل مدیریت -->
     <div class="admin-panel" id="adminPanel">
         <div class="panel-inner">
             <div class="panel-header">
                 <h2 class="panel-title">پنل مدیریت</h2>
-                <button class="panel-close" onclick="closeAdminPanel()"><i class="fas fa-times"></i></button>
+                <button class="panel-close" id="closePanelBtn"><i class="fas fa-times"></i></button>
             </div>
 
-            <!-- بخش ۱: تنظیمات ظاهری -->
+            <!-- بخش ۱: ظاهر -->
             <div class="panel-section">
                 <h3 class="section-title"><i class="fas fa-palette"></i> تنظیمات ظاهری</h3>
 
                 <div class="row">
                     <label>تصویر پس‌زمینه</label>
                     <label class="upload-btn">
-                        <input type="file" class="file-input" accept="image/*" onchange="uploadBg(this)">
+                        <input type="file" class="file-input" accept="image/*" id="bgUpload">
                         <i class="fas fa-upload"></i> انتخاب از گالری
                     </label>
                 </div>
-
                 <div class="row">
                     <label>لوگو سایت</label>
                     <label class="upload-btn">
-                        <input type="file" class="file-input" accept="image/*" onchange="uploadLogo(this)">
+                        <input type="file" class="file-input" accept="image/*" id="logoUpload">
                         <i class="fas fa-image"></i> انتخاب از گالری
                     </label>
                 </div>
-
                 <div class="row">
                     <label>کاور بنر</label>
                     <label class="upload-btn">
-                        <input type="file" class="file-input" accept="image/*" onchange="uploadBanner(this)">
+                        <input type="file" class="file-input" accept="image/*" id="bannerUpload">
                         <i class="fas fa-file-image"></i> انتخاب از گالری
                     </label>
                 </div>
-
                 <div class="row">
                     <label>نام سایت</label>
-                    <input type="text" class="form-input" id="siteNameInput" value="VORTEXPLAY">
+                    <input type="text" class="form-input" id="siteNameInput">
                 </div>
                 <div class="row">
                     <label>زیرنویس سایت</label>
-                    <input type="text" class="form-input" id="siteSubInput" value="GAMING EMPIRE">
+                    <input type="text" class="form-input" id="siteSubInput">
                 </div>
                 <div class="row">
                     <label>متن وضعیت</label>
-                    <input type="text" class="form-input" id="statusInput" value="SYSTEM STATUS: ONLINE">
+                    <input type="text" class="form-input" id="statusInput">
                 </div>
-
-                <button class="btn btn-primary" onclick="saveAppearance()">ذخیره ظاهر</button>
+                <button class="btn btn-primary" id="saveAppearanceBtn">ذخیره تغییرات ظاهری</button>
+                <div class="save-note" id="appearanceNote">✅ ظاهر ذخیره شد!</div>
             </div>
 
-            <!-- بخش ۲: افزودن/حذف دسته‌بندی -->
+            <!-- بخش ۲: دسته‌بندی -->
             <div class="panel-section">
                 <h3 class="section-title"><i class="fas fa-th-large"></i> مدیریت دسته‌بندی‌ها</h3>
-
-                <div id="adminCatList">
-                    <!-- از JS پر می‌شود -->
-                </div>
-
+                <div id="adminCatList"></div>
                 <hr style="border-color:rgba(96,165,250,0.2); margin:15px 0;">
-
                 <h5 style="color:#ffd700; margin-bottom:10px;">افزودن دسته جدید</h5>
                 <div class="row">
                     <label>عنوان</label>
@@ -289,27 +271,24 @@
                     <label>توضیح</label>
                     <input type="text" class="form-input" id="newCatDesc" placeholder="توضیح کوتاه">
                 </div>
-                <button class="btn btn-success" onclick="addCategory()">افزودن دسته</button>
+                <button class="btn btn-success" id="addCatBtn">افزودن دسته</button>
+                <div class="save-note" id="catNote">✅ دسته اضافه شد!</div>
             </div>
 
-            <!-- بخش ۳: ارسال پیام به دسته‌بندی -->
+            <!-- بخش ۳: پیام -->
             <div class="panel-section">
-                <h3 class="section-title"><i class="fas fa-paper-plane"></i> ارسال پیام به دسته</h3>
-
+                <h3 class="section-title"><i class="fas fa-paper-plane"></i> ارسال پیام</h3>
                 <div class="row">
                     <label>انتخاب دسته</label>
-                    <select class="form-input" id="targetCatSelect">
-                        <!-- از JS پر می‌شود -->
-                    </select>
+                    <select class="form-input" id="targetCatSelect"></select>
                 </div>
                 <div class="row">
                     <label>متن پیام</label>
-                    <textarea class="form-input" id="newMessageText" rows="3" placeholder="متن پیام خود را بنویسید..."></textarea>
+                    <textarea class="form-input" id="newMessageText" rows="3" placeholder="متن پیام..."></textarea>
                 </div>
-                <button class="btn btn-primary" onclick="sendMessage()">ارسال پیام</button>
+                <button class="btn btn-primary" id="sendMsgBtn">ارسال پیام</button>
+                <div class="save-note" id="msgNote">✅ پیام ارسال شد!</div>
             </div>
-
-            <div class="save-all-note" id="globalSaveNote">✅ همه تغییرات ذخیره شد!</div>
         </div>
     </div>
 
@@ -332,20 +311,21 @@
             ]
         };
 
-        // بارگذاری از حافظه محلی
+        // === بارگذاری و ذخیره ===
         function loadData() {
-            const saved = localStorage.getItem('vortexData');
-            if (saved) siteData = JSON.parse(saved);
+            try {
+                const saved = localStorage.getItem('vortexData');
+                if (saved) siteData = JSON.parse(saved);
+            } catch (e) { console.log('بارگذاری از اول'); }
             renderAll();
         }
         function saveData() {
             localStorage.setItem('vortexData', JSON.stringify(siteData));
-            showGlobalNote();
         }
-        function showGlobalNote() {
-            const note = document.getElementById('globalSaveNote');
-            note.style.display = 'block';
-            setTimeout(() => note.style.display = 'none', 3000);
+        function showNote(id) {
+            const el = document.getElementById(id);
+            el.style.display = 'block';
+            setTimeout(() => el.style.display = 'none', 3000);
         }
 
         // === رندر صفحه اصلی ===
@@ -390,22 +370,19 @@
                     </div>
                     <p class="cat-card-desc">${cat.desc}</p>
                     <div class="messages-list">
-                        ${cat.messages.map((msg, idx) => `
-                            <div class="msg-item">
-                                <span class="msg-text">${msg}</span>
-                            </div>
+                        ${cat.messages.map(msg => `
+                            <div class="msg-item"><span class="msg-text">${msg}</span></div>
                         `).join('')}
                     </div>
                 `;
                 container.appendChild(card);
             });
 
-            // رندر لیست در پنل مدیریت
-            renderAdminPanelLists();
+            renderAdminLists();
         }
 
-        function renderAdminPanelLists() {
-            // لیست دسته‌ها برای ویرایش/حذف
+        // === رندر لیست‌های پنل ===
+        function renderAdminLists() {
             const list = document.getElementById('adminCatList');
             const select = document.getElementById('targetCatSelect');
             list.innerHTML = '';
@@ -419,7 +396,7 @@
                     <div style="font-size:0.8rem; color:#94a3b8; margin-bottom:8px;">${cat.desc}</div>
                     <div style="font-size:0.75rem; color:#6b7280;">تعداد پیام: ${cat.messages.length}</div>
                     <div class="cat-item-actions">
-                        <button class="btn-danger" onclick="deleteCategory(${index})">حذف</button>
+                        <button class="btn-danger" data-index="${index}">حذف دسته</button>
                     </div>
                 `;
                 list.appendChild(item);
@@ -429,9 +406,20 @@
                 opt.textContent = cat.title;
                 select.appendChild(opt);
             });
+
+            // اتصال رویدادهای دکمه‌های حذف
+            document.querySelectorAll('#adminCatList button.btn-danger').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    if (confirm('مطمئنی؟ این دسته و پیام‌هایش حذف می‌شوند!')) {
+                        const idx = parseInt(this.getAttribute('data-index'));
+                        siteData.categories.splice(idx, 1);
+                        saveData(); renderAll();
+                    }
+                });
+            });
         }
 
-        // === ورود رمز ===
+        // === باز و بسته کردن پنل ===
         function openLogin() {
             document.getElementById('loginOverlay').classList.add('active');
             document.getElementById('passInput').value = '';
@@ -447,90 +435,94 @@
             }
         }
         function openAdminPanel() {
-            // پر کردن مقادیر در پنل
             document.getElementById('siteNameInput').value = siteData.siteName;
             document.getElementById('siteSubInput').value = siteData.siteSub;
             document.getElementById('statusInput').value = siteData.statusText;
-            renderAdminPanelLists();
+            renderAdminLists();
             document.getElementById('adminPanel').classList.add('active');
         }
         function closeAdminPanel() {
             document.getElementById('adminPanel').classList.remove('active');
         }
 
-        // === آپلود تصاویر ===
-        function uploadBg(input) {
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = e => {
-                    siteData.bgImage = e.target.result;
-                    saveData(); renderAll();
-                };
-                reader.readAsDataURL(input.files[0]);
-            }
-        }
-        function uploadLogo(input) {
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = e => {
-                    siteData.logoImage = e.target.result;
-                    saveData(); renderAll();
-                };
-                reader.readAsDataURL(input.files[0]);
-            }
-        }
-        function uploadBanner(input) {
-            if (input.files && input.files[0]) {
-                const reader = new FileReader();
-                reader.onload = e => {
-                    siteData.bannerImage = e.target.result;
-                    saveData(); renderAll();
-                };
-                reader.readAsDataURL(input.files[0]);
-            }
+        // === تبدیل تصویر به کد ===
+        function fileToDataUrl(file, callback) {
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = e => callback(e.target.result);
+            reader.readAsDataURL(file);
         }
 
-        // === ذخیره ظاهر ===
-        function saveAppearance() {
-            siteData.siteName = document.getElementById('siteNameInput').value.trim();
-            siteData.siteSub = document.getElementById('siteSubInput').value.trim();
-            siteData.statusText = document.getElementById('statusInput').value.trim();
-            saveData(); renderAll();
-        }
+        // === اتصال همه رویدادها ===
+        document.addEventListener('DOMContentLoaded', function() {
+            loadData();
 
-        // === مدیریت دسته‌بندی‌ها ===
-        function addCategory() {
-            const title = document.getElementById('newCatTitle').value.trim();
-            const desc = document.getElementById('newCatDesc').value.trim();
-            if (!title) return alert('عنوان را وارد کن!');
-            siteData.categories.push({
-                id: Date.now(),
-                title,
-                desc: desc || 'بدون توضیح',
-                messages: []
+            // دکمه ورود به پنل
+            document.getElementById('openAdminBtn').addEventListener('click', openLogin);
+            // دکمه ورود رمز
+            document.getElementById('loginBtn').addEventListener('click', checkPassword);
+            // بستن پنل
+            document.getElementById('closePanelBtn').addEventListener('click', closeAdminPanel);
+
+            // آپلود پس‌زمینه
+            document.getElementById('bgUpload').addEventListener('change', function(e) {
+                fileToDataUrl(e.target.files[0], function(dataUrl) {
+                    siteData.bgImage = dataUrl;
+                    saveData(); renderAll();
+                    showNote('appearanceNote');
+                });
             });
-            document.getElementById('newCatTitle').value = '';
-            document.getElementById('newCatDesc').value = '';
-            saveData(); renderAll();
-        }
-        function deleteCategory(index) {
-            if (!confirm('مطمئنی؟ این دسته و تمام پیام‌هایش حذف می‌شود!')) return;
-            siteData.categories.splice(index, 1);
-            saveData(); renderAll();
-        }
-
-        // === ارسال پیام ===
-        function sendMessage() {
-            const catIndex = parseInt(document.getElementById('targetCatSelect').value);
-            const text = document.getElementById('newMessageText').value.trim();
-            if (!text) return alert('متن پیام را بنویس!');
-            siteData.categories[catIndex].messages.push(text);
-            document.getElementById('newMessageText').value = '';
-            saveData(); renderAll();
-        }
-
-        // شروع
-        loadData();
+            // آپلود لوگو
+            document.getElementById('logoUpload').addEventListener('change', function(e) {
+                fileToDataUrl(e.target.files[0], function(dataUrl) {
+                    siteData.logoImage = dataUrl;
+                    saveData(); renderAll();
+                    showNote('appearanceNote');
+                });
+            });
+            // آپلود بنر
+            document.getElementById('bannerUpload').addEventListener('change', function(e) {
+                fileToDataUrl(e.target.files[0], function(dataUrl) {
+                    siteData.bannerImage = dataUrl;
+                    saveData(); renderAll();
+                    showNote('appearanceNote');
+                });
+            });
+            // ذخیره ظاهر
+            document.getElementById('saveAppearanceBtn').addEventListener('click', function() {
+                siteData.siteName = document.getElementById('siteNameInput').value.trim();
+                siteData.siteSub = document.getElementById('siteSubInput').value.trim();
+                siteData.statusText = document.getElementById('statusInput').value.trim();
+                saveData(); renderAll();
+                showNote('appearanceNote');
+            });
+            // افزودن دسته
+            document.getElementById('addCatBtn').addEventListener('click', function() {
+                const title = document.getElementById('newCatTitle').value.trim();
+                const desc = document.getElementById('newCatDesc').value.trim();
+                if (!title) return alert('عنوان را وارد کن!');
+                siteData.categories.push({
+                    id: Date.now(),
+                    title: title,
+                    desc: desc || 'بدون توضیح',
+                    messages: []
+                });
+                document.getElementById('newCatTitle').value = '';
+                document.getElementById('newCatDesc').value = '';
+                saveData(); renderAll();
+                showNote('catNote');
+            });
+            // ارسال پیام
+            document.getElementById('sendMsgBtn').addEventListener('click', function() {
+                const catIndex = parseInt(document.getElementById('targetCatSelect').value);
+                const text = document.getElementById('newMessageText').value.trim();
+                if (!text) return alert('متن پیام را بنویس!');
+                siteData.categories[catIndex].messages.push(text);
+                document.getElementById('newMessageText').value = '';
+                saveData(); renderAll();
+                showNote('msgNote');
+            });
+        });
     </script>
 </body>
 </html>
