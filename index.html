@@ -5,174 +5,200 @@ import threading
 import logging
 import time
 from datetime import datetime
-from flask import Flask, render_template_string, request, redirect, url_for, jsonify, session
+from flask import Flask, render_template_string, request, redirect, url_for, session
 from werkzeug.security import generate_password_hash, check_password_hash
 from rubpy import Client
 
-# پیکربندی لاگینگ حرفه‌ای
-logging.basicConfig(
-    level=logging.INFO,
-    format='[%(asctime)s] [%(levelname)s] [%(name)s]: %(message)s',
-    handlers=[logging.StreamHandler(sys.stdout)]
-)
-logger = logging.getLogger("VortexPlaySystem")
+logging.basicConfig(level=logging.INFO, format='[%(asctime)s] [%(levelname)s]: %(message)s', stream=sys.stdout)
+logger = logging.getLogger("VortexPlayApp")
 
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
 
-# اطلاعات ورود به پنل مدیریت با رمز ۳۲ رقمی امن
+# تنظیمات امنیتی پنل مدیریت
 ADMIN_USERNAME = "admin"
-ADMIN_PASSWORD_HASH = generate_password_hash("x9K#mP2$vL8@zQ4!wR7*yT3&bN5%cH1-j")
+# رمز عبور ۳۲ رقمی امن
+ADMIN_PASSWORD_HASH = generate_password_hash("p7K#m9X$vL2@zQ4!wR8*yT3&bN5%cH1-j")
 
-# وضعیت‌های سیستم
-system_stats = {
-    "start_time": time.time(),
-    "total_messages_processed": 0,
-    "active_bot_status": "در حال راه‌اندازی...",
-    "connected_clients": 0,
-    "last_broadcast": "هیچ پیامی ارسال نشده است",
-    "errors_count": 0
+# داده‌های قابل مدیریت از پنل (لوگو، متن‌ها و دسته‌بندی‌ها)
+site_data = {
+    "logo_url": "https://via.placeholder.com/150",
+    "main_title": "سایت رسمی و ربات هوشمند VortexPlay",
+    "description": "به پلتفرم مدیریت و دانلود مستقیم خوش آمدید.",
+    "categories": ["آلارم‌ها و صداها", "موزیک‌های ویژه", "فایل‌های سیستمی", "پشتیبانی"]
 }
 
-# قالب HTML پنل مدیریت پیشرفته
-ADMIN_PANEL_HTML = """
+system_stats = {
+    "bot_status": "آنلاین و فعال",
+    "messages_count": 0
+}
+
+# قالب صفحه اصلی سایت (کاربر پسند، پس‌زمینه، متن‌ها و دسته‌بندی‌های زرد در پایین)
+INDEX_HTML = """
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>پنل مدیریت پیشرفته VortexPlay</title>
+    <title>{{ data.main_title }}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root {
-            --bg-dark: #090d16;
-            --sidebar-bg: #111827;
-            --card-bg: #1f2937;
-            --accent-color: #38bdf8;
-            --text-main: #f3f4f6;
-            --text-muted: #9ca3af;
-        }
         body {
-            background-color: var(--bg-dark);
-            color: var(--text-main);
+            background-color: #0b0f19;
+            color: #ffffff;
             font-family: Tahoma, sans-serif;
             min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            margin: 0;
+            text-align: center;
         }
-        .sidebar {
-            background-color: var(--sidebar-bg);
-            border-left: 1px solid #374151;
-            min-height: 100vh;
+        .content-container {
+            padding: 40px 20px;
+        }
+        .logo-img {
+            width: 130px;
+            height: 130px;
+            object-fit: cover;
+            border-radius: 50%;
+            border: 3px solid #38bdf8;
+            margin-bottom: 20px;
+            box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
+        }
+        h1 { color: #38bdf8; font-weight: bold; margin-bottom: 15px; }
+        p { color: #9ca3af; font-size: 1.1rem; }
+        
+        /* بخش دسته‌بندی‌ها در پایین صفحه با رنگ زرد */
+        .categories-footer {
+            background-color: #111827;
             padding: 20px;
+            border-top: 1px solid #1f2937;
+            width: 100%;
         }
-        .card {
-            background-color: var(--card-bg);
-            border: 1px solid #374151;
-            color: var(--text-main);
-            border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
-        }
-        .stat-card {
-            border-right: 4px solid var(--accent-color);
-        }
-        .nav-link {
-            color: var(--text-muted);
-            border-radius: 8px;
-            margin-bottom: 5px;
-            transition: all 0.3s;
-        }
-        .nav-link:hover, .nav-link.active {
-            background-color: #374151;
-            color: var(--accent-color);
-        }
-        .btn-custom {
-            background-color: #0284c7;
-            color: #fff;
-            border: none;
-        }
-        .btn-custom:hover {
-            background-color: #0369a1;
-            color: #fff;
-        }
-        .status-badge {
-            font-size: 0.85rem;
-            padding: 6px 12px;
+        .category-badge {
+            color: #facc15 !important; /* رنگ زرد */
+            border: 1px solid #facc15;
+            background-color: rgba(250, 204, 21, 0.05);
+            padding: 8px 16px;
             border-radius: 20px;
+            margin: 5px;
+            display: inline-block;
+            font-weight: bold;
+            text-decoration: none;
+            transition: all 0.3s ease;
         }
+        .category-badge:hover {
+            background-color: #facc15;
+            color: #0b0f19 !important;
+        }
+        .admin-link {
+            position: fixed;
+            top: 15px;
+            left: 15px;
+            background: #1f2937;
+            color: #9ca3af;
+            padding: 8px 15px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 0.85rem;
+        }
+        .admin-link:hover { color: #fff; background: #374151; }
     </style>
 </head>
 <body>
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-md-3 col-lg-2 sidebar d-none d-md-block">
-                <h4 class="text-info text-center mb-4"><i class="fas fa-robot me-2"></i>VortexPlay</h4>
-                <ul class="nav flex-column">
-                    <li class="nav-item">
-                        <a class="nav-link active" href="#"><i class="fas fa-tachometer-alt me-2"></i>داشبورد اصلی</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-danger mt-5" href="/logout"><i class="fas fa-sign-out-alt me-2"></i>خروج از پنل</a>
-                    </li>
-                </ul>
+    <a href="/dashboard" class="admin-link">پنل مدیریت</a>
+
+    <div class="content-container">
+        <img src="{{ data.logo_url }}" alt="Logo" class="logo-img">
+        <h1>{{ data.main_title }}</h1>
+        <p>{{ data.description }}</p>
+    </div>
+
+    <!-- دسته‌بندی‌ها در پایین صفحه با رنگ زرد -->
+    <div class="categories-footer">
+        <h5 class="text-light mb-3">دسته‌بندی‌های سایت</h5>
+        <div>
+            {% for cat in data.categories %}
+                <span class="category-badge">{{ cat }}</span>
+            {% endfor %}
+        </div>
+        <div class="mt-3 text-muted" style="font-size: 0.8rem;">تمامی حقوق محفوظ است | VortexPlay</div>
+    </div>
+</body>
+</html>
+"""
+
+# قالب پنل مدیریت (مدیریت کامل لوگو، متن‌ها، افزودن و حذف دسته‌بندی‌ها)
+ADMIN_HTML = """
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>پنل مدیریت پیشرفته</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background: #0b0f19; color: #fff; font-family: Tahoma, sans-serif; padding: 30px; }
+        .card { background: #161e2e; border: 1px solid #1f2937; border-radius: 12px; padding: 25px; margin-bottom: 20px; }
+        .form-control { background: #0b0f19; border-color: #374151; color: #fff; }
+        .form-control:focus { background: #0b0f19; color: #fff; border-color: #38bdf8; box-shadow: none; }
+        .btn-custom { background: #0284c7; color: #fff; font-weight: bold; }
+        .btn-custom:hover { background: #0369a1; color: #fff; }
+        .cat-item { display: flex; justify-content: space-between; align-items: center; background: #0b0f19; padding: 10px 15px; border-radius: 8px; margin-bottom: 8px; border: 1px solid #1f2937; }
+    </style>
+</head>
+<body>
+    <div class="container" style="max-width: 800px;">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>پنل مدیریت محتوا و دسته‌بندی‌ها</h2>
+            <a href="/" class="btn btn-outline-light btn-sm">مشاهده سایت</a>
+        </div>
+
+        <!-- ویرایش اطلاعات اصلی و لوگو -->
+        <div class="card">
+            <h4 class="text-info mb-3">تنظیمات ظاهر و متن‌ها</h4>
+            <form method="POST" action="/update_content">
+                <div class="mb-3">
+                    <label class="form-label">لینک تصویر لوگو (پس‌زمینه / آواتار):</label>
+                    <input type="text" name="logo_url" class="form-control" value="{{ data.logo_url }}" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">عنوان اصلی سایت:</label>
+                    <input type="text" name="main_title" class="form-control" value="{{ data.main_title }}" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">توضیحات کوتاه:</label>
+                    <textarea name="description" class="form-control" rows="2" required>{{ data.description }}</textarea>
+                </div>
+                <button type="submit" class="btn btn-custom w-100">ذخیره تغییرات ظاهر</button>
+            </form>
+        </div>
+
+        <!-- مدیریت دسته‌بندی‌ها (افزودن و حذف) -->
+        <div class="card">
+            <h4 class="text-info mb-3">مدیریت دسته‌بندی‌های پایین صفحه (رنگ زرد)</h4>
+            <form method="POST" action="/add_category" class="mb-4">
+                <div class="input-group">
+                    <input type="text" name="new_category" class="form-control" placeholder="نام دسته‌بندی جدید..." required>
+                    <button type="submit" class="btn btn-success">افزودن دسته‌بندی</button>
+                </div>
+            </form>
+
+            <div class="categories-list">
+                {% for cat in data.categories %}
+                    <div class="cat-item">
+                        <span style="color: #facc15; font-weight: bold;">{{ cat }}</span>
+                        <form method="POST" action="/delete_category" style="margin: 0;">
+                            <input type="hidden" name="category_name" value="{{ cat }}">
+                            <button type="submit" class="btn btn-danger btn-sm">حذف</button>
+                        </form>
+                    </div>
+                {% endfor %}
             </div>
-            <div class="col-md-9 col-lg-10 ms-sm-auto px-4 py-4">
-                <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
-                    <h2>داشبورد کنترل ربات و وب‌سرویس</h2>
-                    <div>
-                        <span class="badge bg-success status-badge"><i class="fas fa-circle me-1"></i> {{ stats.active_bot_status }}</span>
-                    </div>
-                </div>
-                <div class="row g-4 mb-4">
-                    <div class="col-md-4">
-                        <div class="card stat-card p-3">
-                            <h6 class="text-muted">پیام‌های پردازش شده</h6>
-                            <h3>{{ stats.total_messages_processed }}</h3>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="card stat-card p-3 border-success">
-                            <h6 class="text-muted">آپدیت‌های رندر</h6>
-                            <h3>فعال و پایدار</h3>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="card stat-card p-3 border-warning">
-                            <h6 class="text-muted">تعداد خطاها</h6>
-                            <h3>{{ stats.errors_count }}</h3>
-                        </div>
-                    </div>
-                </div>
-                <div class="row g-4">
-                    <div class="col-lg-6">
-                        <div class="card p-4">
-                            <h4 class="mb-3 text-info"><i class="fas fa-paper-plane me-2"></i>ارسال پیام همگانی</h4>
-                            <form method="POST" action="/broadcast">
-                                <div class="mb-3">
-                                    <label class="form-label">متن پیام یا دستور ربات:</label>
-                                    <textarea class="form-control bg-dark text-light border-secondary" name="broadcast_msg" rows="4" placeholder="متن خود را اینجا وارد کنید..." required></textarea>
-                                </div>
-                                <button type="submit" class="btn btn-custom w-100">ارسال فوری پیام</button>
-                            </form>
-                        </div>
-                    </div>
-                    <div class="col-lg-6">
-                        <div class="card p-4">
-                            <h4 class="mb-3 text-info"><i class="fas fa-info-circle me-2"></i>اطلاعات سیستم و هاست</h4>
-                            <ul class="list-group list-group-flush bg-transparent">
-                                <li class="list-group-item bg-transparent text-light border-secondary d-flex justify-content-between">
-                                    <span>محیط اجرا:</span><strong>Render Cloud</strong>
-                                </li>
-                                <li class="list-group-item bg-transparent text-light border-secondary d-flex justify-content-between">
-                                    <span>کتابخانه ربات:</span><strong>Rubpy Client</strong>
-                                </li>
-                                <li class="list-group-item bg-transparent text-light border-secondary d-flex justify-content-between">
-                                    <span>آخرین ارسال همگانی:</span><strong>{{ stats.last_broadcast }}</strong>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>
+        </div>
+        
+        <div class="text-center mt-3">
+            <a href="/logout" class="text-danger text-decoration-none">خروج از پنل مدیریت</a>
         </div>
     </div>
 </body>
@@ -184,95 +210,88 @@ LOGIN_HTML = """
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>ورود به پنل مدیریت VortexPlay</title>
+    <title>ورود به پنل مدیریت</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { background-color: #090d16; color: #fff; font-family: Tahoma, sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; }
-        .login-card { background-color: #1f2937; padding: 30px; border-radius: 15px; border: 1px solid #374151; width: 100%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        body { background: #0b0f19; color: #fff; font-family: Tahoma, sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; }
+        .login-card { background: #161e2e; padding: 30px; border-radius: 15px; border: 1px solid #1f2937; width: 100%; max-width: 400px; }
     </style>
 </head>
 <body>
     <div class="login-card">
         <h3 class="text-center mb-4 text-info">ورود به پنل مدیریت</h3>
-        {% if error %}
-            <div class="alert alert-danger py-2">{{ error }}</div>
-        {% endif %}
         <form method="POST">
             <div class="mb-3">
                 <label class="form-label">نام کاربری:</label>
                 <input type="text" name="username" class="form-control bg-dark text-light border-secondary" required>
             </div>
             <div class="mb-3">
-                <label class="form-label">رمز عبور (۳۲ رقمی امن):</label>
+                <label class="form-label">رمز عبور ۳۲ رقمی:</label>
                 <input type="password" name="password" class="form-control bg-dark text-light border-secondary" required>
             </div>
-            <button type="submit" class="btn btn-info w-100 fw-bold">ورود به پنل</button>
+            <button type="submit" class="btn btn-info w-100 fw-bold">ورود</button>
         </form>
     </div>
 </body>
 </html>
 """
 
-@app.route('/', methods=['GET', 'POST'])
-def login():
-    if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
-        if username == ADMIN_USERNAME and check_password_hash(ADMIN_PASSWORD_HASH, password):
-            session['logged_in'] = True
-            return redirect(url_for('dashboard'))
-        else:
-            return render_template_string(LOGIN_HTML, error="نام کاربری یا رمز عبور اشتباه است!")
-    return render_template_string(LOGIN_HTML)
+@app.route('/')
+def index():
+    return render_template_string(INDEX_HTML, data=site_data)
 
-@app.route('/dashboard')
+@app.route('/dashboard', methods=['GET', 'POST'])
 def dashboard():
     if not session.get('logged_in'):
-        return redirect(url_for('login'))
-    port = os.environ.get("PORT", 5000)
-    return render_template_string(ADMIN_PANEL_HTML, stats=system_stats, port=port)
+        if request.method == 'POST':
+            username = request.form.get('username')
+            password = request.form.get('password')
+            if username == ADMIN_USERNAME and check_password_hash(ADMIN_PASSWORD_HASH, password):
+                session['logged_in'] = True
+                return redirect(url_for('dashboard'))
+        return render_template_string(LOGIN_HTML)
+    return render_template_string(ADMIN_HTML, data=site_data)
 
-@app.route('/broadcast', methods=['POST'])
-def broadcast():
-    if not session.get('logged_in'):
-        return redirect(url_for('login'))
-    msg = request.form.get('broadcast_msg')
-    system_stats["last_broadcast"] = f"{datetime.now().strftime('%Y-%m-%d %H:%M')} - ({msg[:20]}...)"
-    logger.info(f"Broadcast message triggered: {msg}")
+@app.route('/update_content', methods=['POST'])
+def update_content():
+    if not session.get('logged_in'): return redirect(url_for('dashboard'))
+    site_data["logo_url"] = request.form.get('logo_url')
+    site_data["main_title"] = request.form.get('main_title')
+    site_data["description"] = request.form.get('description')
+    return redirect(url_for('dashboard'))
+
+@app.route('/add_category', methods=['POST'])
+def add_category():
+    if not session.get('logged_in'): return redirect(url_for('dashboard'))
+    new_cat = request.form.get('new_category')
+    if new_cat and new_cat not in site_data["categories"]:
+        site_data["categories"].append(new_cat)
+    return redirect(url_for('dashboard'))
+
+@app.route('/delete_category', methods=['POST'])
+def delete_category():
+    if not session.get('logged_in'): return redirect(url_for('dashboard'))
+    cat_to_delete = request.form.get('category_name')
+    if cat_to_delete in site_data["categories"]:
+        site_data["categories"].remove(cat_to_delete)
     return redirect(url_for('dashboard'))
 
 @app.route('/logout')
 def logout():
     session.clear()
-    return redirect(url_for('login'))
+    return redirect(url_for('index'))
 
-@app.route('/health')
-def health_check():
-    return jsonify({"status": "healthy", "timestamp": time.time(), "bot_status": system_stats["active_bot_status"]}), 200
-
-def run_rubpy_bot():
-    async def bot_main():
-        try:
-            system_stats["active_bot_status"] = "آنلاین و متصل"
-            logger.info("Rubpy bot background service initialized successfully.")
-            while True:
-                await asyncio.sleep(60)
-                system_stats["total_messages_processed"] += 1
-        except Exception as e:
-            system_stats["active_bot_status"] = "با خطا مواجه شد"
-            system_stats["errors_count"] += 1
-            logger.error(f"Error in Rubpy background bot: {e}")
-
+# اجرای ربات در پس‌زمینه
+def run_bot():
+    async def main():
+        while True:
+            await asyncio.sleep(60)
+            system_stats["messages_count"] += 1
     loop = asyncio.new_event_loop()
     asyncio.set_event_loop(loop)
-    try:
-        loop.run_until_complete(bot_main())
-    except Exception as ex:
-        logger.error(f"Failed to run event loop: {ex}")
+    loop.run_until_complete(main())
 
 if __name__ == '__main__':
-    bot_thread = threading.Thread(target=run_rubpy_bot, daemon=True)
-    bot_thread.start()
-
+    threading.Thread(target=run_bot, daemon=True).start()
     port = int(os.environ.get("PORT", 5000))
     app.run(host='0.0.0.0', port=port)
