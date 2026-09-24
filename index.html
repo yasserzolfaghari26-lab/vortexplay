@@ -3,28 +3,219 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VORTEXPLAY 🎮</title>
+    <title>VORTEXPLAY | پایگاه گیمینگ</title>
     <style>
-        *{margin:0;padding:0;box-sizing:border-box}
-        body{background:linear-gradient(135deg,#1a1a2e,#16213e);color:#fff;text-align:center;padding:40px 20px;font-family:sans-serif}
-        h1{color:#ff9500;font-size:36px;margin-bottom:10px}
-        .subtitle{color:#aaa;margin-bottom:30px}
-        .card{background:#ffffff10;border-radius:16px;padding:25px;margin:20px auto;max-width:500px;border:1px solid #ffffff20}
-        h2{color:#00d4ff;margin-bottom:15px}
-        .item{background:#ffffff08;padding:12px;border-radius:8px;margin:8px 0}
-        a{color:#00d4ff;text-decoration:none}
-        .footer{margin-top:40px;color:#666;font-size:14px}
+        :root {
+            --bg-main: #1a1a2e;
+            --bg-card: #16213e;
+            --color-primary: #ff6b00;
+            --color-secondary: #0099ff;
+            --text-light: #ffffff;
+            --text-dark: #e0e0e0;
+        }
+        * {margin: 0; padding: 0; box-sizing: border-box; font-family: Tahoma, sans-serif;}
+        body {background: var(--bg-main); color: var(--text-light); min-height: 100vh;}
+        .container {max-width: 800px; margin: 0 auto; padding: 20px;}
+        header {text-align: center; padding: 30px 0;}
+        .logo {max-width: 120px; border-radius: 12px; margin-bottom: 15px;}
+        h1 {font-size: 2.5rem; color: var(--color-primary); margin-bottom: 8px;}
+        .subtitle {color: var(--text-dark); font-size: 1.1rem;}
+        .messages-box {background: var(--bg-card); border-radius: 16px; padding: 25px; margin: 25px 0; box-shadow: 0 8px 32px rgba(0,0,0,0.3);}
+        .messages-box h2 {color: var(--color-secondary); margin-bottom: 20px; font-size: 1.3rem;}
+        .message {background: rgba(255,107,0,0.1); border-right: 4px solid var(--color-primary); padding: 15px; border-radius: 8px; margin-bottom: 12px; line-height: 1.8;}
+        .buttons {display: flex; gap: 12px; justify-content: center; margin: 30px 0;}
+        .btn {padding: 14px 32px; border: none; border-radius: 10px; font-size: 1rem; font-weight: bold; cursor: pointer; transition: all 0.3s; text-decoration: none; display: inline-block;}
+        .admin-btn {background: linear-gradient(135deg, #ff6b00, #ff8c00); color: white;}
+        .admin-btn:hover {transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255,107,0,0.4);}
+        footer {text-align: center; padding: 20px; color: #888; font-size: 0.9rem; margin-top: 40px;}
+        .login-box, .panel-box {background: var(--bg-card); border-radius: 16px; padding: 30px; box-shadow: 0 8px 32px rgba(0,0,0,0.3);}
+        input, textarea {width: 100%; padding: 14px; margin: 10px 0; border: none; border-radius: 8px; background: rgba(255,255,255,0.1); color: white; font-size: 1rem;}
+        textarea {min-height: 120px; resize: vertical;}
+        .back-btn {color: var(--color-secondary); text-decoration: none; margin-bottom: 20px; display: inline-block;}
+        .error {color: #ff4444; margin-top: 10px;}
+        .success {color: #00ff88; margin-top: 10px;}
+        .section {margin: 25px 0; padding: 20px; background: rgba(255,255,255,0.03); border-radius: 12px;}
+        .section h3 {color: var(--color-secondary); margin-bottom: 15px;}
+        label {display: block; margin: 12px 0 5px; color: var(--text-dark);}
     </style>
 </head>
 <body>
-    <h1>🎮 VORTEXPLAY</h1>
-    <p class="subtitle">مرکز دانلود بازی</p>
-    <div class="card">
-        <h2>بازی‌ها</h2>
-        <div class="item"><strong>بازی شماره ۱</strong><br><a href="#">دانلود</a></div>
-        <div class="item"><strong>بازی شماره ۲</strong><br><a href="#">دانلود</a></div>
-        <div class="item"><strong>بازی شماره ۳</strong><br><a href="#">دانلود</a></div>
+    <div class="container">
+        <header>
+            <img id="main-logo" src="https://via.placeholder.com/120/ff6b00/ffffff?text=V" alt="لوگو" class="logo">
+            <h1>VORTEXPLAY</h1>
+            <p class="subtitle">مرکز دانلود و دنیای بازی‌ها</p>
+        </header>
+
+        <div class="messages-box">
+            <h2>📢 آخرین پیام‌ها</h2>
+            <div id="messages-list">
+                <div class="message"><p>👋 به VORTEXPLAY خوش اومدید!</p></div>
+            </div>
+        </div>
+
+        <div class="buttons">
+            <a href="javascript:showAdmin()" class="btn admin-btn">🔐 پنل مدیریت</a>
+        </div>
+
+        <div id="admin-section" style="display:none;">
+            <div class="login-box" id="login-box">
+                <a href="javascript:hideAdmin()" class="back-btn">← بازگشت</a>
+                <h2>ورود به پنل مدیریت</h2>
+                <input type="password" id="password-input" placeholder="رمز ۳۲ رقمی را وارد کنید...">
+                <button onclick="checkPass()" class="btn admin-btn">ورود</button>
+                <p id="error-msg" class="error"></p>
+            </div>
+
+            <div class="panel-box" id="panel-box" style="display:none;">
+                <a href="javascript:logout()" class="back-btn">← خروج</a>
+                <h2>✅ خوش اومدی!</h2>
+
+                <div class="section">
+                    <h3>📝 ارسال پیام جدید</h3>
+                    <textarea id="new-message" placeholder="متن پیام را بنویسید..."></textarea>
+                    <button onclick="addMessage()" class="btn admin-btn">انتشار پیام</button>
+                    <p id="msg-status" class="success"></p>
+                </div>
+
+                <div class="section">
+                    <h3>🎨 تغییر ظاهر سایت</h3>
+                    <label>لینک لوگو (از گالری یا اینترنت):</label>
+                    <input type="text" id="new-logo" placeholder="لینک تصویر را بگذارید...">
+                    <button onclick="changeLogo()" class="btn admin-btn">تغییر لوگو</button>
+                    <p id="logo-status" class="success"></p>
+
+                    <label>کد رنگ پس‌زمینه:</label>
+                    <input type="color" id="new-bg" value="#1a1a2e">
+                    <button onclick="changeBg()" class="btn admin-btn">تغییر پس‌زمینه</button>
+
+                    <label>کد رنگ دکمه‌ها:</label>
+                    <input type="color" id="new-color" value="#ff6b00">
+                    <button onclick="changeColor()" class="btn admin-btn">تغییر رنگ اصلی</button>
+                </div>
+
+                <div class="section">
+                    <h3>🔑 تغییر رمز عبور</h3>
+                    <input type="password" id="old-pass" placeholder="رمز فعلی">
+                    <input type="password" id="new-pass" placeholder="رمز جدید ۳۲ رقمی">
+                    <button onclick="changePass()" class="btn admin-btn">تغییر رمز</button>
+                    <p id="pass-status" class="success"></p>
+                </div>
+            </div>
+        </div>
+
+        <footer>
+            <p>© ۲۰۲۶ VORTEXPLAY — همه حقوق محفوظ است</p>
+        </footer>
     </div>
-    <p class="footer">© ۲۰۲۶ VORTEXPLAY 🟠</p>
+
+    <script>
+        let ADMIN_PASS = "VORTEX9X7K2P4R8M3N5L6J1H9G8F7D6S5A4D3B";
+        
+        function loadSettings() {
+            const savedPass = localStorage.getItem('admin_pass');
+            if(savedPass) ADMIN_PASS = savedPass;
+            
+            const savedLogo = localStorage.getItem('site_logo');
+            if(savedLogo) document.getElementById('main-logo').src = savedLogo;
+            
+            const savedBg = localStorage.getItem('site_bg');
+            if(savedBg) document.documentElement.style.setProperty('--bg-main', savedBg);
+            
+            const savedColor = localStorage.getItem('site_color');
+            if(savedColor) document.documentElement.style.setProperty('--color-primary', savedColor);
+            
+            const messages = JSON.parse(localStorage.getItem('site_messages') || '[{"text":"👋 به VORTEXPLAY خوش اومدید!"}]');
+            renderMessages(messages);
+        }
+
+        function renderMessages(messages) {
+            const list = document.getElementById('messages-list');
+            list.innerHTML = '';
+            messages.forEach(m => {
+                const div = document.createElement('div');
+                div.className = 'message';
+                div.innerHTML = `<p>${m.text}</p>`;
+                list.appendChild(div);
+            });
+        }
+
+        function showAdmin() {
+            document.getElementById('admin-section').style.display = 'block';
+        }
+        function hideAdmin() {
+            document.getElementById('admin-section').style.display = 'none';
+            document.getElementById('panel-box').style.display = 'none';
+            document.getElementById('login-box').style.display = 'block';
+        }
+        function logout() {
+            hideAdmin();
+            document.getElementById('password-input').value = '';
+        }
+
+        function checkPass() {
+            const input = document.getElementById('password-input').value.trim();
+            if(input === ADMIN_PASS) {
+                document.getElementById('login-box').style.display = 'none';
+                document.getElementById('panel-box').style.display = 'block';
+                document.getElementById('error-msg').textContent = '';
+            } else {
+                document.getElementById('error-msg').textContent = '❌ رمز اشتباه است!';
+            }
+        }
+
+        function addMessage() {
+            const text = document.getElementById('new-message').value.trim();
+            if(!text) return alert('متن پیام را بنویسید!');
+            
+            const messages = JSON.parse(localStorage.getItem('site_messages') || '[]');
+            messages.unshift({text: text});
+            localStorage.setItem('site_messages', JSON.stringify(messages));
+            renderMessages(messages);
+            
+            document.getElementById('new-message').value = '';
+            document.getElementById('msg-status').textContent = '✅ پیام منتشر شد!';
+            setTimeout(() => document.getElementById('msg-status').textContent = '', 3000);
+        }
+
+        function changeLogo() {
+            const url = document.getElementById('new-logo').value.trim();
+            if(!url) return alert('لینک تصویر را وارد کنید!');
+            document.getElementById('main-logo').src = url;
+            localStorage.setItem('site_logo', url);
+            document.getElementById('logo-status').textContent = '✅ لوگو تغییر کرد!';
+            setTimeout(() => document.getElementById('logo-status').textContent = '', 3000);
+        }
+
+        function changeBg() {
+            const color = document.getElementById('new-bg').value;
+            document.documentElement.style.setProperty('--bg-main', color);
+            localStorage.setItem('site_bg', color);
+            alert('✅ پس‌زمینه تغییر کرد!');
+        }
+
+        function changeColor() {
+            const color = document.getElementById('new-color').value;
+            document.documentElement.style.setProperty('--color-primary', color);
+            localStorage.setItem('site_color', color);
+            alert('✅ رنگ اصلی تغییر کرد!');
+        }
+
+        function changePass() {
+            const oldP = document.getElementById('old-pass').value.trim();
+            const newP = document.getElementById('new-pass').value.trim();
+            
+            if(oldP !== ADMIN_PASS) return alert('❌ رمز فعلی اشتباه است!');
+            if(newP.length < 32) return alert('❌ رمز باید ۳۲ کاراکتر باشد!');
+            
+            ADMIN_PASS = newP;
+            localStorage.setItem('admin_pass', newP);
+            document.getElementById('pass-status').textContent = '✅ رمز تغییر کرد!';
+            document.getElementById('old-pass').value = '';
+            document.getElementById('new-pass').value = '';
+        }
+
+        loadSettings();
+    </script>
 </body>
 </html>
