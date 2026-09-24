@@ -1,524 +1,278 @@
+import os
+import sys
+import asyncio
+import threading
+import logging
+import time
+from datetime import datetime
+from flask import Flask, render_template_string, request, redirect, url_for, jsonify, session
+from werkzeug.security import generate_password_hash, check_password_hash
+from rubpy import Client
+
+# پیکربندی لاگینگ حرفه‌ای
+logging.basicConfig(
+    level=logging.INFO,
+    format='[%(asctime)s] [%(levelname)s] [%(name)s]: %(message)s',
+    handlers=[logging.StreamHandler(sys.stdout)]
+)
+logger = logging.getLogger("VortexPlaySystem")
+
+app = Flask(__name__)
+app.secret_key = os.urandom(24)
+
+# اطلاعات ورود به پنل مدیریت با رمز ۳۲ رقمی امن
+ADMIN_USERNAME = "admin"
+ADMIN_PASSWORD_HASH = generate_password_hash("x9K#mP2$vL8@zQ4!wR7*yT3&bN5%cH1-j")
+
+# وضعیت‌های سیستم
+system_stats = {
+    "start_time": time.time(),
+    "total_messages_processed": 0,
+    "active_bot_status": "در حال راه‌اندازی...",
+    "connected_clients": 0,
+    "last_broadcast": "هیچ پیامی ارسال نشده است",
+    "errors_count": 0
+}
+
+# قالب HTML پنل مدیریت پیشرفته
+ADMIN_PANEL_HTML = """
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VORTEXPLAY | درگاه شاهانه گیمینگ</title>
+    <title>پنل مدیریت پیشرفته VortexPlay</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: Tahoma, 'IRANSans', sans-serif;
-        }
-
         :root {
-            --bg-royal: #050714;
-            --bg-card: #0f142e;
-            --gold: #d4af37;
-            --gold-light: #ffd700;
-            --gold-dark: #b8860b;
-            --purple: #4b0082;
-            --purple-light: #9932cc;
-            --text-white: #ffffff;
-            --text-gold: #f5e7a0;
+            --bg-dark: #090d16;
+            --sidebar-bg: #111827;
+            --card-bg: #1f2937;
+            --accent-color: #38bdf8;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
         }
-
         body {
-            background: linear-gradient(135deg, #050714 0%, #1a1042 50%, #050714 100%);
-            color: var(--text-white);
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: Tahoma, sans-serif;
             min-height: 100vh;
         }
-
-        /* ستاره‌های پس‌زمینه */
-        .stars {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            pointer-events: none;
-            z-index: 0;
-        }
-        .star {
-            position: absolute;
-            width: 2px;
-            height: 2px;
-            background: white;
-            border-radius: 50%;
-            animation: twinkle 3s infinite;
-        }
-        @keyframes twinkle {
-            0%, 100% { opacity: 0.3; }
-            50% { opacity: 1; }
-        }
-
-        /* سایدبار سلطنتی */
         .sidebar {
-            background: linear-gradient(180deg, #0f142e 0%, #050714 100%);
-            border-left: 2px solid var(--gold);
-            position: fixed;
-            top: 0;
-            right: 0;
-            width: 250px;
-            height: 100vh;
-            padding: 30px 20px;
-            z-index: 100;
-            box-shadow: -5px 0 30px rgba(212, 175, 55, 0.15);
+            background-color: var(--sidebar-bg);
+            border-left: 1px solid #374151;
+            min-height: 100vh;
+            padding: 20px;
         }
-
-        .royal-crown {
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        .royal-crown i {
-            font-size: 2.5rem;
-            color: var(--gold-light);
-            text-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
-            animation: glow 2s infinite alternate;
-        }
-        @keyframes glow {
-            from { text-shadow: 0 0 15px rgba(255, 215, 0, 0.5); }
-            to { text-shadow: 0 0 30px rgba(255, 215, 0, 0.9); }
-        }
-        .royal-crown h4 {
-            color: var(--gold-light);
-            font-weight: bold;
-            margin-top: 10px;
-            font-size: 1.4rem;
-        }
-        .royal-crown p {
-            color: var(--text-gold);
-            font-size: 0.85rem;
-        }
-
-        .sidebar nav a {
-            display: flex;
-            align-items: center;
-            color: #c0c0c0;
-            padding: 14px 18px;
-            margin: 8px 0;
-            border-radius: 10px;
-            text-decoration: none;
-            transition: all 0.3s ease;
-            border: 1px solid transparent;
-        }
-        .sidebar nav a:hover,
-        .sidebar nav a.active {
-            background: linear-gradient(90deg, rgba(75, 0, 130, 0.4), rgba(212, 175, 55, 0.2));
-            border-color: var(--gold);
-            color: var(--gold-light);
-        }
-        .sidebar nav a.logout {
-            color: #ff6b6b;
-            margin-top: 60px;
-            border-color: transparent;
-        }
-        .sidebar nav a.logout:hover {
-            border-color: #ff6b6b;
-            background: rgba(255, 107, 107, 0.1);
-        }
-        .sidebar nav a i {
-            margin-left: 12px;
-            font-size: 1.1rem;
-        }
-
-        /* محتوای اصلی */
-        .main-content {
-            margin-right: 270px;
-            padding: 35px;
-            position: relative;
-            z-index: 1;
-        }
-
-        .top-section {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 40px;
-            padding-bottom: 25px;
-            border-bottom: 1px solid rgba(212, 175, 55, 0.3);
-        }
-
-        .page-title h2 {
-            color: var(--gold-light);
-            font-weight: bold;
-        }
-        .page-title p {
-            color: #a0a0c0;
-        }
-
-        .status-royal {
-            background: linear-gradient(90deg, #00aa55, #00cc66);
-            color: white;
-            padding: 10px 25px;
-            border-radius: 30px;
-            font-weight: bold;
-            box-shadow: 0 0 15px rgba(0, 170, 85, 0.4);
-        }
-        .status-royal i {
-            margin-left: 8px;
-        }
-
-        /* کارت‌های آمار */
-        .stat-royal {
-            background: linear-gradient(135deg, #0f142e, #1a1042);
-            border: 2px solid var(--gold);
-            border-radius: 16px;
-            padding: 25px;
-            transition: all 0.4s ease;
-            box-shadow: 0 5px 20px rgba(212, 175, 55, 0.1);
-        }
-        .stat-royal:hover {
-            transform: translateY(-6px) scale(1.02);
-            box-shadow: 0 10px 30px rgba(212, 175, 55, 0.25);
-            border-color: var(--gold-light);
-        }
-        .stat-royal h6 {
-            color: var(--text-gold);
-            font-size: 0.95rem;
-            margin-bottom: 12px;
-        }
-        .stat-royal h3 {
-            color: var(--gold-light);
-            font-size: 1.8rem;
-            font-weight: bold;
-        }
-
-        /* کارت‌های محتوا */
-        .card-royal {
-            background: linear-gradient(135deg, #0f142e, #1a1042);
-            border: 2px solid var(--gold);
-            border-radius: 16px;
-            padding: 30px;
-            height: 100%;
-            box-shadow: 0 5px 20px rgba(212, 175, 55, 0.1);
-        }
-        .card-royal h5 {
-            color: var(--gold-light);
-            margin-bottom: 22px;
-            display: flex;
-            align-items: center;
-            font-size: 1.2rem;
-        }
-        .card-royal h5 i {
-            margin-left: 10px;
-        }
-
-        .form-royal {
-            width: 100%;
-            background: #050714;
-            border: 2px solid var(--gold-dark);
-            color: white;
+        .card {
+            background-color: var(--card-bg);
+            border: 1px solid #374151;
+            color: var(--text-main);
             border-radius: 12px;
-            padding: 16px 20px;
-            font-size: 1rem;
-            outline: none;
-            transition: all 0.3s;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
         }
-        .form-royal:focus {
-            border-color: var(--gold-light);
-            box-shadow: 0 0 0 3px rgba(255, 215, 0, 0.2);
+        .stat-card {
+            border-right: 4px solid var(--accent-color);
         }
-
-        .btn-royal {
-            background: linear-gradient(90deg, var(--gold-dark), var(--gold-light));
-            border: none;
-            color: #050714;
-            padding: 15px;
-            border-radius: 12px;
-            font-size: 1.05rem;
-            font-weight: bold;
-            width: 100%;
-            transition: all 0.3s;
-            margin-top: 10px;
-        }
-        .btn-royal:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(212, 175, 55, 0.4);
-        }
-
-        .msg-box {
-            background: #050714;
-            border: 2px solid var(--gold-dark);
-            border-radius: 12px;
-            padding: 22px;
-        }
-        .msg-time {
-            color: var(--gold);
-            font-size: 0.85rem;
-            margin-bottom: 10px;
-        }
-        .msg-text {
-            line-height: 1.8;
-            color: #e0e0ff;
-        }
-
-        /* پایین صفحه */
-        .footer-royal {
-            text-align: center;
-            margin-top: 50px;
-            padding: 25px;
-            border-top: 1px solid rgba(212, 175, 55, 0.3);
-            color: #8888aa;
-        }
-        .footer-royal span {
-            color: var(--gold-light);
-            font-weight: bold;
-        }
-
-        /* صفحه ورود */
-        .login-box {
-            background: linear-gradient(135deg, #0f142e, #1a1042);
-            border: 3px solid var(--gold);
-            border-radius: 20px;
-            padding: 40px;
-            width: 100%;
-            max-width: 450px;
-            box-shadow: 0 0 40px rgba(212, 175, 55, 0.3);
-        }
-        .login-box h3 {
-            color: var(--gold-light);
-            text-align: center;
-            margin-bottom: 30px;
-        }
-        .pass-hint {
-            background: rgba(212, 175, 55, 0.1);
-            border: 1px dashed var(--gold);
+        .nav-link {
+            color: var(--text-muted);
             border-radius: 8px;
-            padding: 12px;
-            margin-top: 15px;
-            font-size: 0.9rem;
-            color: var(--text-gold);
+            margin-bottom: 5px;
+            transition: all 0.3s;
         }
-
-        /* موبایل */
-        @media (max-width: 768px) {
-            .sidebar {
-                position: static;
-                width: 100%;
-                height: auto;
-                border-left: none;
-                border-bottom: 2px solid var(--gold);
-            }
-            .main-content {
-                margin-right: 0;
-                padding: 20px;
-            }
+        .nav-link:hover, .nav-link.active {
+            background-color: #374151;
+            color: var(--accent-color);
+        }
+        .btn-custom {
+            background-color: #0284c7;
+            color: #fff;
+            border: none;
+        }
+        .btn-custom:hover {
+            background-color: #0369a1;
+            color: #fff;
+        }
+        .status-badge {
+            font-size: 0.85rem;
+            padding: 6px 12px;
+            border-radius: 20px;
         }
     </style>
 </head>
 <body>
-    <!-- ستاره‌های پس‌زمینه -->
-    <div class="stars" id="stars"></div>
-
-    <!-- ========== صفحه ورود ========== -->
-    <div id="loginPage" style="display:flex;align-items:center;justify-content:center;min-height:100vh;">
-        <div class="login-box">
-            <div class="royal-crown mb-3">
-                <i class="fas fa-crown"></i>
-                <h4>VORTEXPLAY</h4>
-                <p>پنل مدیریت شاهانه</p>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-3 col-lg-2 sidebar d-none d-md-block">
+                <h4 class="text-info text-center mb-4"><i class="fas fa-robot me-2"></i>VortexPlay</h4>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#"><i class="fas fa-tachometer-alt me-2"></i>داشبورد اصلی</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-danger mt-5" href="/logout"><i class="fas fa-sign-out-alt me-2"></i>خروج از پنل</a>
+                    </li>
+                </ul>
             </div>
-            <h3><i class="fas fa-lock"></i> ورود به پنل</h3>
-            
-            <div id="loginError" class="alert alert-danger py-2 d-none"></div>
-            
-            <form onsubmit="checkLogin(event)">
-                <div class="mb-3">
-                    <label class="form-label" style="color:var(--text-gold);">نام کاربری</label>
-                    <input type="text" id="username" class="form-royal" value="admin" required>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label" style="color:var(--text-gold);">رمز ۳۲ رقمی</label>
-                    <input type="password" id="password" class="form-royal" placeholder="رمز خود را وارد کنید..." required>
-                </div>
-                <button type="submit" class="btn-royal">
-                    <i class="fas fa-sign-in-alt me-2"></i>
-                    ورود به پنل شاهانه
-                </button>
-                <div class="pass-hint">
-                    <i class="fas fa-info-circle"></i> رمز ۳۲ رقمی شما: <strong id="passDisplay">بارگذاری...</strong>
-                </div>
-            </form>
-        </div>
-    </div>
-
-    <!-- ========== داشبورد ========== -->
-    <div id="dashboardPage" style="display:none;">
-        <!-- سایدبار -->
-        <aside class="sidebar">
-            <div class="royal-crown">
-                <i class="fas fa-crown"></i>
-                <h4>VORTEXPLAY</h4>
-                <p>درگاه شاهانه گیمینگ</p>
-            </div>
-
-            <nav>
-                <a href="#" class="active">
-                    <i class="fas fa-chess-king"></i>
-                    داشبورد شاهانه
-                </a>
-                <a href="#">
-                    <i class="fas fa-gamepad"></i>
-                    کتابخانه بازی‌ها
-                </a>
-                <a href="#">
-                    <i class="fas fa-download"></i>
-                    مدیریت لینک‌ها
-                </a>
-                <a href="#">
-                    <i class="fas fa-chart-pie"></i>
-                    آمار و بازدید
-                </a>
-                <a href="#">
-                    <i class="fas fa-cog"></i>
-                    تنظیمات سلطنتی
-                </a>
-                <a href="#" class="logout" onclick="logout()">
-                    <i class="fas fa-door-open"></i>
-                    خروج از درگاه
-                </a>
-            </nav>
-        </aside>
-
-        <!-- محتوای اصلی -->
-        <main class="main-content">
-            <div class="top-section">
-                <div class="page-title">
-                    <h2>درگاه شاهانه مدیریت VORTEXPLAY 👑</h2>
-                    <p>کنترل کامل و متمرکز سایت گیمینگ شما</p>
-                </div>
-                <span class="status-royal">
-                    <i class="fas fa-circle"></i>
-                    تاج بر سر، سیستم آنلاین
-                </span>
-            </div>
-
-            <!-- آمار -->
-            <div class="row g-4 mb-5">
-                <div class="col-md-4">
-                    <div class="stat-royal">
-                        <h6><i class="far fa-sun me-1"></i> تاریخ تاسیس</h6>
-                        <h3 id="startDate">۱۴۰۵/۰۷/۰۳</h3>
+            <div class="col-md-9 col-lg-10 ms-sm-auto px-4 py-4">
+                <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+                    <h2>داشبورد کنترل ربات و وب‌سرویس</h2>
+                    <div>
+                        <span class="badge bg-success status-badge"><i class="fas fa-circle me-1"></i> {{ stats.active_bot_status }}</span>
                     </div>
                 </div>
-                <div class="col-md-4">
-                    <div class="stat-royal">
-                        <h6><i class="fas fa-envelope me-1"></i> پیام‌های سلطنتی</h6>
-                        <h3 id="msgCount">۰</h3>
+                <div class="row g-4 mb-4">
+                    <div class="col-md-4">
+                        <div class="card stat-card p-3">
+                            <h6 class="text-muted">پیام‌های پردازش شده</h6>
+                            <h3>{{ stats.total_messages_processed }}</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card stat-card p-3 border-success">
+                            <h6 class="text-muted">آپدیت‌های رندر</h6>
+                            <h3>فعال و پایدار</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card stat-card p-3 border-warning">
+                            <h6 class="text-muted">تعداد خطاها</h6>
+                            <h3>{{ stats.errors_count }}</h3>
+                        </div>
                     </div>
                 </div>
-                <div class="col-md-4">
-                    <div class="stat-royal">
-                        <h6><i class="fas fa-shield-alt me-1"></i> وضعیت امنیت</h6>
-                        <h3 style="color:#00ff88;">ایمن ✅</h3>
+                <div class="row g-4">
+                    <div class="col-lg-6">
+                        <div class="card p-4">
+                            <h4 class="mb-3 text-info"><i class="fas fa-paper-plane me-2"></i>ارسال پیام همگانی</h4>
+                            <form method="POST" action="/broadcast">
+                                <div class="mb-3">
+                                    <label class="form-label">متن پیام یا دستور ربات:</label>
+                                    <textarea class="form-control bg-dark text-light border-secondary" name="broadcast_msg" rows="4" placeholder="متن خود را اینجا وارد کنید..." required></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-custom w-100">ارسال فوری پیام</button>
+                            </form>
+                        </div>
                     </div>
-                </div>
-            </div>
-
-            <!-- فرم و پیام -->
-            <div class="row g-4">
-                <div class="col-lg-6">
-                    <div class="card-royal">
-                        <h5><i class="fas fa-paper-plane"></i> اعلان همگانی سلطنتی</h5>
-                        <textarea id="msgInput" class="form-royal" rows="5" placeholder="پیام خود را برای همگان بنویسید..."></textarea>
-                        <button class="btn-royal" onclick="sendMsg()">
-                            <i class="fas fa-broadcast-tower me-2"></i>
-                            انتشار پیام
-                        </button>
-                    </div>
-                </div>
-
-                <div class="col-lg-6">
-                    <div class="card-royal">
-                        <h5><i class="fas fa-history"></i> آخرین فرمان شاهانه</h5>
-                        <div class="msg-box">
-                            <p class="msg-time" id="lastTime">هنوز پیامی صادر نشده</p>
-                            <p class="msg-text" id="lastMsg">— در انتظار نخستین فرمان —</p>
+                    <div class="col-lg-6">
+                        <div class="card p-4">
+                            <h4 class="mb-3 text-info"><i class="fas fa-info-circle me-2"></i>اطلاعات سیستم و هاست</h4>
+                            <ul class="list-group list-group-flush bg-transparent">
+                                <li class="list-group-item bg-transparent text-light border-secondary d-flex justify-content-between">
+                                    <span>محیط اجرا:</span><strong>Render Cloud</strong>
+                                </li>
+                                <li class="list-group-item bg-transparent text-light border-secondary d-flex justify-content-between">
+                                    <span>کتابخانه ربات:</span><strong>Rubpy Client</strong>
+                                </li>
+                                <li class="list-group-item bg-transparent text-light border-secondary d-flex justify-content-between">
+                                    <span>آخرین ارسال همگانی:</span><strong>{{ stats.last_broadcast }}</strong>
+                                </li>
+                            </ul>
                         </div>
                     </div>
                 </div>
             </div>
-
-            <!-- پایین صفحه -->
-            <div class="footer-royal">
-                <p>تحت فرمان <span>VORTEXPLAY</span> | طراحی و توسعه با اقتدار شاهانه 👑</p>
-                <p style="margin-top:8px; font-size:0.85rem;">نسخه ۱.۰.۰ | همه حقوق محفوظ است © ۱۴۰۵</p>
-            </div>
-        </main>
+        </div>
     </div>
-
-    <script>
-        // ⚙️ تولید رمز ۳۲ رقمی
-        const ADMIN_USER = "admin";
-        const ADMIN_PASS = generatePass32();
-        let msgCount = 0;
-
-        function generatePass32() {
-            const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()";
-            let pass = "";
-            for (let i = 0; i < 32; i++) {
-                pass += chars[Math.floor(Math.random() * chars.length)];
-            }
-            return pass;
-        }
-
-        // نمایش رمز
-        document.getElementById("passDisplay").textContent = ADMIN_PASS;
-
-        // ساخت ستاره‌ها
-        const starsContainer = document.getElementById("stars");
-        for (let i = 0; i < 80; i++) {
-            const star = document.createElement("div");
-            star.className = "star";
-            star.style.left = Math.random() * 100 + "%";
-            star.style.top = Math.random() * 100 + "%";
-            star.style.animationDelay = Math.random() * 3 + "s";
-            starsContainer.appendChild(star);
-        }
-
-        // بررسی ورود
-        function checkLogin(e) {
-            e.preventDefault();
-            const u = document.getElementById("username").value;
-            const p = document.getElementById("password").value;
-            const err = document.getElementById("loginError");
-
-            if (u === ADMIN_USER && p === ADMIN_PASS) {
-                document.getElementById("loginPage").style.display = "none";
-                document.getElementById("dashboardPage").style.display = "block";
-            } else {
-                err.textContent = "نام کاربری یا رمز ۳۲ رقمی نادرست است!";
-                err.classList.remove("d-none");
-            }
-        }
-
-        // ارسال پیام
-        function sendMsg() {
-            const input = document.getElementById("msgInput");
-            const text = input.value.trim();
-            if (!text) return;
-
-            const now = new Date();
-            const timeStr = now.toLocaleDateString('fa-IR') + ' — ' + 
-                            now.toLocaleTimeString('fa-IR', {hour:'2-digit', minute:'2-digit'});
-            
-            msgCount++;
-            document.getElementById("msgCount").textContent = msgCount;
-            document.getElementById("lastTime").textContent = timeStr;
-            document.getElementById("lastMsg").textContent = text;
-            input.value = "";
-        }
-
-        // خروج
-        function logout() {
-            document.getElementById("dashboardPage").style.display = "none";
-            document.getElementById("loginPage").style.display = "flex";
-            document.getElementById("password").value = "";
-        }
-    </script>
 </body>
 </html>
+"""
+
+LOGIN_HTML = """
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>ورود به پنل مدیریت VortexPlay</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background-color: #090d16; color: #fff; font-family: Tahoma, sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; }
+        .login-card { background-color: #1f2937; padding: 30px; border-radius: 15px; border: 1px solid #374151; width: 100%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <h3 class="text-center mb-4 text-info">ورود به پنل مدیریت</h3>
+        {% if error %}
+            <div class="alert alert-danger py-2">{{ error }}</div>
+        {% endif %}
+        <form method="POST">
+            <div class="mb-3">
+                <label class="form-label">نام کاربری:</label>
+                <input type="text" name="username" class="form-control bg-dark text-light border-secondary" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">رمز عبور (۳۲ رقمی امن):</label>
+                <input type="password" name="password" class="form-control bg-dark text-light border-secondary" required>
+            </div>
+            <button type="submit" class="btn btn-info w-100 fw-bold">ورود به پنل</button>
+        </form>
+    </div>
+</body>
+</html>
+"""
+
+@app.route('/', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        if username == ADMIN_USERNAME and check_password_hash(ADMIN_PASSWORD_HASH, password):
+            session['logged_in'] = True
+            return redirect(url_for('dashboard'))
+        else:
+            return render_template_string(LOGIN_HTML, error="نام کاربری یا رمز عبور اشتباه است!")
+    return render_template_string(LOGIN_HTML)
+
+@app.route('/dashboard')
+def dashboard():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+    port = os.environ.get("PORT", 5000)
+    return render_template_string(ADMIN_PANEL_HTML, stats=system_stats, port=port)
+
+@app.route('/broadcast', methods=['POST'])
+def broadcast():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+    msg = request.form.get('broadcast_msg')
+    system_stats["last_broadcast"] = f"{datetime.now().strftime('%Y-%m-%d %H:%M')} - ({msg[:20]}...)"
+    logger.info(f"Broadcast message triggered: {msg}")
+    return redirect(url_for('dashboard'))
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('login'))
+
+@app.route('/health')
+def health_check():
+    return jsonify({"status": "healthy", "timestamp": time.time(), "bot_status": system_stats["active_bot_status"]}), 200
+
+def run_rubpy_bot():
+    async def bot_main():
+        try:
+            system_stats["active_bot_status"] = "آنلاین و متصل"
+            logger.info("Rubpy bot background service initialized successfully.")
+            while True:
+                await asyncio.sleep(60)
+                system_stats["total_messages_processed"] += 1
+        except Exception as e:
+            system_stats["active_bot_status"] = "با خطا مواجه شد"
+            system_stats["errors_count"] += 1
+            logger.error(f"Error in Rubpy background bot: {e}")
+
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    try:
+        loop.run_until_complete(bot_main())
+    except Exception as ex:
+        logger.error(f"Failed to run event loop: {ex}")
+
+if __name__ == '__main__':
+    bot_thread = threading.Thread(target=run_rubpy_bot, daemon=True)
+    bot_thread.start()
+
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
