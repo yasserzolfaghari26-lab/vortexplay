@@ -1,350 +1,261 @@
-import os
-import sys
-import asyncio
-import threading
-import logging
-from flask import Flask, render_template_string, request, redirect, url_for, session
-from werkzeug.security import generate_password_hash, check_password_hash
-from rubpy import Client
-
-logging.basicConfig(level=logging.INFO, format='[%(asctime)s] [%(levelname)s]: %(message)s', stream=sys.stdout)
-logger = logging.getLogger("VortexPlayApp")
-
-app = Flask(__name__)
-app.secret_key = os.urandom(24)
-
-# تنظیمات امنیت پنل مدیریت با رمز ۳۲ رقمی
-ADMIN_USERNAME = "admin"
-ADMIN_PASSWORD_HASH = generate_password_hash("p7K#m9X$vL2@zQ4!wR8*yT3&bN5%cH1-j")
-
-# داده‌های قابل مدیریت از پنل (لوگو، عنوان و دسته‌بندی‌ها)
-site_data = {
-    "logo_url": "https://i.ibb.co/5W2Q429/vortex-logo.png", # قابل تغییر از پنل
-    "main_title": "VORTEXPLAY",
-    "subtitle": "♦ GAMING EMPIRE ♦",
-    "status": "SYSTEM STATUS: ONLINE",
-    "categories": [
-        {"title": "BACKUP & TUTORIALS", "desc": "Guides & System Files", "icon": "📚"},
-        {"title": "PS5 GAME", "desc": "PlayStation 5 Games & PKGs", "icon": "🎮"},
-        {"title": "GAME PHOTOS", "desc": "Wallpapers & Screenshots", "icon": "🖼️"}
-    ]
-}
-
-system_stats = {"messages_count": 0}
-
-# قالب صفحه اصلی (کاملاً همسان با طراحی گرافیکی نئونی و شیک تصویر)
-INDEX_HTML = """
 <!DOCTYPE html>
-<html lang="fa" dir="rtl">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ data.main_title }} - Gaming Empire</title>
+    <title>VORTEXPLAY</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', sans-serif;
+        }
+
         body {
-            background: linear-gradient(135deg, #05070c 0%, #0b0f19 50%, #11081f 100%);
-            color: #ffffff;
-            font-family: Tahoma, sans-serif;
+            background: linear-gradient(180deg, #0b061a 0%, #1a1040 50%, #050520 100%);
             min-height: 100vh;
-            margin: 0;
-            padding: 20px 15px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+            color: #fff;
+            overflow-x: hidden;
         }
-        .main-container {
-            width: 100%;
-            max-width: 450px;
+
+        /* پس‌زمینه آتشین */
+        .bg-orange {
+            position: fixed;
+            top: -20%;
+            right: -20%;
+            width: 80%;
+            height: 60%;
+            background: radial-gradient(ellipse at center, rgba(255,140,0,0.3) 0%, transparent 70%);
+            filter: blur(50px);
+            pointer-events: none;
+        }
+
+        .bg-blue {
+            position: fixed;
+            bottom: -20%;
+            left: -20%;
+            width: 80%;
+            height: 60%;
+            background: radial-gradient(ellipse at center, rgba(30,144,255,0.3) 0%, transparent 70%);
+            filter: blur(50px);
+            pointer-events: none;
+        }
+
+        .bg-purple {
+            position: fixed;
+            top: 40%;
+            left: 10%;
+            width: 80%;
+            height: 30%;
+            background: linear-gradient(90deg, transparent, rgba(138,43,226,0.2), transparent);
+            filter: blur(40px);
+            pointer-events: none;
+        }
+
+        /* اشکال هندسی */
+        .shape {
+            position: absolute;
+            opacity: 0.2;
+            pointer-events: none;
+        }
+        .tri1 { top: 12%; left: 8%; font-size: 2rem; color: #ff8c00; }
+        .x1 { top: 18%; right: 12%; font-size: 1.5rem; color: #1e90ff; }
+        .dot1 { bottom: 28%; left: 15%; width: 8px; height: 8px; background: #ffd700; border-radius: 50%; }
+        .sq1 { bottom: 22%; right: 10%; width: 12px; height: 12px; border: 2px solid #9932cc; }
+
+        /* کانتینر اصلی */
+        .container {
+            position: relative;
+            z-index: 1;
+            padding: 40px 20px;
+            max-width: 480px;
+            margin: 0 auto;
+        }
+
+        /* لوگو */
+        .logo-wrap {
             text-align: center;
-            padding-bottom: 40px;
+            margin-bottom: 30px;
         }
-        .logo-box {
-            width: 120px;
-            height: 120px;
-            margin: 20px auto 10px auto;
+
+        .logo-circle {
+            width: 130px;
+            height: 130px;
             border-radius: 50%;
-            border: 3px solid #00f0ff;
-            box-shadow: 0 0 25px rgba(0, 240, 255, 0.6);
-            overflow: hidden;
-            background: #000;
+            background: linear-gradient(135deg, #1e90ff, #9932cc);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 20px;
+            box-shadow: 0 0 35px rgba(30,144,255,0.5);
         }
-        .logo-box img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        h1 {
+
+        .logo-inner {
+            width: 114px;
+            height: 114px;
+            border-radius: 50%;
+            background: #0b061a;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.8rem;
             font-weight: 900;
+            background: linear-gradient(90deg, #ffd700, #ff8c00);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .logo-title {
+            font-size: 2.4rem;
+            font-weight: 800;
             letter-spacing: 2px;
-            color: #ffffff;
-            margin-bottom: 5px;
-            font-size: 1.8rem;
-            text-shadow: 0 0 10px rgba(255,255,255,0.5);
+            color: #fff;
+            text-shadow: 0 0 15px rgba(255,255,255,0.3);
         }
-        .subtitle {
-            color: #00f0ff;
-            font-size: 0.85rem;
-            letter-spacing: 1px;
-            margin-bottom: 20px;
+
+        .logo-sub {
+            color: #6ab7ff;
+            letter-spacing: 4px;
+            font-size: 0.9rem;
+            margin-top: 8px;
         }
-        .status-badge {
-            border: 2px solid #00f0ff;
-            border-radius: 30px;
-            padding: 8px 20px;
-            font-size: 0.85rem;
+
+        /* نوار وضعیت */
+        .status-bar {
+            background: rgba(0,0,0,0.5);
+            border: 2px solid #1e90ff;
+            border-radius: 50px;
+            padding: 12px 25px;
+            text-align: center;
+            margin: 25px 0;
             font-weight: bold;
-            color: #ffffff;
-            background: rgba(0, 240, 255, 0.1);
-            box-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
+            letter-spacing: 1px;
+            box-shadow: 0 0 20px rgba(30,144,255,0.25);
+        }
+
+        .status-dot {
             display: inline-block;
-            margin-bottom: 25px;
-            letter-spacing: 1px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: #00ff88;
+            margin-right: 10px;
+            box-shadow: 0 0 10px #00ff88;
+            animation: pulse 2s infinite;
         }
-        .category-card {
-            background: rgba(17, 24, 39, 0.85);
-            border: 2px solid #00f0ff;
+
+        @keyframes pulse {
+            0%,100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        /* بلوک‌ها */
+        .block {
+            background: rgba(20,20,50,0.6);
             border-radius: 14px;
-            padding: 15px 20px;
+            padding: 20px 22px;
             margin-bottom: 15px;
-            text-align: right;
-            box-shadow: 0 0 15px rgba(0, 240, 255, 0.15);
-            transition: all 0.3s ease;
-            text-decoration: none;
-            display: block;
+            border-left: 4px solid;
+            backdrop-filter: blur(5px);
+            transition: all 0.3s;
         }
-        .category-card:hover {
-            border-color: #facc15;
-            box-shadow: 0 0 20px rgba(250, 204, 21, 0.4);
-            transform: translateY(-2px);
+
+        .block:hover {
+            transform: scale(1.02);
+            box-shadow: 0 0 20px rgba(30,144,255,0.2);
         }
-        .category-title {
-            color: #00f0ff;
+
+        .block h3 {
+            font-size: 1.2rem;
             font-weight: bold;
-            font-size: 1rem;
-            margin-bottom: 3px;
+            margin-bottom: 4px;
         }
-        .category-desc {
-            color: #9ca3af;
-            font-size: 0.8rem;
+
+        .block p {
+            color: #9ab8d6;
+            font-size: 0.85rem;
             margin: 0;
         }
-        .admin-btn {
-            border: 1px dashed #00f0ff;
-            background: rgba(0, 0, 0, 0.5);
-            color: #00f0ff;
-            padding: 8px 25px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            text-decoration: none;
-            display: inline-block;
-            margin-top: 20px;
-            transition: 0.3s;
+
+        .block-icon {
+            font-size: 1.8rem;
         }
-        .admin-btn:hover {
-            background: #00f0ff;
-            color: #000;
+
+        /* پایین صفحه */
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            color: #5566aa;
+            font-size: 0.8rem;
         }
     </style>
 </head>
 <body>
-    <div class="main-container">
-        <div class="logo-box">
-            <img src="{{ data.logo_url }}" alt="Logo">
-        </div>
-        <h1>{{ data.main_title }}</h1>
-        <div class="subtitle">{{ data.subtitle }}</div>
+    <div class="bg-orange"></div>
+    <div class="bg-blue"></div>
+    <div class="bg-purple"></div>
 
-        <div>
-            <span class="status-badge">⚡ {{ data.status }} ⚡</span>
+    <div class="shape tri1"><i class="fas fa-play"></i></div>
+    <div class="shape x1"><i class="fas fa-times"></i></div>
+    <div class="shape dot1"></div>
+    <div class="shape sq1"></div>
+
+    <div class="container">
+        <!-- لوگو -->
+        <div class="logo-wrap">
+            <div class="logo-circle">
+                <div class="logo-inner">VP</div>
+            </div>
+            <h1 class="logo-title">VORTEXPLAY</h1>
+            <p class="logo-sub">◆ GAMING EMPIRE ◆</p>
         </div>
 
-        <!-- لیست دسته‌بندی‌ها -->
-        {% for cat in data.categories %}
-        <a href="#" class="category-card">
+        <!-- وضعیت سیستم -->
+        <div class="status-bar">
+            <span class="status-dot"></span>
+            SYSTEM STATUS: ONLINE
+        </div>
+
+        <!-- بلوک ۱ -->
+        <div class="block" style="border-color: #4169e1;">
             <div class="d-flex justify-content-between align-items-center">
                 <div>
-                    <div class="category-title">{{ cat.title }}</div>
-                    <p class="category-desc">{{ cat.desc }}</p>
+                    <h3>BACKUP & TUTORIALS</h3>
+                    <p>Guides & System Files</p>
                 </div>
-                <div style="font-size: 1.5rem;">{{ cat.icon }}</div>
+                <i class="fas fa-book block-icon" style="color: #4169e1;"></i>
             </div>
-        </a>
-        {% endfor %}
+        </div>
 
-        <div>
-            <a href="/dashboard" class="admin-btn">⚙️ ورود به پنل مدیریت</a>
+        <!-- بلوک ۲ -->
+        <div class="block" style="border-color: #1e90ff;">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h3>PS5 GAME</h3>
+                    <p>PlayStation 5 Games & PKGs</p>
+                </div>
+                <i class="fas fa-gamepad block-icon" style="color: #1e90ff;"></i>
+            </div>
+        </div>
+
+        <!-- بلوک ۳ -->
+        <div class="block" style="border-color: #9932cc;">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h3>GAME PHOTOS</h3>
+                    <p>Wallpapers & Screenshots</p>
+                </div>
+                <i class="fas fa-images block-icon" style="color: #9932cc;"></i>
+            </div>
+        </div>
+
+        <!-- پایین صفحه -->
+        <div class="footer">
+            VORTEXPLAY © 2026 — All Rights Reserved
         </div>
     </div>
 </body>
 </html>
-"""
-
-# قالب پنل مدیریت سلطنتی برای تغییرات
-ADMIN_HTML = """
-<!DOCTYPE html>
-<html lang="fa" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <title>پنل مدیریت سلطنتی VortexPlay</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body { background: #05070c; color: #fff; font-family: Tahoma, sans-serif; padding: 20px; }
-        .card { background: #111827; border: 1px solid #00f0ff; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 0 15px rgba(0,240,255,0.1); }
-        .form-control { background: #0b0f19; border-color: #374151; color: #fff; }
-        .form-control:focus { background: #0b0f19; color: #fff; border-color: #00f0ff; box-shadow: none; }
-        .btn-custom { background: #00f0ff; color: #000; font-weight: bold; }
-        .btn-custom:hover { background: #38bdf8; }
-        .cat-item { display: flex; justify-content: space-between; align-items: center; background: #0b0f19; padding: 10px 15px; border-radius: 8px; margin-bottom: 8px; border: 1px solid #374151; }
-    </style>
-</head>
-<body>
-    <div class="container" style="max-width: 700px;">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h3 style="color: #00f0ff;">اتاق فرمان مدیریت</h3>
-            <a href="/" class="btn btn-outline-light btn-sm">مشاهده سایت</a>
-        </div>
-
-        <div class="card">
-            <h5 class="text-info mb-3">تنظیمات گرافیکی و متن‌ها</h5>
-            <form method="POST" action="/update_content">
-                <div class="mb-3">
-                    <label class="form-label">لینک تصویر لوگو:</label>
-                    <input type="text" name="logo_url" class="form-control" value="{{ data.logo_url }}" required>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">عنوان اصلی:</label>
-                    <input type="text" name="main_title" class="form-control" value="{{ data.main_title }}" required>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">متن وضعیت:</label>
-                    <input type="text" name="status" class="form-control" value="{{ data.status }}" required>
-                </div>
-                <button type="submit" class="btn btn-custom w-100">ذخیره تغییرات</button>
-            </form>
-        </div>
-
-        <div class="card">
-            <h5 class="text-info mb-3">مدیریت دسته‌بندی‌ها</h5>
-            <form method="POST" action="/add_category" class="mb-3">
-                <div class="row g-2">
-                    <div class="col-md-5"><input type="text" name="title" class="form-control" placeholder="عنوان (مثل PS5 GAME)" required></div>
-                    <div class="col-md-5"><input type="text" name="desc" class="form-control" placeholder="توضیحات کوتاه" required></div>
-                    <div class="col-md-2"><button type="submit" class="btn btn-success w-100">افزودن</button></div>
-                </div>
-            </form>
-
-            <div>
-                {% for cat in data.categories %}
-                    <div class="cat-item">
-                        <div>
-                            <strong style="color: #00f0ff;">{{ cat.title }}</strong>
-                            <div class="text-muted" style="font-size: 0.75rem;">{{ cat.desc }}</div>
-                        </div>
-                        <form method="POST" action="/delete_category" style="margin:0;">
-                            <input type="hidden" name="title" value="{{ cat.title }}">
-                            <button type="submit" class="btn btn-danger btn-sm">حذف</button>
-                        </form>
-                    </div>
-                {% endfor %}
-            </div>
-        </div>
-
-        <div class="text-center mt-3">
-            <a href="/logout" class="text-danger text-decoration-none">خروج از پنل</a>
-        </div>
-    </div>
-</body>
-</html>
-"""
-
-# صفحه ورود لاگین با رمز ۳۲ رقمی
-LOGIN_HTML = """
-<!DOCTYPE html>
-<html lang="fa" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <title>ورود به پنل مدیریت</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body { background: #05070c; color: #fff; font-family: Tahoma, sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; }
-        .login-card { background: #111827; padding: 30px; border-radius: 15px; border: 1px solid #00f0ff; width: 100%; max-width: 400px; box-shadow: 0 0 20px rgba(0,240,255,0.2); }
-    </style>
-</head>
-<body>
-    <div class="login-card">
-        <h3 class="text-center mb-4" style="color: #00f0ff;">ورود به پنل مدیریت</h3>
-        <form method="POST">
-            <div class="mb-3">
-                <label class="form-label">نام کاربری:</label>
-                <input type="text" name="username" class="form-control bg-dark text-light border-secondary" required>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">رمز عبور ۳۲ رقمی:</label>
-                <input type="password" name="password" class="form-control bg-dark text-light border-secondary" required>
-            </div>
-            <button type="submit" class="btn w-100 fw-bold" style="background: #00f0ff; color: #000;">ورود امن</button>
-        </form>
-    </div>
-</body>
-</html>
-"""
-
-@app.route('/')
-def index():
-    return render_template_string(INDEX_HTML, data=site_data)
-
-@app.route('/dashboard', methods=['GET', 'POST'])
-def dashboard():
-    if not session.get('logged_in'):
-        if request.method == 'POST':
-            username = request.form.get('username')
-            password = request.form.get('password')
-            if username == ADMIN_USERNAME and check_password_hash(ADMIN_PASSWORD_HASH, password):
-                session['logged_in'] = True
-                return redirect(url_for('dashboard'))
-        return render_template_string(LOGIN_HTML)
-    return render_template_string(ADMIN_HTML, data=site_data)
-
-@app.route('/update_content', methods=['POST'])
-def update_content():
-    if not session.get('logged_in'): return redirect(url_for('dashboard'))
-    site_data["logo_url"] = request.form.get('logo_url')
-    site_data["main_title"] = request.form.get('main_title')
-    site_data["status"] = request.form.get('status')
-    return redirect(url_for('dashboard'))
-
-@app.route('/add_category', methods=['POST'])
-def add_category():
-    if not session.get('logged_in'): return redirect(url_for('dashboard'))
-    title = request.form.get('title')
-    desc = request.form.get('desc')
-    if title:
-        site_data["categories"].append({"title": title, "desc": desc, "icon": "🎮"})
-    return redirect(url_for('dashboard'))
-
-@app.route('/delete_category', methods=['POST'])
-def delete_category():
-    if not session.get('logged_in'): return redirect(url_for('dashboard'))
-    title_to_delete = request.form.get('title')
-    site_data["categories"] = [c for c in site_data["categories"] if c["title"] != title_to_delete]
-    return redirect(url_for('dashboard'))
-
-@app.route('/logout')
-def logout():
-    session.clear()
-    return redirect(url_for('index'))
-
-def run_bot():
-    async def main():
-        while True:
-            await asyncio.sleep(60)
-            system_stats["messages_count"] += 1
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    loop.run_until_complete(main())
-
-if __name__ == '__main__':
-    threading.Thread(target=run_bot, daemon=True).start()
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host='0.0.0.0', port=port)
