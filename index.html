@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VORTEXPLAY 🎮 نامحدود</title>
+<title>VORTEXPLAY 🎮</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box;font-family:tahoma,sans-serif}
 :root{--نارنجی:#FF6B00;--آبی:#0099FF;--تیره:#050508;--خاکستری:#12121f;--قرمز:#FF4444;--سبز:#00CC66}
@@ -17,74 +17,60 @@ h1{font-size:28px;background:linear-gradient(90deg,var(--آبی),var(--نارن�
 .textarea:focus{outline:none;border-color:var(--نارنجی)}
 .btn{width:100%;padding:14px;margin-top:10px;border:none;border-radius:10px;font-size:16px;font-weight:bold;cursor:pointer;transition:.2s}
 .btn-اصلی{background:linear-gradient(90deg,var(--نارنجی),var(--آبی));color:#fff}
-.btn-پنل{background:transparent;border:1px solid var(--آبی);color:var(--آبی)}
-.btn-حذف{background:var(--قرمز);color:#fff}
 .msg{background:#1a1a2e;border-radius:10px;padding:15px;margin-top:12px;border-right:3px solid var(--نارنجی)}
 .زمان{font-size:11px;color:#666;margin-top:8px}
 .خالی{text-align:center;color:#555;padding:30px}
 h3{color:var(--نارنجی);margin:20px 0 10px}
-.مخفی{display:none}
-.ورودی{width:100%;padding:14px;background:#1a1a2e;border:1px solid #333;border-radius:10px;color:#fff;font-size:16px;margin-bottom:10px}
-.ورودی:focus{outline:none;border-color:var(--نارنجی)}
-.پیام{margin-top:10px;text-align:center;display:none}
+.وضعیت{text-align:center;margin-top:12px;font-size:14px}
+.درحال{color:var(--آبی)}
+.موفق{color:var(--سبز)}
 </style>
 </head>
 <body>
 <div class="container">
   <div class="header">
     <h1>🎮 VORTEXPLAY</h1>
-    <p class="sub">سایت نامحدود — فقط با گیت‌هاب ✅</p>
+    <p class="sub">گیت‌هاب + ذخیره مشترک — دائمی ✅</p>
   </div>
 
-  <!-- صفحه اصلی -->
-  <div id="صفحه-اصلی">
-    <div class="box">
-      <textarea id="ورودی" class="textarea" placeholder="پیامت رو بنویس..."></textarea>
-      <button class="btn btn-اصلی" onclick="ارسال()">📤 ارسال پیام</button>
-      <p id="موفق" class="پیام" style="color:var(--سبز)">✅ پیام فرستاده شد!</p>
-      
-      <h3>📋 پیام‌ها</h3>
-      <div id="لیست"></div>
-      
-      <button class="btn btn-پنل" onclick="باز_پنل()">🔐 ورود به پنل مدیریت</button>
-    </div>
-  </div>
-
-  <!-- صفحه ورود -->
-  <div id="صفحه-ورود" class="مخفی">
-    <div class="box">
-      <h3>🔐 ورود به پنل</h3>
-      <input type="password" id="رمز" class="ورودی" placeholder="رمز عبور">
-      <p id="خطا" class="پیام" style="color:var(--قرمز)">❌ رمز اشتباه است!</p>
-      <button class="btn btn-اصلی" onclick="بررسی_رمز()">✅ ورود</button>
-      <button class="btn btn-پنل" onclick="بازگشت()">بازگشت به صفحه اصلی</button>
-    </div>
-  </div>
-
-  <!-- پنل مدیریت -->
-  <div id="پنل-مدیریت" class="مخفی">
-    <div class="box">
-      <h3>🛠 پنل مدیریت</h3>
-      <p style="color:var(--سبز);margin:10px 0">✅ وارد شدی!</p>
-      <button class="btn btn-حذف" onclick="حذف_همه()">🗑 حذف همه پیام‌ها</button>
-      <button class="btn btn-پنل" onclick="بازگشت()">بازگشت</button>
-    </div>
+  <div class="box">
+    <textarea id="ورودی" class="textarea" placeholder="پیامت رو بنویس..."></textarea>
+    <button class="btn btn-اصلی" onclick="ارسال()">📤 ارسال پیام</button>
+    <p id="وضعیت" class="وضعیت"></p>
+    
+    <h3>📋 پیام‌ها</h3>
+    <div id="لیست"><p class="خالی">در حال بارگذاری...</p></div>
   </div>
 </div>
 
 <script>
-const رمز_پنل = '123456'; // رمز پنل - هرچی دوست داری عوض کن
-const کلید_ذخیره = 'VORTEX_PAYAM_HA';
+// ⚙ تنظیمات — از jsonbin.io بگیر
+const BIN_ID = 'شناسه-باکس-تو';
+const API_KEY = 'کلید-دسترسی-تو';
 
-function بارگذاری_پیامها() {
-  const پیامها = JSON.parse(localStorage.getItem(کلید_ذخیره) || '[]');
+let پیامها = [];
+
+async function بارگذاری() {
+  try {
+    const res = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`, {
+      headers: { 'X-Master-Key': API_KEY }
+    });
+    const data = await res.json();
+    پیامها = data.record?.پیامها || [];
+    نمایش();
+  } catch {
+    پیامها = [];
+    document.getElementById('لیست').innerHTML = 
+      '<p class="خالی">اولین پیام رو تو بفرست!</p>';
+  }
+}
+
+function نمایش() {
   const لیست = document.getElementById('لیست');
-  
   if (!پیامها.length) {
-    لیست.innerHTML = '<p class="خالی">هنوز پیامی نیست 😊 اولین پیام رو تو بفرست!</p>';
+    لیست.innerHTML = '<p class="خالی">هنوز پیامی نیست 😊</p>';
     return;
   }
-  
   لیست.innerHTML = پیامها.map(p => `
     <div class="msg">
       <div>${p.متن.replace(/&/g,'&amp;').replace(/</g,'&lt;')}</div>
@@ -93,57 +79,38 @@ function بارگذاری_پیامها() {
   `).join('');
 }
 
-function ارسال() {
+async function ذخیره() {
+  await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}`, {
+    method: 'PUT',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Master-Key': API_KEY
+    },
+    body: JSON.stringify({ پیامها })
+  });
+}
+
+async function ارسال() {
   const متن = document.getElementById('ورودی').value.trim();
   if (!متن) return;
-  
-  const پیامها = JSON.parse(localStorage.getItem(کلید_ذخیره) || '[]');
+
+  const وضعیت = document.getElementById('وضعیت');
+  وضعیت.className = 'وضعیت درحال';
+  وضعیت.textContent = 'در حال ارسال...';
+
   پیامها.unshift({ متن, زمان: Date.now() });
-  localStorage.setItem(کلید_ذخیره, JSON.stringify(پیامها));
-  
+  await ذخیره();
+
   document.getElementById('ورودی').value = '';
-  بارگذاری_پیامها();
+  نمایش();
   
-  const پیام_موفق = document.getElementById('موفق');
-  پیام_موفق.style.display = 'block';
-  setTimeout(() => پیام_موفق.style.display = 'none', 2500);
+  وضعیت.className = 'وضعیت موفق';
+  وضعیت.textContent = '✅ پیام فرستاده شد! همه می‌بینن';
+  setTimeout(() => وضعیت.textContent = '', 3000);
 }
 
-function باز_پنل() {
-  document.getElementById('صفحه-اصلی').classList.add('مخفی');
-  document.getElementById('صفحه-ورود').classList.remove('مخفی');
-  document.getElementById('خطا').style.display = 'none';
-  document.getElementById('رمز').value = '';
-}
-
-function بررسی_رمز() {
-  const وارد_شده = document.getElementById('رمز').value;
-  if (وارد_شده === رمز_پنل) {
-    document.getElementById('صفحه-ورود').classList.add('مخفی');
-    document.getElementById('پنل-مدیریت').classList.remove('مخفی');
-  } else {
-    document.getElementById('خطا').style.display = 'block';
-    setTimeout(() => document.getElementById('خطا').style.display = 'none', 2500);
-  }
-}
-
-function حذف_همه() {
-  if (confirm('مطمئنی همه پیام‌ها حذف بشن؟ این عمل بازگشت‌ناپذیره!')) {
-    localStorage.removeItem(کلید_ذخیره);
-    بارگذاری_پیامها();
-    alert('✅ همه پیام‌ها حذف شدن!');
-    بازگشت();
-  }
-}
-
-function بازگشت() {
-  document.getElementById('صفحه-ورود').classList.add('مخفی');
-  document.getElementById('پنل-مدیریت').classList.add('مخفی');
-  document.getElementById('صفحه-اصلی').classList.remove('مخفی');
-}
-
-// اجرای اولیه
-بارگذاری_پیامها();
+بارگذاری();
+setInterval(بارگذاری, 10000); // هر ۱۰ ثانیه بروزرسانی
 </script>
 </body>
 </html>
