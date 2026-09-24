@@ -9,7 +9,7 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
         :root {
             --gold: #ffd700; --orange: #ff8c00; --cyan: #00d9ff; --purple: #8b5cf6;
-            --bg-dark: #05051a; --card-bg: rgba(15,23,42,0.75);
+            --bg-dark: #05051a; --card-bg: rgba(15,23,42,0.8);
         }
         body {
             min-height: 100vh; position: relative; overflow-x: hidden; color: #fff;
@@ -17,12 +17,18 @@
                 radial-gradient(ellipse at top left, rgba(255,120,0,0.45) 0%, transparent 55%),
                 radial-gradient(ellipse at bottom left, rgba(0,120,255,0.45) 0%, transparent 55%),
                 linear-gradient(180deg, #05051a, #0f172a, #05051a);
+            transition: background 0.4s ease;
         }
-        .custom-bg { position: fixed; inset: 0; z-index: 0; background-size: cover; background-position: center; opacity: 0.4; pointer-events: none; }
+        .custom-bg {
+            position: fixed; inset: 0; z-index: 0;
+            background-size: cover; background-position: center;
+            opacity: 0.4; pointer-events: none; display: none;
+        }
+        .custom-bg.active { display: block; }
 
-        .container { position: relative; z-index: 10; max-width: 480px; margin: 0 auto; padding: 30px 20px 50px; display: flex; flex-direction: column; align-items: center; }
+        .container { position: relative; z-index: 10; max-width: 480px; margin: 0 auto; padding: 30px 20px 50px; }
         
-        .logo-wrapper { position: relative; margin-bottom: 15px; }
+        .logo-wrapper { position: relative; margin-bottom: 15px; display: flex; justify-content: center; }
         .logo-ring {
             width: 130px; height: 130px; border-radius: 50%; padding: 4px;
             background: linear-gradient(45deg, #ff9500, #00d9ff, #8b5cf6, #ff9500);
@@ -35,13 +41,13 @@
             display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden;
         }
         .logo-inner img { width: 100%; height: 100%; object-fit: cover; display: none; }
-        .logo-inner.show-img span { display: none; }
+        .logo-inner.show-img .logo-text { display: none; }
         .logo-inner.show-img img { display: block; }
         .logo-vp { font-size: 2.6rem; font-weight: 900; background: linear-gradient(90deg,#ffd700,#ff8c00); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
         .logo-text-below { font-size: 0.65rem; letter-spacing: 2px; color: #00d9ff; margin-top: 2px; }
 
-        .site-title { font-size: 2rem; font-weight: 900; letter-spacing: 2px; margin-bottom: 5px; text-shadow: 0 0 15px rgba(0,217,255,0.45); }
-        .site-subtitle { font-size: 0.85rem; color: #60a5fa; margin-bottom: 20px; display: flex; gap: 8px; align-items: center; }
+        .site-title { font-size: 2rem; font-weight: 900; letter-spacing: 2px; margin-bottom: 5px; text-align: center; text-shadow: 0 0 15px rgba(0,217,255,0.45); }
+        .site-subtitle { font-size: 0.85rem; color: #60a5fa; margin-bottom: 20px; text-align: center; display: flex; justify-content: center; gap: 8px; }
         .site-subtitle::before, .site-subtitle::after { content:'◆'; color: #00d9ff; }
 
         .status-bar {
@@ -59,49 +65,60 @@
             font-size: 2.5rem; color: #ffd700; overflow: hidden; position: relative;
         }
         .banner-card img { width: 100%; height: 100%; object-fit: cover; display: none; }
-        .banner-card.show-img span { display: none; }
+        .banner-card.show-img .banner-text { display: none; }
         .banner-card.show-img img { display: block; }
 
-        .cards-container { width: 100%; }
         .cat-card {
             width: 100%; padding: 18px 22px; border-radius: 14px; margin-bottom: 14px;
-            border: 2px solid transparent; background: var(--card-bg);
-            transition: 0.3s;
+            border: 2px solid transparent; background: var(--card-bg); cursor: pointer; transition: 0.3s;
         }
         .cat-card:nth-child(1) { border-color: rgba(0,200,255,0.5); }
         .cat-card:nth-child(2) { border-color: rgba(255,200,0,0.5); }
         .cat-card:nth-child(3) { border-color: rgba(139,92,246,0.5); }
-        .cat-card:hover { transform: translateY(-2px); }
-        .cat-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
-        .cat-card-title { font-size: 1.15rem; font-weight: 800; }
-        .cat-card-desc { font-size: 0.85rem; color: #94a3b8; margin-bottom: 10px; }
-        .messages-list { margin-top: 8px; }
-        .msg-item {
-            background: rgba(255,255,255,0.05); padding: 10px 12px; border-radius: 8px; margin-bottom: 6px;
-            font-size: 0.9rem; display: flex; justify-content: space-between; align-items: center;
-        }
-        .msg-text { flex: 1; }
+        .cat-card:hover { transform: translateY(-3px); box-shadow: 0 5px 20px rgba(0,0,0,0.3); }
+        .cat-card-title { font-size: 1.15rem; font-weight: 800; margin-bottom: 5px; }
+        .cat-card-desc { font-size: 0.85rem; color: #94a3b8; }
 
         .admin-open-btn {
             margin-top: 25px; padding: 12px 30px; background: rgba(80,60,180,0.3);
             border: 1px solid rgba(139,92,246,0.5); border-radius: 50px; color: #a78bfa;
-            cursor: pointer; display: flex; align-items: center; gap: 8px; font-size: 0.9rem;
+            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.9rem; width: 100%;
         }
         .admin-open-btn:hover { background: rgba(139,92,246,0.35); color: #e9d5ff; }
 
+        /* === صفحه پیام‌ها === */
+        .page-overlay {
+            position: fixed; inset: 0; z-index: 2000; background: rgba(0,0,0,0.95);
+            display: none; flex-direction: column;
+        }
+        .page-overlay.active { display: flex; }
+        .page-header {
+            padding: 15px 20px; background: linear-gradient(90deg, #0f172a, #1e293b);
+            border-bottom: 1px solid rgba(0,217,255,0.3); display: flex; align-items: center; justify-content: space-between;
+        }
+        .page-back {
+            background: rgba(255,255,255,0.1); border: none; color: #fff; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; font-size: 1rem;
+        }
+        .page-title { font-size: 1.1rem; font-weight: 700; color: #ffd700; }
+        .page-content {
+            flex: 1; overflow-y: auto; padding: 20px;
+        }
+        .msg-bubble {
+            background: rgba(30,64,175,0.2); border: 1px solid rgba(96,165,250,0.3);
+            border-radius: 14px; padding: 14px 16px; margin-bottom: 12px; line-height: 1.6;
+        }
+        .msg-empty { text-align: center; color: #6b7280; padding: 40px 20px; }
+
         /* === مودال ورود === */
         .modal-overlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 999;
-            display: flex; align-items: center; justify-content: center; padding: 20px;
-            opacity: 0; visibility: hidden; transition: 0.3s;
+            position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 3000;
+            display: none; align-items: center; justify-content: center; padding: 20px;
         }
-        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .modal-overlay.active { display: flex; }
         .modal-box {
             width: 100%; max-width: 420px; background: linear-gradient(180deg, #0f172a, #020617);
             border: 2px solid rgba(139,92,246,0.4); border-radius: 20px; padding: 25px;
-            transform: translateY(30px); transition: 0.3s;
         }
-        .modal-overlay.active .modal-box { transform: translateY(0); }
         .modal-title { font-size: 1.3rem; font-weight: 800; color: #ffd700; text-align: center; margin-bottom: 20px; }
         .form-input {
             width: 100%; padding: 12px 15px; margin-bottom: 12px;
@@ -111,20 +128,21 @@
         .form-input:focus { outline: none; border-color: #00d9ff; box-shadow: 0 0 10px rgba(0,217,255,0.2); }
         .btn {
             width: 100%; padding: 13px; border: none; border-radius: 10px;
-            font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: 0.3s;
+            font-weight: 700; font-size: 0.95rem; cursor: pointer;
         }
         .btn-primary { background: linear-gradient(90deg, #0099ff, #8b5cf6); color: #fff; }
-        .btn-primary:hover { box-shadow: 0 0 15px rgba(0,153,255,0.4); }
+        .btn-danger { background: linear-gradient(90deg, #b91c1c, #dc2626); color: #fff; margin-top: 8px; }
+        .btn-success { background: linear-gradient(90deg, #059669, #10b981); color: #fff; margin-top: 8px; }
         .error-msg { color: #ff6b6b; text-align: center; margin-top: 10px; display: none; }
 
         /* === پنل مدیریت === */
         .admin-panel {
-            position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,0.95);
-            opacity: 0; visibility: hidden; transition: 0.3s; overflow-y: auto;
+            position: fixed; inset: 0; z-index: 4000; background: rgba(0,0,0,0.95);
+            display: none; overflow-y: auto;
         }
-        .admin-panel.active { opacity: 1; visibility: visible; }
+        .admin-panel.active { display: block; }
         .panel-inner {
-            max-width: 480px; margin: 0 auto; padding: 25px 20px 40px;
+            max-width: 480px; margin: 0 auto; padding: 25px 20px 50px;
             background: linear-gradient(180deg, #0f172a, #020617); min-height: 100vh;
         }
         .panel-header {
@@ -145,17 +163,13 @@
         .upload-btn {
             display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px;
             background: rgba(139,92,246,0.2); border: 1px solid rgba(139,92,246,0.4);
-            border-radius: 10px; color: #a78bfa; cursor: pointer; font-size: 0.85rem; margin-bottom: 12px;
+            border-radius: 10px; color: #a78bfa; cursor: pointer; font-size: 0.85rem; margin-bottom: 12px; width: 100%;
         }
         .upload-btn:hover { background: rgba(139,92,246,0.3); }
         label { font-size: 0.85rem; color: #94a3b8; margin-bottom: 6px; display: block; }
-        .btn-danger { background: linear-gradient(90deg, #b91c1c, #dc2626); color: #fff; margin-top: 8px; }
-        .btn-success { background: linear-gradient(90deg, #059669, #10b981); color: #fff; margin-top: 8px; }
         .cat-item {
             background: rgba(30,64,175,0.15); padding: 14px; border-radius: 10px; margin-bottom: 10px;
         }
-        .cat-item-actions { display: flex; gap: 8px; margin-top: 10px; }
-        .cat-item-actions button { flex: 1; padding: 8px; border: none; border-radius: 8px; cursor: pointer; font-size: 0.85rem; }
         select.form-input { height: 44px; }
         .save-note {
             margin-top: 15px; padding: 12px; background: rgba(0,255,136,0.1);
@@ -167,12 +181,15 @@
 <body>
     <div class="custom-bg" id="customBg"></div>
 
-    <div class="container">
+    <!-- صفحه اصلی -->
+    <div class="container" id="mainPage">
         <div class="logo-wrapper">
             <div class="logo-ring">
                 <div class="logo-inner" id="logoDisplay">
-                    <span class="logo-vp">VP</span>
-                    <span class="logo-text-below">VORTEX PLAY</span>
+                    <div class="logo-text">
+                        <span class="logo-vp">VP</span>
+                        <span class="logo-text-below">VORTEX PLAY</span>
+                    </div>
                     <img id="logoImg" alt="لوگو">
                 </div>
             </div>
@@ -187,19 +204,31 @@
         </div>
 
         <div class="banner-card" id="bannerDisplay">
-            <span>VP</span>
+            <span class="banner-text">VP</span>
             <img id="bannerImg" alt="کاور">
         </div>
 
-        <div class="cards-container" id="cardsContainer"></div>
+        <div id="categoriesList"></div>
 
         <button class="admin-open-btn" id="openAdminBtn">
             <i class="fas fa-cog"></i> ورود به پنل مدیریت
         </button>
     </div>
 
-    <!-- مودال ورود -->
-    <div class="modal-overlay" id="loginOverlay">
+    <!-- صفحه پیام‌های هر دسته -->
+    <div class="page-overlay" id="categoryPage">
+        <div class="page-header">
+            <button class="page-back" id="backBtn"><i class="fas fa-arrow-right"></i></button>
+            <h2 class="page-title" id="catPageTitle">عنوان دسته</h2>
+            <div></div>
+        </div>
+        <div class="page-content" id="catMessages">
+            <!-- پیام‌ها اینجا نمایش داده میشن -->
+        </div>
+    </div>
+
+    <!-- مودال ورود رمز -->
+    <div class="modal-overlay" id="loginModal">
         <div class="modal-box">
             <h2 class="modal-title">ورود به پنل مدیریت</h2>
             <input type="password" class="form-input" id="passInput" placeholder="رمز ۳۲ رقمی" maxlength="32">
@@ -216,76 +245,59 @@
                 <button class="panel-close" id="closePanelBtn"><i class="fas fa-times"></i></button>
             </div>
 
-            <!-- بخش ۱: ظاهر -->
             <div class="panel-section">
                 <h3 class="section-title"><i class="fas fa-palette"></i> تنظیمات ظاهری</h3>
 
-                <div class="row">
-                    <label>تصویر پس‌زمینه</label>
-                    <label class="upload-btn">
-                        <input type="file" class="file-input" accept="image/*" id="bgUpload">
-                        <i class="fas fa-upload"></i> انتخاب از گالری
-                    </label>
-                </div>
-                <div class="row">
-                    <label>لوگو سایت</label>
-                    <label class="upload-btn">
-                        <input type="file" class="file-input" accept="image/*" id="logoUpload">
-                        <i class="fas fa-image"></i> انتخاب از گالری
-                    </label>
-                </div>
-                <div class="row">
-                    <label>کاور بنر</label>
-                    <label class="upload-btn">
-                        <input type="file" class="file-input" accept="image/*" id="bannerUpload">
-                        <i class="fas fa-file-image"></i> انتخاب از گالری
-                    </label>
-                </div>
-                <div class="row">
-                    <label>نام سایت</label>
-                    <input type="text" class="form-input" id="siteNameInput">
-                </div>
-                <div class="row">
-                    <label>زیرنویس سایت</label>
-                    <input type="text" class="form-input" id="siteSubInput">
-                </div>
-                <div class="row">
-                    <label>متن وضعیت</label>
-                    <input type="text" class="form-input" id="statusInput">
-                </div>
-                <button class="btn btn-primary" id="saveAppearanceBtn">ذخیره تغییرات ظاهری</button>
-                <div class="save-note" id="appearanceNote">✅ ظاهر ذخیره شد!</div>
+                <label>تصویر پس‌زمینه</label>
+                <label class="upload-btn">
+                    <input type="file" class="file-input" accept="image/*" id="bgUpload">
+                    <i class="fas fa-upload"></i> انتخاب از گالری
+                </label>
+
+                <label>لوگو سایت</label>
+                <label class="upload-btn">
+                    <input type="file" class="file-input" accept="image/*" id="logoUpload">
+                    <i class="fas fa-image"></i> انتخاب از گالری
+                </label>
+
+                <label>کاور بنر</label>
+                <label class="upload-btn">
+                    <input type="file" class="file-input" accept="image/*" id="bannerUpload">
+                    <i class="fas fa-file-image"></i> انتخاب از گالری
+                </label>
+
+                <label>نام سایت</label>
+                <input type="text" class="form-input" id="siteNameInput">
+
+                <label>زیرنویس سایت</label>
+                <input type="text" class="form-input" id="siteSubInput">
+
+                <label>متن وضعیت</label>
+                <input type="text" class="form-input" id="statusInput">
+
+                <button class="btn btn-primary" id="saveAppearanceBtn">ذخیره ظاهر</button>
+                <div class="save-note" id="appearanceNote">✅ تغییرات اعمال شد!</div>
             </div>
 
-            <!-- بخش ۲: دسته‌بندی -->
             <div class="panel-section">
                 <h3 class="section-title"><i class="fas fa-th-large"></i> مدیریت دسته‌بندی‌ها</h3>
                 <div id="adminCatList"></div>
                 <hr style="border-color:rgba(96,165,250,0.2); margin:15px 0;">
                 <h5 style="color:#ffd700; margin-bottom:10px;">افزودن دسته جدید</h5>
-                <div class="row">
-                    <label>عنوان</label>
-                    <input type="text" class="form-input" id="newCatTitle" placeholder="مثال: MOVIES">
-                </div>
-                <div class="row">
-                    <label>توضیح</label>
-                    <input type="text" class="form-input" id="newCatDesc" placeholder="توضیح کوتاه">
-                </div>
+                <label>عنوان</label>
+                <input type="text" class="form-input" id="newCatTitle" placeholder="مثال: MOVIES">
+                <label>توضیح</label>
+                <input type="text" class="form-input" id="newCatDesc" placeholder="توضیح کوتاه">
                 <button class="btn btn-success" id="addCatBtn">افزودن دسته</button>
                 <div class="save-note" id="catNote">✅ دسته اضافه شد!</div>
             </div>
 
-            <!-- بخش ۳: پیام -->
             <div class="panel-section">
                 <h3 class="section-title"><i class="fas fa-paper-plane"></i> ارسال پیام</h3>
-                <div class="row">
-                    <label>انتخاب دسته</label>
-                    <select class="form-input" id="targetCatSelect"></select>
-                </div>
-                <div class="row">
-                    <label>متن پیام</label>
-                    <textarea class="form-input" id="newMessageText" rows="3" placeholder="متن پیام..."></textarea>
-                </div>
+                <label>انتخاب دسته</label>
+                <select class="form-input" id="targetCatSelect"></select>
+                <label>متن پیام</label>
+                <textarea class="form-input" id="newMessageText" rows="3" placeholder="متن پیام..."></textarea>
                 <button class="btn btn-primary" id="sendMsgBtn">ارسال پیام</button>
                 <div class="save-note" id="msgNote">✅ پیام ارسال شد!</div>
             </div>
@@ -293,10 +305,8 @@
     </div>
 
     <script>
-        // === رمز ۳۲ رقمی ===
         const ADMIN_PASSWORD = 'a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6';
 
-        // === داده‌های سایت ===
         let siteData = {
             siteName: 'VORTEXPLAY',
             siteSub: 'GAMING EMPIRE',
@@ -305,22 +315,20 @@
             logoImage: null,
             bannerImage: null,
             categories: [
-                { id: 1, title: 'BACKUP & TUTORIALS', desc: 'Guides & System Files', messages: [] },
-                { id: 2, title: 'PS5 GAME', desc: 'PlayStation 5 Games & PKGs', messages: [] },
-                { id: 3, title: 'GAME PHOTOS', desc: 'Wallpapers & Screenshots', messages: [] }
+                { id: 1, title: 'BACKUP & TUTORIALS', desc: 'راهنماها و فایل‌های سیستمی', messages: [] },
+                { id: 2, title: 'PS5 GAME', desc: 'بازی‌های پلی‌استیشن ۵', messages: [] },
+                { id: 3, title: 'GAME PHOTOS', desc: 'تصاویر و والپیپرها', messages: [] }
             ]
         };
 
-        // === بارگذاری و ذخیره ===
-        function loadData() {
-            try {
-                const saved = localStorage.getItem('vortexData');
-                if (saved) siteData = JSON.parse(saved);
-            } catch (e) { console.log('بارگذاری از اول'); }
-            renderAll();
-        }
+        // === ذخیره و بارگذاری ===
         function saveData() {
             localStorage.setItem('vortexData', JSON.stringify(siteData));
+        }
+        function loadData() {
+            const saved = localStorage.getItem('vortexData');
+            if (saved) siteData = JSON.parse(saved);
+            renderMainPage();
         }
         function showNote(id) {
             const el = document.getElementById(id);
@@ -328,16 +336,21 @@
             setTimeout(() => el.style.display = 'none', 3000);
         }
 
-        // === رندر صفحه اصلی ===
-        function renderAll() {
+        // === صفحه اصلی ===
+        function renderMainPage() {
             document.getElementById('siteNameDisplay').textContent = siteData.siteName;
             document.getElementById('siteSubDisplay').textContent = siteData.siteSub;
             document.getElementById('statusDisplay').textContent = siteData.statusText;
 
             // پس‌زمینه
+            const bgEl = document.getElementById('customBg');
             if (siteData.bgImage) {
-                document.getElementById('customBg').style.backgroundImage = `url(${siteData.bgImage})`;
+                bgEl.style.backgroundImage = `url(${siteData.bgImage})`;
+                bgEl.classList.add('active');
+            } else {
+                bgEl.classList.remove('active');
             }
+
             // لوگو
             const logoDisplay = document.getElementById('logoDisplay');
             const logoImg = document.getElementById('logoImg');
@@ -347,6 +360,7 @@
             } else {
                 logoDisplay.classList.remove('show-img');
             }
+
             // بنر
             const bannerDisplay = document.getElementById('bannerDisplay');
             const bannerImg = document.getElementById('bannerImg');
@@ -357,31 +371,48 @@
                 bannerDisplay.classList.remove('show-img');
             }
 
-            // کارت‌ها
-            const container = document.getElementById('cardsContainer');
-            container.innerHTML = '';
-            siteData.categories.forEach(cat => {
+            // لیست دسته‌بندی‌ها
+            const catList = document.getElementById('categoriesList');
+            catList.innerHTML = '';
+            siteData.categories.forEach((cat, index) => {
                 const card = document.createElement('div');
                 card.className = 'cat-card';
                 card.innerHTML = `
-                    <div class="cat-card-header">
-                        <h3 class="cat-card-title">${cat.title}</h3>
-                        <i class="fas fa-folder-open" style="color:var(--cyan)"></i>
-                    </div>
+                    <h3 class="cat-card-title">${cat.title}</h3>
                     <p class="cat-card-desc">${cat.desc}</p>
-                    <div class="messages-list">
-                        ${cat.messages.map(msg => `
-                            <div class="msg-item"><span class="msg-text">${msg}</span></div>
-                        `).join('')}
-                    </div>
                 `;
-                container.appendChild(card);
+                card.onclick = () => openCategoryPage(index);
+                catList.appendChild(card);
             });
 
             renderAdminLists();
         }
 
-        // === رندر لیست‌های پنل ===
+        // === صفحه پیام‌های یک دسته ===
+        function openCategoryPage(index) {
+            const cat = siteData.categories[index];
+            document.getElementById('catPageTitle').textContent = cat.title;
+            const msgContainer = document.getElementById('catMessages');
+            msgContainer.innerHTML = '';
+            
+            if (cat.messages.length === 0) {
+                msgContainer.innerHTML = '<p class="msg-empty">هنوز پیامی ارسال نشده</p>';
+            } else {
+                cat.messages.forEach(msg => {
+                    const bubble = document.createElement('div');
+                    bubble.className = 'msg-bubble';
+                    bubble.textContent = msg;
+                    msgContainer.appendChild(bubble);
+                });
+            }
+            
+            document.getElementById('categoryPage').classList.add('active');
+        }
+        function closeCategoryPage() {
+            document.getElementById('categoryPage').classList.remove('active');
+        }
+
+        // === لیست‌های پنل مدیریت ===
         function renderAdminLists() {
             const list = document.getElementById('adminCatList');
             const select = document.getElementById('targetCatSelect');
@@ -395,9 +426,7 @@
                     <div style="font-weight:700; margin-bottom:5px;">${cat.title}</div>
                     <div style="font-size:0.8rem; color:#94a3b8; margin-bottom:8px;">${cat.desc}</div>
                     <div style="font-size:0.75rem; color:#6b7280;">تعداد پیام: ${cat.messages.length}</div>
-                    <div class="cat-item-actions">
-                        <button class="btn-danger" data-index="${index}">حذف دسته</button>
-                    </div>
+                    <button class="btn-danger" data-index="${index}">حذف دسته</button>
                 `;
                 list.appendChild(item);
 
@@ -407,28 +436,27 @@
                 select.appendChild(opt);
             });
 
-            // اتصال رویدادهای دکمه‌های حذف
-            document.querySelectorAll('#adminCatList button.btn-danger').forEach(btn => {
-                btn.addEventListener('click', function() {
-                    if (confirm('مطمئنی؟ این دسته و پیام‌هایش حذف می‌شوند!')) {
-                        const idx = parseInt(this.getAttribute('data-index'));
+            // اتصال دکمه‌های حذف
+            list.querySelectorAll('button.btn-danger').forEach(btn => {
+                btn.onclick = function() {
+                    if (confirm('مطمئنی؟')) {
+                        const idx = parseInt(this.dataset.index);
                         siteData.categories.splice(idx, 1);
-                        saveData(); renderAll();
+                        saveData(); renderMainPage();
                     }
-                });
+                };
             });
         }
 
-        // === باز و بسته کردن پنل ===
-        function openLogin() {
-            document.getElementById('loginOverlay').classList.add('active');
+        // === ورود و خروج از پنل ===
+        function openLoginModal() {
+            document.getElementById('loginModal').classList.add('active');
             document.getElementById('passInput').value = '';
             document.getElementById('passError').style.display = 'none';
         }
-        function checkPassword() {
-            const pass = document.getElementById('passInput').value.trim();
-            if (pass === ADMIN_PASSWORD) {
-                document.getElementById('loginOverlay').classList.remove('active');
+        function checkLogin() {
+            if (document.getElementById('passInput').value.trim() === ADMIN_PASSWORD) {
+                document.getElementById('loginModal').classList.remove('active');
                 openAdminPanel();
             } else {
                 document.getElementById('passError').style.display = 'block';
@@ -445,9 +473,8 @@
             document.getElementById('adminPanel').classList.remove('active');
         }
 
-        // === تبدیل تصویر به کد ===
-        function fileToDataUrl(file, callback) {
-            if (!file) return;
+        // === تبدیل تصویر ===
+        function readImage(file, callback) {
             const reader = new FileReader();
             reader.onload = e => callback(e.target.result);
             reader.readAsDataURL(file);
@@ -457,71 +484,78 @@
         document.addEventListener('DOMContentLoaded', function() {
             loadData();
 
-            // دکمه ورود به پنل
-            document.getElementById('openAdminBtn').addEventListener('click', openLogin);
-            // دکمه ورود رمز
-            document.getElementById('loginBtn').addEventListener('click', checkPassword);
-            // بستن پنل
-            document.getElementById('closePanelBtn').addEventListener('click', closeAdminPanel);
+            // برگشت از صفحه دسته
+            document.getElementById('backBtn').onclick = closeCategoryPage;
+
+            // ورود به مدیریت
+            document.getElementById('openAdminBtn').onclick = openLoginModal;
+            document.getElementById('loginBtn').onclick = checkLogin;
+            document.getElementById('closePanelBtn').onclick = closeAdminPanel;
 
             // آپلود پس‌زمینه
-            document.getElementById('bgUpload').addEventListener('change', function(e) {
-                fileToDataUrl(e.target.files[0], function(dataUrl) {
-                    siteData.bgImage = dataUrl;
-                    saveData(); renderAll();
-                    showNote('appearanceNote');
-                });
-            });
+            document.getElementById('bgUpload').onchange = e => {
+                if (e.target.files[0]) {
+                    readImage(e.target.files[0], dataUrl => {
+                        siteData.bgImage = dataUrl;
+                        saveData(); renderMainPage();
+                        showNote('appearanceNote');
+                    });
+                }
+            };
             // آپلود لوگو
-            document.getElementById('logoUpload').addEventListener('change', function(e) {
-                fileToDataUrl(e.target.files[0], function(dataUrl) {
-                    siteData.logoImage = dataUrl;
-                    saveData(); renderAll();
-                    showNote('appearanceNote');
-                });
-            });
+            document.getElementById('logoUpload').onchange = e => {
+                if (e.target.files[0]) {
+                    readImage(e.target.files[0], dataUrl => {
+                        siteData.logoImage = dataUrl;
+                        saveData(); renderMainPage();
+                        showNote('appearanceNote');
+                    });
+                }
+            };
             // آپلود بنر
-            document.getElementById('bannerUpload').addEventListener('change', function(e) {
-                fileToDataUrl(e.target.files[0], function(dataUrl) {
-                    siteData.bannerImage = dataUrl;
-                    saveData(); renderAll();
-                    showNote('appearanceNote');
-                });
-            });
-            // ذخیره ظاهر
-            document.getElementById('saveAppearanceBtn').addEventListener('click', function() {
+            document.getElementById('bannerUpload').onchange = e => {
+                if (e.target.files[0]) {
+                    readImage(e.target.files[0], dataUrl => {
+                        siteData.bannerImage = dataUrl;
+                        saveData(); renderMainPage();
+                        showNote('appearanceNote');
+                    });
+                }
+            };
+            // ذخیره متن‌های ظاهری
+            document.getElementById('saveAppearanceBtn').onclick = function() {
                 siteData.siteName = document.getElementById('siteNameInput').value.trim();
                 siteData.siteSub = document.getElementById('siteSubInput').value.trim();
                 siteData.statusText = document.getElementById('statusInput').value.trim();
-                saveData(); renderAll();
+                saveData(); renderMainPage();
                 showNote('appearanceNote');
-            });
+            };
             // افزودن دسته
-            document.getElementById('addCatBtn').addEventListener('click', function() {
+            document.getElementById('addCatBtn').onclick = function() {
                 const title = document.getElementById('newCatTitle').value.trim();
                 const desc = document.getElementById('newCatDesc').value.trim();
-                if (!title) return alert('عنوان را وارد کن!');
+                if (!title) return alert('عنوان را بنویس!');
                 siteData.categories.push({
                     id: Date.now(),
-                    title: title,
+                    title,
                     desc: desc || 'بدون توضیح',
                     messages: []
                 });
                 document.getElementById('newCatTitle').value = '';
                 document.getElementById('newCatDesc').value = '';
-                saveData(); renderAll();
+                saveData(); renderMainPage();
                 showNote('catNote');
-            });
+            };
             // ارسال پیام
-            document.getElementById('sendMsgBtn').addEventListener('click', function() {
-                const catIndex = parseInt(document.getElementById('targetCatSelect').value);
+            document.getElementById('sendMsgBtn').onclick = function() {
+                const idx = parseInt(document.getElementById('targetCatSelect').value);
                 const text = document.getElementById('newMessageText').value.trim();
                 if (!text) return alert('متن پیام را بنویس!');
-                siteData.categories[catIndex].messages.push(text);
+                siteData.categories[idx].messages.push(text);
                 document.getElementById('newMessageText').value = '';
-                saveData(); renderAll();
+                saveData(); renderMainPage();
                 showNote('msgNote');
-            });
+            };
         });
     </script>
 </body>
