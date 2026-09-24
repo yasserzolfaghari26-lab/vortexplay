@@ -12,26 +12,27 @@
             --cyber-pink: #FF2E97;
             --cyber-cyan: #00F0FF;
             --cyber-purple: #9D2EFF;
-            --cyber-yellow: #FFE600;
+            --cyber-green: #00FF88;
             --bg-dark: #050508;
             --bg-card: #0F0F1A;
             --bg-glass: rgba(18, 18, 32, 0.7);
             --text-white: #FFFFFF;
             --text-dim: #8888AA;
-            --border-glow: 1px solid rgba(0, 240, 255, 0.35);
         }
 
         body {
             background: radial-gradient(circle at top right, rgba(255, 46, 151, 0.12) 0%, transparent 45%),
                         radial-gradient(circle at bottom left, rgba(0, 240, 255, 0.12) 0%, transparent 45%),
                         linear-gradient(180deg, #050508 0%, #0F0F1A 50%, #050508 100%);
+            background-color: var(--bg-dark);
             color: var(--text-white);
             min-height: 100vh;
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            transition: background-image 0.5s ease;
         }
 
-        .container { max-width: 480px; margin: 0 auto; padding: 25px 20px 40px; }
-
-        /* === خطوط پس‌زمینه سایبر === */
         .grid-bg {
             position: fixed; inset: 0;
             background-image: 
@@ -41,56 +42,51 @@
             pointer-events: none; z-index: 0;
         }
 
-        /* === سرصفحه === */
-        .header { text-align: center; margin-bottom: 30px; position: relative; z-index: 1; }
-        
+        .container { max-width: 480px; margin: 0 auto; padding: 25px 20px 40px; position: relative; z-index: 1; }
+
+        /* === سرصفحه و لوگو === */
+        .header { text-align: center; margin-bottom: 30px; }
         .logo-ring {
             width: 130px; height: 130px; margin: 0 auto 15px; border-radius: 50%;
             background: conic-gradient(from 0deg, var(--cyber-pink), var(--cyber-cyan), var(--cyber-purple), var(--cyber-pink));
-            padding: 3px;
-            animation: spin 8s linear infinite;
+            padding: 3px; animation: spin 8s linear infinite;
             box-shadow: 0 0 30px rgba(0, 240, 255, 0.4), 0 0 60px rgba(255, 46, 151, 0.25);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
-        
         .logo-inner {
-            width: 100%; height: 100%; border-radius: 50%;
-            background: var(--bg-dark);
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            width: 100%; height: 100%; border-radius: 50%; background: var(--bg-dark);
+            display: flex; align-items: center; justify-content: center;
             animation: unspin 8s linear infinite;
+            overflow: hidden;
         }
         @keyframes unspin { to { transform: rotate(-360deg); } }
-        
+        .logo-img {
+            width: 100%; height: 100%;
+            object-fit: cover;
+            display: none;
+        }
         .logo-text {
             font-size: 32px; font-weight: 900;
             background: linear-gradient(135deg, var(--cyber-cyan), var(--cyber-pink));
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            background-clip: text;
         }
-        
         .site-title {
-            font-size: 28px; font-weight: 900; letter-spacing: 3px;
-            color: var(--cyber-cyan);
-            text-shadow: 0 0 10px rgba(0, 240, 255, 0.7), 0 0 20px rgba(0, 240, 255, 0.4);
-            margin-bottom: 5px;
+            font-size: 28px; font-weight: 900; letter-spacing: 3px; color: var(--cyber-cyan);
+            text-shadow: 0 0 10px rgba(0, 240, 255, 0.7); margin-bottom: 5px;
         }
-        
-        .site-desc {
-            color: var(--cyber-pink); font-size: 14px; letter-spacing: 2px;
-            text-shadow: 0 0 8px rgba(255, 46, 151, 0.5);
-        }
+        .site-desc { color: var(--cyber-pink); font-size: 14px; letter-spacing: 2px; }
 
         .status-bar {
-            background: var(--bg-glass); border: var(--border-glow);
+            background: var(--bg-glass); border: 1px solid rgba(0, 240, 255, 0.35);
             border-radius: 6px; padding: 12px 20px; margin-bottom: 25px;
             display: flex; align-items: center; justify-content: center; gap: 10px;
-            backdrop-filter: blur(10px);
         }
         .status-dot {
-            width: 12px; height: 12px; border-radius: 2px;
-            background: var(--cyber-cyan);
-            box-shadow: 0 0 10px var(--cyber-cyan), 0 0 20px var(--cyber-cyan);
-            animation: blink 1.5s infinite;
+            width: 12px; height: 12px; border-radius: 2px; background: var(--cyber-green);
+            box-shadow: 0 0 10px var(--cyber-green); animation: blink 1.5s infinite;
         }
         @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.2; } }
 
@@ -98,8 +94,7 @@
         .cat-card {
             background: var(--bg-glass); border: 1px solid rgba(157, 46, 255, 0.3);
             border-radius: 8px; padding: 20px; margin-bottom: 14px; cursor: pointer;
-            transition: 0.3s ease;
-            position: relative; overflow: hidden;
+            transition: 0.3s; position: relative; overflow: hidden;
             backdrop-filter: blur(8px);
         }
         .cat-card::before {
@@ -107,29 +102,22 @@
             background: linear-gradient(180deg, var(--cyber-pink), var(--cyber-purple));
         }
         .cat-card:hover {
-            transform: translateX(-5px);
-            border-color: var(--cyber-cyan);
-            box-shadow: -8px 0 25px rgba(0, 240, 255, 0.2), inset 0 0 20px rgba(0, 240, 255, 0.05);
+            transform: translateX(-5px); border-color: var(--cyber-cyan);
+            box-shadow: -8px 0 25px rgba(0, 240, 255, 0.2);
         }
-        .cat-name {
-            font-size: 18px; font-weight: 800; color: var(--cyber-cyan); margin-bottom: 6px;
-            text-shadow: 0 0 6px rgba(0, 240, 255, 0.4);
-        }
+        .cat-name { font-size: 18px; font-weight: 800; color: var(--cyber-cyan); margin-bottom: 6px; }
         .cat-desc { font-size: 13px; color: var(--text-dim); }
 
         .admin-btn {
             width: 100%; margin-top: 30px; padding: 15px;
             background: linear-gradient(90deg, var(--cyber-purple), var(--cyber-pink));
-            border: none; border-radius: 6px; color: #fff;
-            font-weight: 800; font-size: 15px; cursor: pointer; letter-spacing: 1px;
-            box-shadow: 0 0 15px rgba(157, 46, 255, 0.4);
-            transition: 0.3s;
+            border: none; border-radius: 6px; color: #fff; font-weight: 800;
+            font-size: 15px; cursor: pointer; box-shadow: 0 0 15px rgba(157, 46, 255, 0.4);
         }
-        .admin-btn:hover { box-shadow: 0 0 25px rgba(255, 46, 151, 0.6); transform: scale(1.02); }
 
         /* === صفحه پیام‌ها === */
         .msg-page {
-            position: fixed; inset: 0; background: var(--bg-dark); z-index: 100;
+            position: fixed; inset: 0; background: rgba(5,5,8,0.95); z-index: 100;
             display: none; flex-direction: column;
         }
         .msg-page.active { display: flex; }
@@ -142,10 +130,8 @@
             width: 38px; height: 38px; border-radius: 4px;
             background: rgba(0, 240, 255, 0.1); border: 1px solid rgba(0, 240, 255, 0.4);
             color: var(--cyber-cyan); font-size: 16px; cursor: pointer;
-            transition: 0.3s;
         }
-        .back-btn:hover { background: rgba(0, 240, 255, 0.2); box-shadow: 0 0 12px rgba(0, 240, 255, 0.5); }
-        .page-name { font-size: 17px; font-weight: 800; color: var(--cyber-cyan); text-shadow: 0 0 6px rgba(0, 240, 255, 0.4); }
+        .page-name { font-size: 17px; font-weight: 800; color: var(--cyber-cyan); }
         .msgs-box { flex: 1; overflow-y: auto; padding: 20px; }
         .msg-bubble {
             background: rgba(157, 46, 255, 0.08);
@@ -168,11 +154,10 @@
         .modal-box {
             width: 100%; max-width: 400px; background: var(--bg-card);
             border: 1px solid var(--cyber-purple); border-radius: 8px; padding: 25px;
-            box-shadow: 0 0 30px rgba(157, 46, 255, 0.3);
         }
         .modal-title {
             font-size: 20px; font-weight: 900; color: var(--cyber-cyan);
-            text-align: center; margin-bottom: 20px; text-shadow: 0 0 8px rgba(0, 240, 255, 0.5);
+            text-align: center; margin-bottom: 20px;
         }
         .input {
             width: 100%; padding: 14px 16px; margin-bottom: 12px;
@@ -180,30 +165,11 @@
             border-radius: 4px; color: #fff; font-size: 15px;
         }
         .input:focus { outline: none; border-color: var(--cyber-cyan); box-shadow: 0 0 12px rgba(0, 240, 255, 0.4); }
-        .btn {
-            width: 100%; padding: 14px; border: none; border-radius: 4px;
-            font-weight: 800; font-size: 15px; cursor: pointer; margin-top: 5px;
-            transition: 0.3s;
-        }
-        .btn-cyber {
-            background: linear-gradient(90deg, var(--cyber-cyan), var(--cyber-purple));
-            color: #000; box-shadow: 0 0 15px rgba(0, 240, 255, 0.4);
-        }
-        .btn-cyber:hover { box-shadow: 0 0 25px rgba(0, 240, 255, 0.7); }
-        .btn-pink {
-            background: linear-gradient(90deg, var(--cyber-pink), var(--cyber-purple));
-            color: #fff; box-shadow: 0 0 15px rgba(255, 46, 151, 0.4);
-        }
-        .btn-pink:hover { box-shadow: 0 0 25px rgba(255, 46, 151, 0.7); }
-        .btn-green {
-            background: linear-gradient(90deg, #00C853, #00E676);
-            color: #000; box-shadow: 0 0 15px rgba(0, 200, 83, 0.4);
-        }
         .err { color: var(--cyber-pink); text-align: center; margin-top: 10px; display: none; }
 
         /* === پنل مدیریت === */
         .panel {
-            position: fixed; inset: 0; background: var(--bg-dark); z-index: 300;
+            position: fixed; inset: 0; background: rgba(5,5,8,0.98); z-index: 300;
             display: none; overflow-y: auto;
         }
         .panel.active { display: block; }
@@ -217,7 +183,6 @@
             font-size: 22px; font-weight: 900;
             background: linear-gradient(90deg, var(--cyber-cyan), var(--cyber-pink));
             -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-            background-clip: text;
         }
         .close-panel {
             width: 38px; height: 38px; border-radius: 4px;
@@ -227,30 +192,73 @@
         .section { margin-bottom: 30px; }
         .sec-title {
             font-size: 16px; font-weight: 800; color: var(--cyber-cyan); margin-bottom: 12px;
-            text-shadow: 0 0 6px rgba(0, 240, 255, 0.3);
-        }
-        .item {
-            background: var(--bg-card); border: 1px solid rgba(157, 46, 255, 0.25);
-            border-radius: 6px; padding: 16px; margin-bottom: 10px;
-        }
-        .note {
-            margin-top: 12px; padding: 12px; background: rgba(0, 240, 110, 0.1);
-            border: 1px solid rgba(0, 255, 136, 0.4); border-radius: 4px;
-            color: #00FF88; text-align: center; display: none;
         }
         label { font-size: 14px; color: var(--text-dim); margin-bottom: 6px; display: block; }
-        textarea { resize: vertical; min-height: 100px; }
+        textarea { resize: vertical; min-height: 90px; }
+
+        /* === ۳ دکمه اصلی گرافیکی === */
+        .btn-row { display: flex; flex-direction: column; gap: 12px; margin-top: 15px; }
+        .action-btn {
+            width: 100%; padding: 16px 20px; border: none; border-radius: 8px;
+            font-weight: 800; font-size: 15px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            transition: 0.3s; position: relative; overflow: hidden;
+        }
+        .action-btn::before {
+            content: ''; position: absolute; left: 0; top: 0; width: 4px; height: 100%;
+        }
+        .btn-send {
+            background: linear-gradient(90deg, #0088CC, var(--cyber-cyan));
+            color: #000; box-shadow: 0 0 15px rgba(0, 240, 255, 0.4);
+        }
+        .btn-send::before { background: var(--cyber-cyan); }
+        .btn-send:hover { box-shadow: 0 0 25px rgba(0, 240, 255, 0.7); transform: scale(1.02); }
+        
+        .btn-create {
+            background: linear-gradient(90deg, #009944, var(--cyber-green));
+            color: #000; box-shadow: 0 0 15px rgba(0, 255, 136, 0.4);
+        }
+        .btn-create::before { background: var(--cyber-green); }
+        .btn-create:hover { box-shadow: 0 0 25px rgba(0, 255, 136, 0.7); transform: scale(1.02); }
+        
+        .btn-delete {
+            background: linear-gradient(90deg, #CC0044, var(--cyber-pink));
+            color: #fff; box-shadow: 0 0 15px rgba(255, 46, 151, 0.4);
+        }
+        .btn-delete::before { background: var(--cyber-pink); }
+        .btn-delete:hover { box-shadow: 0 0 25px rgba(255, 46, 151, 0.7); transform: scale(1.02); }
+
+        .note {
+            margin-top: 12px; padding: 12px; border-radius: 6px; text-align: center; display: none;
+        }
+        .note.success { background: rgba(0, 255, 136, 0.1); border: 1px solid rgba(0, 255, 136, 0.4); color: var(--cyber-green); }
+        .note.danger { background: rgba(255, 46, 151, 0.1); border: 1px solid rgba(255, 46, 151, 0.4); color: var(--cyber-pink); }
+
+        .hidden-section { display: none; margin-top: 15px; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 6px; border: 1px solid rgba(255,255,255,0.05); }
+        .hidden-section.active { display: block; }
+
+        /* === آپلود تصویر === */
+        .upload-area {
+            border: 2px dashed rgba(0, 240, 255, 0.3);
+            border-radius: 8px; padding: 20px; text-align: center; cursor: pointer;
+            transition: 0.3s; margin-bottom: 10px;
+        }
+        .upload-area:hover { border-color: var(--cyber-cyan); background: rgba(0, 240, 255, 0.05); }
+        .upload-area i { font-size: 24px; color: var(--cyber-cyan); margin-bottom: 8px; display: block; }
+        input[type="file"] { display: none; }
+        .hint { font-size: 12px; color: var(--text-dim); margin-top: 4px; }
     </style>
 </head>
-<body>
+<body id="bodyEl">
     <div class="grid-bg"></div>
     
     <!-- صفحه اصلی -->
     <div class="container" id="mainPage">
         <div class="header">
-            <div class="logo-ring">
+            <div class="logo-ring" id="logoBtn" title="برای تغییر لوگو کلیک کنید">
                 <div class="logo-inner">
-                    <span class="logo-text">VP</span>
+                    <img id="logoImg" class="logo-img" alt="لوگو">
+                    <span id="logoText" class="logo-text">VP</span>
                 </div>
             </div>
             <h1 class="site-title">VORTEXPLAY</h1>
@@ -265,7 +273,7 @@
         <div id="catsList"></div>
 
         <button class="admin-btn" id="openPanelBtn">
-            <i class="fas fa-terminal"></i> پنل مدیریت
+            <i class="fas fa-cog"></i> پنل مدیریت
         </button>
     </div>
 
@@ -285,7 +293,9 @@
             <h2 class="modal-title">ورود به سیستم مدیریت</h2>
             <input type="password" class="input" id="passInput" placeholder="رمز ۳۲ رقمی" maxlength="64">
             <p class="err" id="passErr">⚠️ رمز نامعتبر است!</p>
-            <button class="btn btn-cyber" id="loginBtn">ورود به سیستم</button>
+            <button class="action-btn btn-send" id="loginBtn">
+                <i class="fas fa-unlock"></i> ورود
+            </button>
         </div>
     </div>
 
@@ -297,27 +307,76 @@
                 <button class="close-panel" id="closePanelBtn"><i class="fas fa-times"></i></button>
             </div>
 
-            <!-- بخش: ارسال پیام -->
-            <div class="section">
-                <h3 class="sec-title">📤 ارسال پیام</h3>
-                <label>مسیر مقصد</label>
-                <select class="input" id="targetCat"></select>
-                <label>محتوای پیام</label>
-                <textarea class="input" id="msgText" placeholder="متن خود را وارد کنید..."></textarea>
-                <button class="btn btn-cyber" id="sendBtn">ارسال</button>
-                <p class="note" id="msgNote">✅ پیام با موفقیت ارسال شد!</p>
+            <!-- ۳ دکمه اصلی -->
+            <div class="btn-row">
+                <button class="action-btn btn-send" id="showSendBtn">
+                    <i class="fas fa-paper-plane"></i> ارسال پیام به دسته‌بندی
+                </button>
+                <button class="action-btn btn-create" id="showCreateBtn">
+                    <i class="fas fa-folder-plus"></i> ساخت دسته‌بندی جدید
+                </button>
+                <button class="action-btn btn-delete" id="showDeleteBtn">
+                    <i class="fas fa-folder-minus"></i> حذف دسته‌بندی
+                </button>
             </div>
 
-            <!-- بخش: دسته‌بندی‌ها -->
-            <div class="section">
-                <h3 class="sec-title">📂 مدیریت شاخه‌ها</h3>
-                <div id="panelCats"></div>
-                <label>نام شاخه جدید</label>
-                <input type="text" class="input" id="newCatName" placeholder="مثال: بازی‌های اکشن">
+            <!-- بخش ارسال پیام -->
+            <div class="hidden-section" id="sendSection">
+                <h3 class="sec-title"><i class="fas fa-paper-plane"></i> ارسال پیام</h3>
+                <label>انتخاب دسته‌بندی</label>
+                <select class="input" id="targetCat"></select>
+                <label>متن پیام</label>
+                <textarea class="input" id="msgText" placeholder="متن پیام خود را بنویسید..."></textarea>
+                <button class="action-btn btn-send" id="sendMsgBtn" style="margin-top:10px;">
+                    <i class="fas fa-send"></i> ارسال پیام
+                </button>
+                <p class="note success" id="sendNote">✅ پیام ارسال شد!</p>
+            </div>
+
+            <!-- بخش ساخت دسته -->
+            <div class="hidden-section" id="createSection">
+                <h3 class="sec-title"><i class="fas fa-folder-plus"></i> ساخت دسته‌بندی جدید</h3>
+                <label>نام دسته‌بندی</label>
+                <input type="text" class="input" id="newCatName" placeholder="مثال: بازی‌های کامپیوتر">
                 <label>توضیحات</label>
-                <input type="text" class="input" id="newCatDesc" placeholder="مثال: دانلود بازی‌های اکشن باکیفیت">
-                <button class="btn btn-green" id="addCatBtn">ایجاد شاخه</button>
-                <p class="note" id="catNote">✅ شاخه جدید ایجاد شد!</p>
+                <input type="text" class="input" id="newCatDesc" placeholder="مثال: دانلود بازی‌های کامپیوتر">
+                <button class="action-btn btn-create" id="createCatBtn" style="margin-top:10px;">
+                    <i class="fas fa-plus-circle"></i> ایجاد دسته
+                </button>
+                <p class="note success" id="createNote">✅ دسته‌بندی ساخته شد!</p>
+            </div>
+
+            <!-- بخش حذف دسته -->
+            <div class="hidden-section" id="deleteSection">
+                <h3 class="sec-title"><i class="fas fa-folder-minus"></i> حذف دسته‌بندی</h3>
+                <label>انتخاب دسته برای حذف</label>
+                <select class="input" id="delCatSelect"></select>
+                <p style="font-size:12px; color:var(--cyber-pink); margin:8px 0;">⚠️ با حذف، تمام پیام‌های این دسته نیز حذف می‌شوند!</p>
+                <button class="action-btn btn-delete" id="delCatBtn" style="margin-top:10px;">
+                    <i class="fas fa-trash"></i> حذف این دسته
+                </button>
+                <p class="note danger" id="delNote">✅ دسته حذف شد!</p>
+            </div>
+
+            <!-- بخش تنظیمات ظاهری -->
+            <div class="section" style="margin-top:35px; border-top: 1px solid rgba(255,255,255,0.08); padding-top:25px;">
+                <h3 class="sec-title"><i class="fas fa-palette"></i> تنظیمات ظاهری</h3>
+                
+                <label>تغییر پس‌زمینه سایت</label>
+                <div class="upload-area" id="bgUpload">
+                    <i class="fas fa-image"></i>
+                    <span>از گالری انتخاب کن</span>
+                    <input type="file" id="bgInput" accept="image/*">
+                </div>
+                <p class="hint">تصویر پس‌زمینه از گالری گوشی انتخاب شود</p>
+
+                <label style="margin-top:15px;">تغییر لوگو</label>
+                <div class="upload-area" id="logoUpload">
+                    <i class="fas fa-camera"></i>
+                    <span>از گالری انتخاب کن</span>
+                    <input type="file" id="logoInput" accept="image/*">
+                </div>
+                <p class="hint">تصویر لوگو جایگزین VP می‌شود</p>
             </div>
         </div>
     </div>
@@ -332,18 +391,36 @@
                 { id: 1, name: 'بکاپ و آموزش', desc: 'فایل‌های پشتیبان و راهنمای نصب', messages: [] },
                 { id: 2, name: 'بازی‌های PS5', desc: 'آرشیو کامل بازی‌های پلی‌استیشن ۵', messages: [] },
                 { id: 3, name: 'تصاویر و والپیپر', desc: 'گالری تصاویر رسمی بازی‌ها', messages: [] }
-            ]
+            ],
+            customBg: null,
+            customLogo: null
         };
 
         // === ذخیره و بارگذاری دائمی ===
         function save() { localStorage.setItem('vortex_cyber', JSON.stringify(data)); }
         function load() {
             const saved = localStorage.getItem('vortex_cyber');
-            if (saved) data = JSON.parse(saved);
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                data = { ...data, ...parsed };
+            }
+            applyCustomStyles();
             renderMain();
         }
-        function showNote(id) {
-            const el = document.getElementById(id);
+
+        function applyCustomStyles() {
+            if (data.customBg) {
+                document.getElementById('bodyEl').style.backgroundImage = `url(${data.customBg})`;
+            }
+            if (data.customLogo) {
+                document.getElementById('logoImg').src = data.customLogo;
+                document.getElementById('logoImg').style.display = 'block';
+                document.getElementById('logoText').style.display = 'none';
+            }
+        }
+
+        function showNote(elId) {
+            const el = document.getElementById(elId);
             el.style.display = 'block';
             setTimeout(() => el.style.display = 'none', 3000);
         }
@@ -365,7 +442,7 @@
             renderPanelLists();
         }
 
-        // === صفحه پیام‌ها (مثل پیام‌رسان) ===
+        // === صفحه پیام‌ها ===
         function openPage(index) {
             const cat = data.categories[index];
             document.getElementById('pageTitle').textContent = cat.name;
@@ -390,39 +467,27 @@
 
         // === لیست‌های پنل مدیریت ===
         function renderPanelLists() {
-            const select = document.getElementById('targetCat');
-            select.innerHTML = '';
+            const targetSel = document.getElementById('targetCat');
+            const delSel = document.getElementById('delCatSelect');
+            targetSel.innerHTML = '';
+            delSel.innerHTML = '';
+            
             data.categories.forEach((cat, index) => {
-                const option = document.createElement('option');
-                option.value = index;
-                option.textContent = cat.name;
-                select.appendChild(option);
-            });
+                const opt1 = document.createElement('option');
+                opt1.value = index; opt1.textContent = cat.name;
+                targetSel.appendChild(opt1);
 
-            const panelList = document.getElementById('panelCats');
-            panelList.innerHTML = '';
-            data.categories.forEach((cat, index) => {
-                const item = document.createElement('div');
-                item.className = 'item';
-                item.innerHTML = `
-                    <div style="font-weight:700; color:var(--cyber-cyan); margin-bottom:4px;">${cat.name}</div>
-                    <div style="font-size:13px; color:var(--text-dim); margin-bottom:8px;">${cat.desc}</div>
-                    <div style="font-size:12px; color:var(--cyber-pink);">تعداد پیام: ${cat.messages.length}</div>
-                    <button class="btn btn-pink" data-index="${index}" style="margin-top:10px;">حذف این شاخه</button>
-                `;
-                panelList.appendChild(item);
+                const opt2 = document.createElement('option');
+                opt2.value = index; opt2.textContent = cat.name;
+                delSel.appendChild(opt2);
             });
+        }
 
-            // اتصال دکمه‌های حذف
-            panelList.querySelectorAll('button.btn-pink').forEach(btn => {
-                btn.onclick = function() {
-                    if (confirm('آیا از حذف اطمینان دارید؟')) {
-                        const idx = parseInt(this.getAttribute('data-index'));
-                        data.categories.splice(idx, 1);
-                        save(); renderMain();
-                    }
-                };
-            });
+        // === نمایش/پنهان کردن بخش‌ها ===
+        function hideAllSections() {
+            document.getElementById('sendSection').classList.remove('active');
+            document.getElementById('createSection').classList.remove('active');
+            document.getElementById('deleteSection').classList.remove('active');
         }
 
         // === ورود و خروج ===
@@ -442,33 +507,58 @@
         }
         function closePanel() {
             document.getElementById('adminPanel').classList.remove('active');
+            hideAllSections();
+        }
+
+        // === تبدیل تصویر به Base64 ===
+        function readFileAsDataURL(file) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.readAsDataURL(file);
+            });
         }
 
         // === اتصال همه رویدادها ===
-        document.addEventListener('DOMContentLoaded', () => {
+        document.addEventListener('DOMContentLoaded', async () => {
             load();
 
+            // دکمه‌های نمایش بخش‌ها
+            document.getElementById('showSendBtn').onclick = () => {
+                hideAllSections();
+                document.getElementById('sendSection').classList.add('active');
+            };
+            document.getElementById('showCreateBtn').onclick = () => {
+                hideAllSections();
+                document.getElementById('createSection').classList.add('active');
+            };
+            document.getElementById('showDeleteBtn').onclick = () => {
+                hideAllSections();
+                document.getElementById('deleteSection').classList.add('active');
+            };
+
+            // ورود و خروج
             document.getElementById('openPanelBtn').onclick = openLogin;
             document.getElementById('loginBtn').onclick = checkLogin;
             document.getElementById('closePanelBtn').onclick = closePanel;
             document.getElementById('backBtn').onclick = closePage;
 
             // ارسال پیام
-            document.getElementById('sendBtn').onclick = () => {
+            document.getElementById('sendMsgBtn').onclick = () => {
                 const idx = parseInt(document.getElementById('targetCat').value);
                 const text = document.getElementById('msgText').value.trim();
                 if (!text) return alert('متن پیام را وارد کنید!');
                 data.categories[idx].messages.push(text);
                 document.getElementById('msgText').value = '';
                 save(); renderMain();
-                showNote('msgNote');
+                showNote('sendNote');
             };
 
-            // افزودن دسته جدید
-            document.getElementById('addCatBtn').onclick = () => {
+            // ساخت دسته جدید
+            document.getElementById('createCatBtn').onclick = () => {
                 const name = document.getElementById('newCatName').value.trim();
                 const desc = document.getElementById('newCatDesc').value.trim();
-                if (!name) return alert('نام شاخه را بنویسید!');
+                if (!name) return alert('نام دسته را بنویسید!');
                 data.categories.push({
                     id: Date.now(),
                     name: name,
@@ -478,7 +568,45 @@
                 document.getElementById('newCatName').value = '';
                 document.getElementById('newCatDesc').value = '';
                 save(); renderMain();
-                showNote('catNote');
+                showNote('createNote');
+            };
+
+            // حذف دسته
+            document.getElementById('delCatBtn').onclick = () => {
+                const idx = parseInt(document.getElementById('delCatSelect').value);
+                if (!confirm('آیا مطمئن هستید؟ تمام پیام‌های این دسته حذف خواهند شد!')) return;
+                data.categories.splice(idx, 1);
+                save(); renderMain();
+                showNote('delNote');
+            };
+
+            // تغییر پس‌زمینه
+            document.getElementById('bgUpload').onclick = () => document.getElementById('bgInput').click();
+            document.getElementById('bgInput').onchange = async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                data.customBg = await readFileAsDataURL(file);
+                save();
+                applyCustomStyles();
+                alert('✅ پس‌زمینه تغییر کرد!');
+            };
+
+            // تغییر لوگو
+            document.getElementById('logoUpload').onclick = () => document.getElementById('logoInput').click();
+            document.getElementById('logoInput').onchange = async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                data.customLogo = await readFileAsDataURL(file);
+                save();
+                applyCustomStyles();
+                alert('✅ لوگو تغییر کرد!');
+            };
+
+            // کلیک روی لوگو برای تغییر
+            document.getElementById('logoBtn').onclick = () => {
+                if (confirm('برای تغییر لوگو وارد پنل مدیریت شوید؟')) {
+                    openLogin();
+                }
             };
         });
     </script>
