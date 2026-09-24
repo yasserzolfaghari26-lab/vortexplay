@@ -3,419 +3,579 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VORTEXPLAY | CYBER</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<title>VORTEXPLAY — مرکز بازی و فایل</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E⚡%3C/text%3E%3C/svg%3E">
+<link href="https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:tahoma,sans-serif}
-:root{--narenji:#FF6B00;--abi:#0099FF;--siah:#0a0a0f;--khat:#222;--sabz:#00FF88}
+/* ================= VORTEXPLAY CORE ================= */
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#07070f; --card:rgba(255,255,255,.045); --stroke:rgba(255,255,255,.1);
+  --a1:#8b5cf6; --a2:#22d3ee; --txt:#f1f1fa; --muted:#8e8ea8; --danger:#ef4444;
+}
 body{
-  background:var(--siah);
-  color:#fff;
-  min-height:100vh;
-  background-size:cover;
-  background-position:center;
-  background-attachment:fixed;
-  transition:background .5s ease
+  min-height:100vh;background:var(--bg);color:var(--txt);
+  font-family:'Vazirmatn',Tahoma,'Segoe UI',sans-serif;overflow-x:hidden;
 }
-.grid{position:fixed;inset:0;
-  background-image:linear-gradient(rgba(0,153,255,.03) 1px,transparent 1px),
-  linear-gradient(90deg,rgba(0,153,255,.03) 1px,transparent 1px);
-  background-size:40px 40px;z-index:0
+/* ---- پس‌زمینه ---- */
+#bg-layer{position:fixed;inset:0;z-index:-3;background-size:cover;background-position:center;display:none}
+#vortex{position:fixed;inset:0;z-index:-2;overflow:hidden;pointer-events:none}
+#vortex::before,#vortex::after{content:'';position:absolute;width:65vmax;height:65vmax;border-radius:50%;filter:blur(80px);opacity:.33}
+#vortex::before{background:radial-gradient(circle,#7c3aed 0%,transparent 62%);top:-22vmax;right:-18vmax;animation:f1 16s ease-in-out infinite}
+#vortex::after{background:radial-gradient(circle,#0ea5e9 0%,transparent 62%);bottom:-22vmax;left:-18vmax;animation:f2 20s ease-in-out infinite}
+@keyframes f1{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(-7vmax,5vmax) scale(1.18)}}
+@keyframes f2{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(6vmax,-5vmax) scale(1.12)}}
+
+/* ---- هدر ---- */
+header{
+  position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:12px;
+  padding:14px 20px;background:rgba(10,10,20,.55);backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--stroke);
 }
-.container{max-width:450px;margin:0 auto;padding:20px;position:relative;z-index:1}
-.header{text-align:center;padding:30px 0}
-.logo-ring{width:120px;height:120px;margin:0 auto 15px;border-radius:50%;
-  background:conic-gradient(#FF6B00,#0099FF,#9D2EFF,#FF6B00);padding:3px;
-  animation:spin 8s linear infinite}
-@keyframes spin{100%{transform:rotate(360deg)}}
-.logo-inner{width:100%;height:100%;border-radius:50%;background:var(--siah);
-  display:flex;align-items:center;justify-content:center;animation:unspin 8s linear infinite}
-@keyframes unspin{100%{transform:rotate(-360deg)}}
-.logo-img{width:100%;height:100%;object-fit:cover;display:none;border-radius:50%}
-.logo-text{font-size:32px;background:linear-gradient(135deg,#0099FF,#FF6B00);
-  -webkit-background-clip:text;color:transparent;font-weight:bold}
-h1{font-size:26px;color:var(--narenji);margin-bottom:5px}
-.sub{color:var(--abi);font-size:14px;letter-spacing:2px}
-.status{background:rgba(0,153,255,.1);border:1px solid rgba(0,153,255,.3);
-  border-radius:8px;padding:12px;text-align:center;margin:15px 0;display:flex;align-items:center;justify-content:center;gap:10px}
-.dot{width:10px;height:10px;border-radius:50%;background:var(--sabz);
-  box-shadow:0 0 10px var(--sabz);animation:blink 1.5s infinite}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
-.cat{background:rgba(255,255,255,.05);border:1px solid rgba(255,107,0,.2);
-  border-radius:10px;padding:18px;margin-bottom:12px;cursor:pointer;transition:.3s;position:relative;overflow:hidden}
-.cat::before{content:'';position:absolute;top:0;right:0;width:4px;height:100%;
-  background:linear-gradient(180deg,#FF6B00,#9D2EFF)}
-.cat:hover{border-color:var(--narenji);transform:translateX(-5px);
-  box-shadow:-8px 0 25px rgba(255,107,0,.15)}
-.cat h3{color:var(--narenji);font-size:17px;margin-bottom:5px}
-.cat p{color:#888;font-size:13px}
-.btn{width:100%;padding:14px;border:none;border-radius:8px;font-size:16px;font-weight:bold;cursor:pointer;transition:.3s}
-.btn-admin{background:linear-gradient(90deg,#9D2EFF,#FF6B00);color:#fff;margin-top:30px}
-.btn-admin:hover{transform:scale(1.02);box-shadow:0 0 20px rgba(255,107,0,.3)}
-.page{position:fixed;inset:0;background:rgba(0,0,0,.95);z-index:100;display:none;overflow-y:auto}
-.page.active{display:flex;flex-direction:column}
-.page-head{padding:15px 20px;border-bottom:1px solid #333;display:flex;justify-content:space-between;align-items:center}
-.back{background:transparent;border:none;color:var(--abi);font-size:20px;cursor:pointer}
-.msgs{padding:20px;flex:1}
-.msg{background:rgba(0,153,255,.08);border:1px solid rgba(0,153,255,.2);
-  border-radius:8px;padding:15px;margin-bottom:10px;line-height:1.7}
-.empty{text-align:center;color:#666;padding:60px 20px}
-.modal{position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:200;display:none;align-items:center;justify-content:center;padding:20px}
-.modal.active{display:flex}
-.modal-box{background:#111;padding:25px;border-radius:12px;border:1px solid var(--narenji);width:100%;max-width:380px}
-.modal h2{text-align:center;color:var(--narenji);margin-bottom:20px}
-.input{width:100%;padding:14px;background:#0f0f1a;border:1px solid #333;
-  border-radius:6px;color:#fff;font-size:15px;margin:10px 0}
-.input:focus{outline:none;border-color:var(--abi)}
-.err{color:#f55;text-align:center;margin-top:10px;display:none}
-.panel{position:fixed;inset:0;background:#050508;z-index:300;display:none;overflow-y:auto;padding:20px}
-.panel.active{display:block}
-.panel-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;padding-bottom:15px;border-bottom:1px solid #333}
-.panel h2{color:var(--narenji)}
-.close{background:transparent;border:none;color:#f55;font-size:22px;cursor:pointer}
-.sec{margin:25px 0;padding:15px;background:#111;border-radius:10px}
-.sec h4{color:var(--abi);margin-bottom:10px;display:flex;align-items:center;gap:8px}
-.upload{border:2px dashed #333;border-radius:10px;padding:25px;text-align:center;cursor:pointer;transition:.3s}
-.upload:hover{border-color:var(--narenji);background:rgba(255,107,0,.05)}
-.upload i{font-size:28px;color:var(--narenji);margin-bottom:8px}
-.upload span{color:#888;font-size:14px}
-.preview{margin-top:12px;display:none}
-.preview.active{display:block}
-.preview img{max-width:100%;border-radius:8px;border:1px solid #333;margin-bottom:10px}
-.reset{background:transparent;border:1px solid #f55;color:#f55;padding:8px 15px;border-radius:6px;cursor:pointer;width:100%}
-.hidden{display:none;margin-top:15px}
-.hidden.show{display:block}
-.note{margin-top:10px;padding:10px;border-radius:6px;text-align:center;display:none}
-.note.ok{background:rgba(0,255,136,.1);border:1px solid rgba(0,255,136,.3);color:var(--sabz)}
-.btns{display:flex;flex-direction:column;gap:10px;margin-bottom:20px}
-.btns button{text-align:left}
+.logo-box{display:flex;align-items:center;gap:10px}
+.logo-box img{height:44px;max-width:170px;object-fit:contain;border-radius:8px}
+.brand{font-size:1.45rem;font-weight:900;letter-spacing:1px;
+  background:linear-gradient(90deg,var(--a1),var(--a2));
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.brand .zap{color:var(--a2);-webkit-text-fill-color:var(--a2)}
+
+main{max-width:920px;margin:0 auto;padding:26px 18px 90px}
+
+/* ---- صفحه اصلی ---- */
+.hero{text-align:center;padding:30px 10px 34px}
+.hero h1{font-size:1.9rem;font-weight:900}
+.hero h1 span{background:linear-gradient(90deg,var(--a1),var(--a2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.hero p{color:var(--muted);margin-top:10px;font-size:.95rem}
+.stats{display:flex;justify-content:center;gap:14px;margin-top:22px;flex-wrap:wrap}
+.stat{background:var(--card);border:1px solid var(--stroke);border-radius:14px;padding:10px 22px;text-align:center;min-width:105px}
+.stat b{font-size:1.35rem;display:block;background:linear-gradient(90deg,var(--a1),var(--a2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.stat small{color:var(--muted);font-size:.75rem}
+.section-title{display:flex;align-items:center;gap:10px;margin:30px 0 16px;font-size:1.1rem;font-weight:700}
+.section-title::after{content:'';flex:1;height:1px;background:var(--stroke)}
+
+.cat-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:14px}
+.cat-card{
+  background:var(--card);border:1px solid var(--stroke);border-radius:18px;
+  padding:20px 14px;text-align:center;cursor:pointer;
+  transition:transform .25s,border-color .25s,box-shadow .25s;
+}
+.cat-card:hover{transform:translateY(-6px);border-color:rgba(139,92,246,.6);box-shadow:0 12px 32px rgba(139,92,246,.25)}
+.cat-icon{font-size:2.3rem}
+.cat-name{font-weight:700;margin-top:10px}
+.cat-desc{color:var(--muted);font-size:.78rem;margin-top:6px;line-height:1.7}
+.cat-count{display:inline-block;margin-top:12px;font-size:.72rem;padding:4px 12px;border-radius:999px;background:rgba(139,92,246,.15);color:#c4b5fd}
+
+.empty{text-align:center;color:var(--muted);padding:50px 15px;border:1px dashed var(--stroke);border-radius:18px;line-height:2}
+.empty .big{font-size:2.5rem}
+
+/* ---- صفحه دسته ---- */
+.back-btn{
+  display:inline-flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--stroke);
+  color:var(--txt);padding:9px 18px;border-radius:12px;cursor:pointer;font-family:inherit;
+  font-size:.88rem;margin-bottom:20px;transition:border-color .2s;
+}
+.back-btn:hover{border-color:var(--a1)}
+.cat-head{display:flex;align-items:center;gap:14px;margin-bottom:24px}
+.cat-head .cat-icon{font-size:2.6rem}
+.cat-head h2{font-size:1.5rem}
+.cat-head p{color:var(--muted);font-size:.85rem;margin-top:4px}
+
+.post{background:var(--card);border:1px solid var(--stroke);border-radius:16px;padding:18px;margin-bottom:14px;animation:up .35s}
+@keyframes up{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:translateY(0)}}
+.post-date{color:var(--muted);font-size:.72rem;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.post-text{white-space:pre-wrap;word-break:break-word;line-height:2}
+.post-actions{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+.dl-btn{
+  display:inline-flex;align-items:center;gap:8px;text-decoration:none;
+  background:linear-gradient(90deg,var(--a1),var(--a2));color:#fff;border:none;
+  padding:10px 24px;border-radius:12px;font-weight:700;cursor:pointer;font-family:inherit;
+  font-size:.9rem;transition:transform .2s,opacity .2s;
+}
+.dl-btn:hover{transform:translateY(-2px);opacity:.92}
+.copy-btn{background:var(--card);border:1px solid var(--stroke);color:var(--muted);padding:10px 16px;border-radius:12px;cursor:pointer;font-family:inherit;font-size:.85rem;transition:.2s}
+.copy-btn:hover{color:var(--txt);border-color:var(--a1)}
+
+/* ---- فوتر ---- */
+footer{
+  position:fixed;bottom:0;left:0;right:0;z-index:40;text-align:center;padding:12px;
+  background:linear-gradient(to top,rgba(7,7,15,.95),transparent);
+}
+#admin-btn{
+  background:var(--card);border:1px solid var(--stroke);color:var(--muted);
+  padding:9px 22px;border-radius:999px;cursor:pointer;font-family:inherit;font-size:.82rem;
+  transition:.25s;
+}
+#admin-btn:hover{color:var(--txt);border-color:var(--a1);box-shadow:0 0 20px rgba(139,92,246,.3)}
+
+/* ---- مودال مدیریت ---- */
+#admin-modal{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.72);backdrop-filter:blur(8px);
+  display:none;align-items:flex-start;justify-content:center;padding:18px;overflow-y:auto}
+#admin-modal.open{display:flex}
+.modal{
+  background:#12121e;border:1px solid var(--stroke);border-radius:20px;width:100%;
+  max-width:560px;margin:auto;max-height:92vh;overflow-y:auto;animation:pop .3s;
+}
+@keyframes pop{from{transform:scale(.93);opacity:0}to{transform:scale(1);opacity:1}}
+.modal-head{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--stroke)}
+.modal-head h3{font-size:1.05rem}
+.x-btn{background:none;border:none;color:var(--muted);font-size:1.3rem;cursor:pointer}
+.x-btn:hover{color:var(--danger)}
+.modal-body{padding:22px}
+
+.inp{
+  width:100%;background:rgba(255,255,255,.05);border:1px solid var(--stroke);border-radius:12px;
+  padding:12px 14px;color:var(--txt);font-family:inherit;font-size:.95rem;outline:none;transition:border .2s;
+}
+.inp:focus{border-color:var(--a1)}
+textarea.inp{resize:vertical;min-height:100px;line-height:1.9}
+select.inp{cursor:pointer}
+select.inp option{background:#12121e}
+label.lbl{display:block;color:var(--muted);font-size:.8rem;margin:14px 0 7px}
+
+.btn{
+  width:100%;margin-top:18px;padding:13px;border:none;border-radius:12px;cursor:pointer;
+  font-family:inherit;font-weight:700;font-size:.95rem;color:#fff;
+  background:linear-gradient(90deg,var(--a1),var(--a2));transition:transform .2s,opacity .2s;
+}
+.btn:hover{transform:translateY(-2px);opacity:.93}
+.btn-danger{background:linear-gradient(90deg,#ef4444,#f97316)}
+.btn-ghost{background:var(--card);border:1px solid var(--stroke);color:var(--muted)}
+.btn-ghost:hover{color:var(--txt)}
+
+.err{color:var(--danger);font-size:.82rem;text-align:center;margin-top:12px;min-height:1.2em}
+.shake{animation:shake .4s}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(7px)}75%{transform:translateX(-7px)}}
+
+.tabs{display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap}
+.tab{flex:1;min-width:95px;padding:10px 6px;border-radius:12px;background:rgba(255,255,255,.05);
+  border:1px solid var(--stroke);cursor:pointer;color:var(--muted);font-family:inherit;font-size:.82rem;
+  text-align:center;transition:.2s}
+.tab.active{background:linear-gradient(90deg,rgba(139,92,246,.25),rgba(34,211,238,.25));color:var(--txt);border-color:rgba(139,92,246,.55)}
+.panel{display:none}.panel.active{display:block}
+
+.admin-item{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  background:var(--card);border:1px solid var(--stroke);border-radius:12px;
+  padding:12px 14px;margin-bottom:9px;font-size:.88rem}
+.admin-item .del{background:none;border:1px solid rgba(239,68,68,.35);color:var(--danger);
+  padding:5px 13px;border-radius:9px;cursor:pointer;font-family:inherit;font-size:.78rem;transition:.2s;white-space:nowrap}
+.admin-item .del:hover{background:rgba(239,68,68,.15)}
+.admin-item small{display:block;color:var(--muted);font-size:.72rem;margin-top:3px}
+
+.preview-box{margin-top:12px;border:1px dashed var(--stroke);border-radius:14px;padding:14px;text-align:center;display:none}
+.preview-box img{max-width:100%;max-height:130px;border-radius:8px}
+.mini-row{display:flex;gap:9px;margin-top:12px}
+.mini-row .btn{margin-top:0;padding:9px;font-size:.85rem}
+
+hr.sep{border:none;border-top:1px solid var(--stroke);margin:26px 0}
+
+/* ---- توست ---- */
+#toast{position:fixed;bottom:80px;left:50%;transform:translateX(-50%) translateY(90px);
+  background:#1c1c2c;border:1px solid var(--stroke);padding:12px 26px;border-radius:12px;z-index:200;
+  opacity:0;transition:.35s;pointer-events:none;font-size:.9rem;box-shadow:0 12px 34px rgba(0,0,0,.55);max-width:88vw;text-align:center}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+@media(max-width:520px){
+  .hero h1{font-size:1.5rem}
+  .brand{font-size:1.2rem}
+  .logo-box img{height:36px}
+  .cat-grid{grid-template-columns:repeat(auto-fill,minmax(140px,1fr))}
+  main{padding:20px 13px 100px}
+}
 </style>
 </head>
-<body id="bodyEl">
-<div class="grid"></div>
+<body>
 
-<div class="container">
-  <div class="header">
-    <div class="logo-ring">
-      <div class="logo-inner">
-        <img id="logoImg" class="logo-img" alt="لوگو">
-        <span id="logoText" class="logo-text">VP</span>
+<div id="bg-layer"></div>
+<div id="vortex"></div>
+
+<header>
+  <div class="logo-box" id="logo-box"></div>
+</header>
+
+<main id="main-view"></main>
+
+<footer>
+  <button id="admin-btn">⚙️ پنل مدیریت</button>
+</footer>
+
+<!-- ================= مودال مدیریت ================= -->
+<div id="admin-modal">
+  <div class="modal">
+
+    <!-- ورود -->
+    <div id="login-view">
+      <div class="modal-head"><h3>🔐 ورود به مدیریت</h3><button class="x-btn" onclick="closeAdmin()">✕</button></div>
+      <div class="modal-body">
+        <label class="lbl">رمز عبور مدیریت</label>
+        <input type="password" class="inp" id="login-pass" placeholder="رمز را وارد کنید..." autocomplete="off">
+        <button class="btn" onclick="doLogin()">🔓 ورود</button>
+        <div class="err" id="login-err"></div>
       </div>
     </div>
-    <h1>VORTEXPLAY</h1>
-    <p class="sub">CYBER GAMING STATION</p>
+
+    <!-- داشبورد -->
+    <div id="dash-view" style="display:none">
+      <div class="modal-head"><h3>🎛️ پنل مدیریت VORTEXPLAY</h3><button class="x-btn" onclick="closeAdmin()">✕</button></div>
+      <div class="modal-body">
+
+        <div class="tabs">
+          <div class="tab active" data-tab="cats" onclick="switchTab('cats')">🗂 دسته‌بندی</div>
+          <div class="tab" data-tab="msgs" onclick="switchTab('msgs')">✉️ پیام‌ها</div>
+          <div class="tab" data-tab="look" onclick="switchTab('look')">🎨 ظاهر</div>
+        </div>
+
+        <!-- تب دسته‌بندی -->
+        <div class="panel active" id="panel-cats">
+          <label class="lbl">ایموجی / آیکون (مثال: 🎮)</label>
+          <input class="inp" id="cat-icon" value="🎮" maxlength="4">
+          <label class="lbl">نام دسته‌بندی *</label>
+          <input class="inp" id="cat-name" placeholder="مثال: بازی‌های اکشن">
+          <label class="lbl">توضیح کوتاه</label>
+          <input class="inp" id="cat-desc" placeholder="مثال: جدیدترین بازی‌های اکشن اندروید">
+          <button class="btn" onclick="addCategory()">➕ ساخت دسته‌بندی</button>
+          <hr class="sep">
+          <label class="lbl">دسته‌بندی‌های موجود (برای حذف بزن)</label>
+          <div id="admin-cat-list"></div>
+        </div>
+
+        <!-- تب پیام‌ها -->
+        <div class="panel" id="panel-msgs">
+          <label class="lbl">انتخاب دسته‌بندی</label>
+          <select class="inp" id="msg-cat"></select>
+          <label class="lbl">متن پیام *</label>
+          <textarea class="inp" id="msg-text" placeholder="توضیحات، مشخصات، راهنما و..."></textarea>
+          <label class="lbl">لینک دانلود (اختیاری)</label>
+          <input class="inp" id="msg-link" placeholder="https://example.com/file.zip" dir="ltr">
+          <button class="btn" onclick="addPost()">🚀 ارسال پیام</button>
+          <hr class="sep">
+          <label class="lbl">پیام‌های ارسال‌شده (برای حذف بزن)</label>
+          <div id="admin-msg-list"></div>
+        </div>
+
+        <!-- تب ظاهر -->
+        <div class="panel" id="panel-look">
+          <label class="lbl">🖼 لوگوی سایت</label>
+          <input type="file" id="logo-input" accept="image/*" hidden>
+          <button class="btn btn-ghost" onclick="logoInput.click()">📤 انتخاب عکس لوگو</button>
+          <div class="preview-box" id="logo-preview-box">
+            <img id="logo-preview" alt="پیش‌نمایش لوگو">
+            <div class="mini-row">
+              <button class="btn" onclick="saveLogo()">✅ تایید و ذخیره</button>
+              <button class="btn btn-ghost" onclick="cancelLogo()">✖ لغو</button>
+            </div>
+          </div>
+          <button class="btn btn-danger" style="margin-top:10px" onclick="deleteLogo()">🗑 حذف لوگو فعلی</button>
+
+          <hr class="sep">
+
+          <label class="lbl">🌌 پس‌زمینه سایت</label>
+          <input type="file" id="bg-input" accept="image/*" hidden>
+          <button class="btn btn-ghost" onclick="bgInput.click()">📤 انتخاب عکس پس‌زمینه</button>
+          <div class="preview-box" id="bg-preview-box">
+            <img id="bg-preview" alt="پیش‌نمایش پس‌زمینه">
+            <div class="mini-row">
+              <button class="btn" onclick="saveBg()">✅ تایید و ذخیره</button>
+              <button class="btn btn-ghost" onclick="cancelBg()">✖ لغو</button>
+            </div>
+          </div>
+          <button class="btn btn-danger" style="margin-top:10px" onclick="deleteBg()">🗑 حذف پس‌زمینه فعلی</button>
+
+          <hr class="sep">
+          <button class="btn btn-danger" onclick="resetAll()">⚠️ پاک کردن کل داده‌ها</button>
+          <button class="btn btn-ghost" style="margin-top:10px" onclick="logout()">🚪 خروج از مدیریت</button>
+        </div>
+
+      </div>
+    </div>
+
   </div>
-
-  <div class="status">
-    <span class="dot"></span>
-    <span>سیستم آنلاین و فعال</span>
-  </div>
-
-  <div id="catsList"></div>
-
-  <button class="btn btn-admin" id="adminBtn">
-    <i class="fas fa-cog"></i> پنل مدیریت
-  </button>
 </div>
 
-<!-- صفحه پیام‌ها -->
-<div class="page" id="pageMsg">
-  <div class="page-head">
-    <button class="back" id="back1"><i class="fas fa-chevron-right"></i></button>
-    <h3 id="pageTitle"></h3>
-    <div></div>
-  </div>
-  <div class="msgs" id="msgsBox"></div>
-</div>
-
-<!-- ورود -->
-<div class="modal" id="modalLogin">
-  <div class="modal-box">
-    <h2>ورود مدیریت</h2>
-    <input type="password" class="input" id="passInput" placeholder="رمز ۳۲ رقمی">
-    <p class="err" id="errMsg">⚠️ رمز اشتباه است!</p>
-    <button class="btn btn-admin" id="btnLogin">ورود</button>
-  </div>
-</div>
-
-<!-- پنل مدیریت -->
-<div class="panel" id="panel">
-  <div class="panel-head">
-    <h2>کنسول مدیریت</h2>
-    <button class="close" id="closePanel"><i class="fas fa-times"></i></button>
-  </div>
-
-  <div class="btns">
-    <button class="btn" id="btnSend" style="background:linear-gradient(90deg,#0099FF,#00CCDD);color:#000">
-      <i class="fas fa-paper-plane"></i> ارسال پیام
-    </button>
-    <button class="btn" id="btnNewCat" style="background:linear-gradient(90deg,#00CC66,#00FF88);color:#000">
-      <i class="fas fa-folder-plus"></i> دسته جدید
-    </button>
-    <button class="btn" id="btnDelCat" style="background:linear-gradient(90deg,#CC0044,#FF3366);color:#fff">
-      <i class="fas fa-folder-minus"></i> حذف دسته
-    </button>
-  </div>
-
-  <!-- پس‌زمینه -->
-  <div class="sec">
-    <h4><i class="fas fa-images"></i> پس‌زمینه خودکار</h4>
-    <div class="upload" id="upBg">
-      <i class="fas fa-cloud-upload-alt"></i>
-      <span>انتخاب عکس → بلافاصله اعمال می‌شود ✅</span>
-      <input type="file" id="fileBg" accept="image/*" style="display:none">
-    </div>
-    <div class="preview" id="prevBg">
-      <img id="imgPrevBg" alt="پیش‌نمایش">
-      <button class="reset" id="delBg">حذف پس‌زمینه</button>
-    </div>
-    <p class="note ok" id="bgSaved">✅ ذخیره شد!</p>
-  </div>
-
-  <!-- لوگو -->
-  <div class="sec">
-    <h4><i class="fas fa-picture-o"></i> لوگوی خودکار</h4>
-    <div class="upload" id="upLogo">
-      <i class="fas fa-user-circle"></i>
-      <span>انتخاب عکس → بلافاصله اعمال می‌شود ✅</span>
-      <input type="file" id="fileLogo" accept="image/*" style="display:none">
-    </div>
-    <div class="preview" id="prevLogo">
-      <img id="imgPrevLogo" alt="پیش‌نمایش" style="border-radius:50%;max-width:120px">
-      <button class="reset" id="delLogo">حذف لوگو</button>
-    </div>
-    <p class="note ok" id="logoSaved">✅ ذخیره شد!</p>
-  </div>
-
-  <!-- ارسال پیام -->
-  <div class="sec hidden" id="secSend">
-    <h4><i class="fas fa-paper-plane"></i> ارسال پیام</h4>
-    <label>انتخاب دسته:</label>
-    <select class="input" id="selCat"></select>
-    <label>متن پیام:</label>
-    <textarea class="input" id="txtMsg" rows="4" placeholder="متن و لینک را بنویس..."></textarea>
-    <button class="btn" id="doSend" style="background:var(--abi);color:#fff">ارسال</button>
-    <p class="note ok" id="sent">✅ ارسال شد!</p>
-  </div>
-
-  <!-- دسته جدید -->
-  <div class="sec hidden" id="secNewCat">
-    <h4><i class="fas fa-folder-plus"></i> دسته جدید</h4>
-    <label>نام دسته:</label>
-    <input type="text" class="input" id="catName" placeholder="مثل: بازی‌های PS5">
-    <label>توضیح:</label>
-    <input type="text" class="input" id="catDesc" placeholder="مثل: دانلود بازی‌ها">
-    <button class="btn" id="doNewCat" style="background:var(--sabz);color:#000">ایجاد</button>
-    <p class="note ok" id="catCreated">✅ ساخته شد!</p>
-  </div>
-
-  <!-- حذف دسته -->
-  <div class="sec hidden" id="secDelCat">
-    <h4><i class="fas fa-folder-minus"></i> حذف دسته</h4>
-    <label>انتخاب دسته برای حذف:</label>
-    <select class="input" id="selDelCat"></select>
-    <p style="color:#f55;font-size:13px;margin:8px 0">⚠️ تمام پیام‌های این دسته هم حذف می‌شود!</p>
-    <button class="btn" id="doDelCat" style="background:#CC0044;color:#fff">حذف کن</button>
-    <p class="note ok" id="catDeleted">✅ حذف شد!</p>
-  </div>
-</div>
+<div id="toast"></div>
 
 <script>
-const PASS = 'CECGAA0MMLOGOBYEIZXQUXKCFOJOKYFRTUJDXHRHDAOFCUXMUGXMMLGZBPSWWZGR';
+/* ================== VORTEXPLAY ENGINE ================== */
+const ADMIN_PASS = 'CECGAA0MMLOGOBYEIZXQUXKCFOJOKYFRTUJDXHRHDAOFCUXMUGXMMLGZBPSWWZGR';
+const K = { cat:'vp_categories', post:'vp_posts', logo:'vp_logo', bg:'vp_bg' };
 
-let data = {
-  cats: [
-    {id:1,name:'بکاپ و آموزش',desc:'فایل‌های پشتیبان و راهنما',msgs:[]},
-    {id:2,name:'بازی‌های PS5',desc:'آرشیو کامل بازی‌ها',msgs:[]},
-    {id:3,name:'تصاویر و والپیپر',desc:'گالری تصاویر',msgs:[]}
-  ],
-  bg: null,
-  logo: null
+const $ = id => document.getElementById(id);
+const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2,7);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const safeUrl = u => { u=(u||'').trim(); return /^(https?:|magnet:)/i.test(u) ? u : 'https://'+u.replace(/^\/+/,''); };
+
+function load(k,d){ try{ const v=localStorage.getItem(k); return v==null?d:JSON.parse(v); }catch(e){ return d; } }
+function save(k,v){ try{ localStorage.setItem(k,JSON.stringify(v)); }catch(e){ toast('⚠️ حافظه مرورگر پر شده!'); } }
+
+/* ---------- state ---------- */
+let categories = load(K.cat, null);
+if(categories === null){
+  categories = [
+    {id:uid(), icon:'🎮', name:'بازی‌های اندروید', desc:'بهترین بازی‌ها با لینک مستقیم'},
+    {id:uid(), icon:'💾', name:'نرم‌افزار و اپلیکیشن', desc:'اپلیکیشن‌های کاربردی و پرطرفدار'},
+    {id:uid(), icon:'📦', name:'فایل‌های متفرقه', desc:'هر فایلی که لازم داشته باشی'},
+  ];
+  save(K.cat, categories);
+}
+let posts = load(K.post, []);
+let currentView = 'home';
+let isAdmin = false;
+
+/* ---------- toast ---------- */
+let toastTimer;
+function toast(msg){
+  const t = $('toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(toastTimer); toastTimer = setTimeout(()=>t.classList.remove('show'), 2600);
+}
+
+/* ---------- look (logo & background) ---------- */
+function applyLook(){
+  const logo = load(K.logo, null), bg = load(K.bg, null);
+  $('logo-box').innerHTML = logo
+    ? `<img src="${logo}" alt="logo">`
+    : `<span class="brand">VORTEX<span class="zap">PLAY</span> ⚡</span>`;
+  if(bg){
+    $('bg-layer').style.backgroundImage = `linear-gradient(rgba(7,7,15,.87),rgba(7,7,15,.93)), url("${bg}")`;
+    $('bg-layer').style.display = 'block';
+    $('vortex').style.display = 'none';
+  } else {
+    $('bg-layer').style.display = 'none';
+    $('vortex').style.display = 'block';
+  }
+}
+
+/* ---------- render: home ---------- */
+function renderHome(){
+  const total = posts.length;
+  let html = `
+  <section class="hero">
+    <h1>به <span>VORTEXPLAY</span> خوش اومدی ⚡</h1>
+    <p>مرکز دانلود بازی و فایل — همه‌چیز سریع، ساده و مستقیم</p>
+    <div class="stats">
+      <div class="stat"><b>${categories.length}</b><small>دسته‌بندی</small></div>
+      <div class="stat"><b>${total}</b><small>پیام و فایل</small></div>
+    </div>
+  </section>
+  <div class="section-title">🗂 دسته‌بندی‌ها</div>`;
+
+  if(!categories.length){
+    html += `<div class="empty"><div class="big">🕳️</div>هنوز دسته‌بندی‌ای ساخته نشده!<br>از پنل مدیریت یکی بساز.</div>`;
+  } else {
+    html += `<div class="cat-grid">` + categories.map(c=>{
+      const n = posts.filter(p=>p.catId===c.id).length;
+      return `<div class="cat-card" onclick="openCat('${c.id}')">
+        <div class="cat-icon">${esc(c.icon||'🎮')}</div>
+        <div class="cat-name">${esc(c.name)}</div>
+        <div class="cat-desc">${esc(c.desc||'')}</div>
+        <span class="cat-count">${n} آیتم</span>
+      </div>`;
+    }).join('') + `</div>`;
+  }
+  $('main-view').innerHTML = html;
+}
+
+/* ---------- render: category ---------- */
+function openCat(id){ currentView = id; render(); window.scrollTo({top:0,behavior:'smooth'}); }
+function goHome(){ currentView = 'home'; render(); }
+
+function renderCategory(id){
+  const c = categories.find(x=>x.id===id);
+  if(!c){ goHome(); return; }
+  const list = posts.filter(p=>p.catId===id).slice().reverse();
+  let html = `
+  <button class="back-btn" onclick="goHome()">→ بازگشت</button>
+  <div class="cat-head">
+    <div class="cat-icon">${esc(c.icon||'🎮')}</div>
+    <div><h2>${esc(c.name)}</h2><p>${esc(c.desc||'')}</p></div>
+  </div>`;
+
+  if(!list.length){
+    html += `<div class="empty"><div class="big">📭</div>هنوز چیزی در این دسته ارسال نشده!</div>`;
+  } else {
+    html += list.map(p=>`
+    <div class="post">
+      <div class="post-date">🕐 ${esc(p.date)}</div>
+      <div class="post-text">${esc(p.text)}</div>
+      ${p.link ? `<div class="post-actions">
+        <a class="dl-btn" href="${esc(safeUrl(p.link))}" target="_blank" rel="noopener">⬇️ دانلود / مشاهده</a>
+        <button class="copy-btn" onclick="copyLink(this,'${esc(p.link)}')">📋 کپی لینک</button>
+      </div>` : ''}
+    </div>`).join('');
+  }
+  $('main-view').innerHTML = html;
+}
+
+function copyLink(btn, link){
+  navigator.clipboard.writeText(safeUrl(link)).then(()=>{ toast('✅ لینک کپی شد!'); });
+}
+
+function render(){ currentView==='home' ? renderHome() : renderCategory(currentView); }
+
+/* ---------- admin: open / login ---------- */
+ $('admin-btn').onclick = openAdmin;
+function openAdmin(){
+  $('admin-modal').classList.add('open');
+  isAdmin ? showDash() : showLogin();
+}
+function closeAdmin(){ $('admin-modal').classList.remove('open'); }
+ $('admin-modal').addEventListener('click', e=>{ if(e.target.id==='admin-modal') closeAdmin(); });
+ $('login-pass').addEventListener('keydown', e=>{ if(e.key==='Enter') doLogin(); });
+
+function showLogin(){ $('login-view').style.display='block'; $('dash-view').style.display='none'; $('login-err').textContent=''; $('login-pass').value=''; }
+function showDash(){ $('login-view').style.display='none'; $('dash-view').style.display='block'; renderAdminLists(); }
+
+function doLogin(){
+  if($('login-pass').value === ADMIN_PASS){
+    isAdmin = true; showDash(); toast('✅ خوش آمدی مدیر!');
+  } else {
+    $('login-err').textContent = '❌ رمز اشتباه است!';
+    $('login-pass').classList.remove('shake'); void $('login-pass').offsetWidth;
+    $('login-pass').classList.add('shake');
+  }
+}
+function logout(){ isAdmin = false; closeAdmin(); toast('خروج انجام شد 👋'); }
+
+/* ---------- admin: tabs ---------- */
+function switchTab(t){
+  document.querySelectorAll('.tab').forEach(el=>el.classList.toggle('active', el.dataset.tab===t));
+  document.querySelectorAll('.panel').forEach(el=>el.classList.toggle('active', el.id==='panel-'+t));
+}
+
+/* ---------- admin: categories ---------- */
+function addCategory(){
+  const name = $('cat-name').value.trim();
+  if(!name){ toast('⚠️ نام دسته‌بندی لازمه!'); return; }
+  categories.push({ id:uid(), icon:$('cat-icon').value.trim()||'🎮', name, desc:$('cat-desc').value.trim() });
+  save(K.cat, categories);
+  $('cat-name').value=''; $('cat-desc').value='';
+  renderAdminLists(); render(); toast('✅ دسته‌بندی ساخته شد!');
+}
+function deleteCategory(id){
+  const c = categories.find(x=>x.id===id);
+  if(!confirm(`دسته «${c?c.name:''}» و همه پیام‌هایش حذف شود؟`)) return;
+  categories = categories.filter(x=>x.id!==id);
+  posts = posts.filter(p=>p.catId!==id);
+  save(K.cat, categories); save(K.post, posts);
+  if(currentView===id) currentView='home';
+  renderAdminLists(); render(); toast('🗑 دسته‌بندی حذف شد');
+}
+
+/* ---------- admin: posts ---------- */
+function addPost(){
+  const catId = $('msg-cat').value;
+  const text  = $('msg-text').value.trim();
+  const link  = $('msg-link').value.trim();
+  if(!catId){ toast('⚠️ اول یک دسته‌بندی انتخاب کن!'); return; }
+  if(!text && !link){ toast('⚠️ حداقل متن یا لینک را پر کن!'); return; }
+  posts.push({
+    id:uid(), catId, text:text||'—',
+    link, date:new Date().toLocaleDateString('fa-IR',{year:'numeric',month:'long',day:'numeric'})
+  });
+  save(K.post, posts);
+  $('msg-text').value=''; $('msg-link').value='';
+  renderAdminLists(); render(); toast('🚀 پیام ارسال و ذخیره شد!');
+}
+function deletePost(id){
+  posts = posts.filter(p=>p.id!==id);
+  save(K.post, posts);
+  renderAdminLists(); render(); toast('🗑 پیام حذف شد');
+}
+
+/* ---------- admin: lists ---------- */
+function renderAdminLists(){
+  $('msg-cat').innerHTML = categories.length
+    ? categories.map(c=>`<option value="${c.id}">${esc(c.icon)} ${esc(c.name)}</option>`).join('')
+    : `<option value="">— دسته‌ای موجود نیست —</option>`;
+
+  $('admin-cat-list').innerHTML = categories.length
+    ? categories.map(c=>`<div class="admin-item">
+        <span>${esc(c.icon)} ${esc(c.name)} <small>${posts.filter(p=>p.catId===c.id).length} پیام</small></span>
+        <button class="del" onclick="deleteCategory('${c.id}')">حذف</button>
+      </div>`).join('')
+    : `<div class="empty" style="padding:18px">دسته‌ای نیست</div>`;
+
+  $('admin-msg-list').innerHTML = posts.length
+    ? posts.slice().reverse().map(p=>{
+        const c = categories.find(x=>x.id===p.catId);
+        return `<div class="admin-item">
+          <span>${esc((p.text||'').slice(0,42))}${(p.text||'').length>42?'...':''}
+            <small>${esc(c?c.name:'—')} • ${esc(p.date)}</small></span>
+          <button class="del" onclick="deletePost('${p.id}')">حذف</button>
+        </div>`;
+      }).join('')
+    : `<div class="empty" style="padding:18px">پیامی نیست</div>`;
+}
+
+/* ---------- admin: image process (فشرده‌سازی خودکار) ---------- */
+function processImage(file, maxSize, cb){
+  const reader = new FileReader();
+  reader.onload = e=>{
+    const img = new Image();
+    img.onload = ()=>{
+      let w = img.width, h = img.height;
+      const s = Math.min(1, maxSize / Math.max(w,h));
+      w = Math.round(w*s); h = Math.round(h*s);
+      const cv = document.createElement('canvas');
+      cv.width=w; cv.height=h;
+      cv.getContext('2d').drawImage(img,0,0,w,h);
+      let data = cv.toDataURL('image/webp', .9);
+      if(!data.startsWith('data:image/webp')) data = cv.toDataURL('image/jpeg', .82);
+      cb(data);
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+/* ---------- logo ---------- */
+let pendingLogo = null;
+ $('logo-input').onchange = e=>{
+  const f = e.target.files[0]; if(!f) return;
+  processImage(f, 500, data=>{
+    pendingLogo = data;
+    $('logo-preview').src = data;
+    $('logo-preview-box').style.display = 'block';
+  });
+  e.target.value='';
 };
-
-function save(){
-  localStorage.setItem('vortex',JSON.stringify(data));
+function saveLogo(){
+  if(!pendingLogo) return;
+  save(K.logo, pendingLogo); applyLook(); cancelLogo(); toast('✅ لوگو ذخیره شد!');
+}
+function cancelLogo(){ pendingLogo=null; $('logo-preview-box').style.display='none'; }
+function deleteLogo(){
+  localStorage.removeItem(K.logo); applyLook(); toast('🗑 لوگو حذف شد');
 }
 
-function load(){
-  const s = localStorage.getItem('vortex');
-  if(s){
-    const p = JSON.parse(s);
-    data.cats = p.cats || data.cats;
-    data.bg = p.bg || null;
-    data.logo = p.logo || null;
-  }
-  applyAll();
-  render();
-}
-
-function applyAll(){
-  if(data.bg){
-    document.getElementById('bodyEl').style.backgroundImage = `url(${data.bg})`;
-    document.getElementById('prevBg').classList.add('active');
-    document.getElementById('imgPrevBg').src = data.bg;
-  }else{
-    document.getElementById('bodyEl').style.backgroundImage = '';
-    document.getElementById('prevBg').classList.remove('active');
-  }
-
-  if(data.logo){
-    document.getElementById('logoImg').src = data.logo;
-    document.getElementById('logoImg').style.display = 'block';
-    document.getElementById('logoText').style.display = 'none';
-    document.getElementById('prevLogo').classList.add('active');
-    document.getElementById('imgPrevLogo').src = data.logo;
-  }else{
-    document.getElementById('logoImg').style.display = 'none';
-    document.getElementById('logoText').style.display = 'block';
-    document.getElementById('prevLogo').classList.remove('active');
-  }
-}
-
-function render(){
-  const list = document.getElementById('catsList');
-  list.innerHTML = '';
-  data.cats.forEach((c,i)=>{
-    const d = document.createElement('div');
-    d.className='cat';
-    d.innerHTML = `<h3>${c.name}</h3><p>${c.desc}</p>`;
-    d.onclick = ()=>openCat(i);
-    list.appendChild(d);
+/* ---------- background ---------- */
+let pendingBg = null;
+ $('bg-input').onchange = e=>{
+  const f = e.target.files[0]; if(!f) return;
+  processImage(f, 1600, data=>{
+    pendingBg = data;
+    $('bg-preview').src = data;
+    $('bg-preview-box').style.display = 'block';
   });
-  updateSelects();
+  e.target.value='';
+};
+function saveBg(){
+  if(!pendingBg) return;
+  save(K.bg, pendingBg); applyLook(); cancelBg(); toast('✅ پس‌زمینه ذخیره شد!');
+}
+function cancelBg(){ pendingBg=null; $('bg-preview-box').style.display='none'; }
+function deleteBg(){
+  localStorage.removeItem(K.bg); applyLook(); toast('🗑 پس‌زمینه حذف شد');
 }
 
-function updateSelects(){
-  const s1 = document.getElementById('selCat');
-  const s2 = document.getElementById('selDelCat');
-  s1.innerHTML = s2.innerHTML = '';
-  data.cats.forEach((c,i)=>{
-    s1.innerHTML += `<option value="${i}">${c.name}</option>`;
-    s2.innerHTML += `<option value="${i}">${c.name}</option>`;
-  });
+/* ---------- reset ---------- */
+function resetAll(){
+  if(!confirm('⚠️ همه داده‌ها (دسته‌ها، پیام‌ها، لوگو، پس‌زمینه) پاک شود؟')) return;
+  localStorage.clear();
+  location.reload();
 }
 
-function openCat(i){
-  document.getElementById('pageMsg').classList.add('active');
-  document.getElementById('pageTitle').textContent = data.cats[i].name;
-  const b = document.getElementById('msgsBox');
-  b.innerHTML = '';
-  if(data.cats[i].msgs.length===0){
-    b.innerHTML = '<p class="empty">هنوز پیامی ارسال نشده</p>';
-  }else{
-    data.cats[i].msgs.forEach(m=>{
-      const d = document.createElement('div');
-      d.className='msg';
-      d.textContent = m;
-      b.appendChild(d);
-    });
-  }
-  window.scrollTo(0,0);
-}
-
-function fileToBase64(f){
-  return new Promise(r=>{const rd=new FileReader();rd.onload=e=>r(e.target.result);rd.readAsDataURL(f);});
-}
-
-function show(id){
-  document.getElementById(id).classList.add('show');
-  setTimeout(()=>document.getElementById(id).classList.remove('show'),2500);
-}
-
-function hideAllSecs(){
-  ['secSend','secNewCat','secDelCat'].forEach(id=>document.getElementById(id).classList.remove('show'));
-}
-
-document.addEventListener('DOMContentLoaded',()=>{
-  load();
-
-  // ورود
-  document.getElementById('adminBtn').onclick = ()=>{
-    document.getElementById('modalLogin').classList.add('active');
-    document.getElementById('passInput').value='';
-    document.getElementById('errMsg').style.display='none';
-  };
-
-  document.getElementById('btnLogin').onclick = ()=>{
-    if(document.getElementById('passInput').value.trim() === PASS){
-      document.getElementById('modalLogin').classList.remove('active');
-      document.getElementById('panel').classList.add('active');
-      applyAll();
-      updateSelects();
-    }else{
-      document.getElementById('errMsg').style.display='block';
-    }
-  };
-
-  document.getElementById('closePanel').onclick = ()=>{
-    document.getElementById('panel').classList.remove('active');
-    hideAllSecs();
-  };
-
-  // برگشت
-  document.getElementById('back1').onclick = ()=>{
-    document.getElementById('pageMsg').classList.remove('active');
-  };
-
-  // دکمه‌های پنل
-  document.getElementById('btnSend').onclick = ()=>{hideAllSecs();document.getElementById('secSend').classList.add('show');};
-  document.getElementById('btnNewCat').onclick = ()=>{hideAllSecs();document.getElementById('secNewCat').classList.add('show');};
-  document.getElementById('btnDelCat').onclick = ()=>{hideAllSecs();document.getElementById('secDelCat').classList.add('show');};
-
-  // پس‌زمینه
-  document.getElementById('upBg').onclick = ()=>document.getElementById('fileBg').click();
-  document.getElementById('fileBg').onchange = async e=>{
-    const f = e.target.files[0];
-    if(!f)return;
-    data.bg = await fileToBase64(f);
-    save();applyAll();show('bgSaved');
-  };
-  document.getElementById('delBg').onclick = ()=>{
-    if(!confirm('حذف شود؟'))return;
-    data.bg = null;save();applyAll();document.getElementById('fileBg').value='';
-  };
-
-  // لوگو
-  document.getElementById('upLogo').onclick = ()=>document.getElementById('fileLogo').click();
-  document.getElementById('fileLogo').onchange = async e=>{
-    const f = e.target.files[0];
-    if(!f)return;
-    data.logo = await fileToBase64(f);
-    save();applyAll();show('logoSaved');
-  };
-  document.getElementById('delLogo').onclick = ()=>{
-    if(!confirm('حذف شود؟'))return;
-    data.logo = null;save();applyAll();document.getElementById('fileLogo').value='';
-  };
-
-  // ارسال پیام
-  document.getElementById('doSend').onclick = ()=>{
-    const i = +document.getElementById('selCat').value;
-    const t = document.getElementById('txtMsg').value.trim();
-    if(!t)return alert('متن را بنویس!');
-    data.cats[i].msgs.push(t);
-    document.getElementById('txtMsg').value='';
-    save();render();show('sent');
-  };
-
-  // دسته جدید
-  document.getElementById('doNewCat').onclick = ()=>{
-    const n = document.getElementById('catName').value.trim();
-    const d = document.getElementById('catDesc').value.trim();
-    if(!n)return alert('نام را بنویس!');
-    data.cats.push({id:Date.now(),name:n,desc:d||'بدون توضیح',msgs:[]});
-    document.getElementById('catName').value='';document.getElementById('catDesc').value='';
-    save();render();show('catCreated');
-  };
-
-  // حذف دسته
-  document.getElementById('doDelCat').onclick = ()=>{
-    const i = +document.getElementById('selDelCat').value;
-    if(!confirm('مطمئنی؟ حذف کنم؟'))return;
-    data.cats.splice(i,1);
-    save();render();show('catDeleted');
-  };
-});
+/* ---------- init ---------- */
+applyLook();
+render();
 </script>
 </body>
-</html>
+  </html>
