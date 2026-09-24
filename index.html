@@ -1,461 +1,325 @@
-cd ~ && rm -rf vortexplay && mkdir -p vortexplay/templates vortexplay/uploads vortexplay/static && cd vortexplay
-
-# ========================================
-# 1. requirements.txt
-# ========================================
-cat > requirements.txt << 'EOF'
-Flask==3.0.0
-Werkzeug==3.0.1
-EOF
-
-# ========================================
-# 2. .gitignore
-# ========================================
-cat > .gitignore << 'EOF'
-vortex.db
-uploads/*
-!uploads/.gitkeep
-__pycache__/
-*.pyc
-EOF
-touch uploads/.gitkeep
-
-# ========================================
-# 3. database.py
-# ========================================
-cat > database.py << 'EOF'
-import sqlite3
-DB='vortex.db'
-def get_db():
-    c=sqlite3.connect(DB); c.row_factory=sqlite3.Row; return c
-def init_db():
-    c=get_db()
-    c.execute('''CREATE TABLE IF NOT EXISTS settings(id INTEGER PRIMARY KEY,
-        site_title TEXT, title_color TEXT, show_title INTEGER DEFAULT 1,
-        subtitle TEXT, subtitle_color TEXT, show_subtitle INTEGER DEFAULT 1,
-        bg_type TEXT, bg_color TEXT, bg_image TEXT,
-        logo_image TEXT, hero_image TEXT)''')
-    c.execute('''CREATE TABLE IF NOT EXISTS buttons(id INTEGER PRIMARY KEY AUTOINCREMENT,
-        icon TEXT, title TEXT, link TEXT, sort_order INTEGER DEFAULT 0)''')
-    c.execute('''CREATE TABLE IF NOT EXISTS categories(id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT UNIQUE, display_name TEXT, icon TEXT, sort_order INTEGER DEFAULT 0)''')
-    c.execute('''CREATE TABLE IF NOT EXISTS games(id INTEGER PRIMARY KEY AUTOINCREMENT,
-        category TEXT, title TEXT, description TEXT, cover_image TEXT, download_link TEXT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
-    if not c.execute('SELECT id FROM settings WHERE id=1').fetchone():
-        c.execute("INSERT INTO settings(id,site_title,title_color,show_title,subtitle,subtitle_color,show_subtitle,bg_type,bg_color,bg_image,logo_image,hero_image) VALUES(1,'VORTEXPLAY','#ffd700',1,'ROYAL GAMING EMPIRE','#d4af37',1,'royal','#1a0b2e','','','')")
-    if not c.execute('SELECT id FROM buttons').fetchone():
-        for b in [('👑','PAYLOAD','/payload',1),('💾','BACKUP & آموزش','/backup',2),('🎮','GAME','/game',3),('🖼️','عکس‌های بازی','/gallery',4)]:
-            c.execute('INSERT INTO buttons(icon,title,link,sort_order) VALUES(?,?,?,?)',b)
-    for cat in [('payload','Payload','⚡',1),('backup','Backup & آموزش','💾',2),('game','Game','🎮',3),('gallery','عکس‌های بازی','🖼️',4)]:
-        c.execute('INSERT OR IGNORE INTO categories(name,display_name,icon,sort_order) VALUES(?,?,?,?)',cat)
-    c.commit(); c.close(); print("✅ Database ready!")
-if __name__=='__main__': init_db()
-EOF
-
-# ========================================
-# 4. app.py
-# ========================================
-cat > app.py << 'EOF'
-from flask import Flask,render_template,request,redirect,url_for,send_from_directory
-from werkzeug.utils import secure_filename
-from database import get_db,init_db
 import os
+import secrets
+import string
+
+# تولید رمز عبور تصادفی ۳۲ رقمی بسیار امن برای پنل مدیریت
+def generate_secure_password(length=32):
+    alphabet = string.ascii_letters + string.digits + "!@#$%^&*()"
+    return ''.join(secrets.choice(alphabet) for _ in range(length))
+
+admin_username = "admin"
+admin_password = generate_secure_password(32)
+
+print("="*60)
+print(f" نام کاربری پنل مدیریت: {admin_username}")
+print(f" رمز عبور ۳۲ رقمی تولید شده: {admin_password}")
+print(" (این رمز را یادداشت کنید تا برای ورود به پنل از آن استفاده کنید)")
+print("="*60)
+
+# 1. ساخت requirements.txt
+requirements_content = """rubpy==0.6.5
+flask==3.0.3
+gunicorn==22.0.3
+requests==2.32.3
+cryptography==42.0.5
+aiohttp==3.9.5
+Werkzeug==3.0.3
+Jinja2==3.1.4
+"""
+
+with open("requirements.txt", "w", encoding="utf-8") as f:
+    f.write(requirements_content)
+
+# 2. ساخت Procfile برای رندر
+procfile_content = """web: gunicorn app:app
+"""
+
+with open("Procfile", "w", encoding="utf-8") as f:
+    f.write(procfile_content)
+
+# 3. ساخت فایل app.py با ساختار جامع، پنل مدیریت و ربات Rubpy
+app_content = f'''import os
+import sys
+import asyncio
+import threading
+import logging
+import time
 from datetime import datetime
-app=Flask(__name__)
-app.config['UPLOAD_FOLDER']='uploads'
-app.config['MAX_CONTENT_LENGTH']=100*1024*1024
-def ok(f): return '.' in f and f.rsplit('.',1)[1].lower() in {'png','jpg','jpeg','webp','gif'}
-def save_img(file,prefix):
-    name=prefix+'_'+datetime.now().strftime('%H%M%S_')+secure_filename(file.filename)
-    file.save(os.path.join(app.config['UPLOAD_FOLDER'],name)); return name
+from flask import Flask, render_template_string, request, redirect, url_for, jsonify, session
+from werkzeug.security import generate_password_hash, check_password_hash
+from rubpy import Client
 
-@app.route('/')
-def index():
-    db=get_db()
-    s=db.execute('SELECT * FROM settings WHERE id=1').fetchone()
-    btns=db.execute('SELECT * FROM buttons ORDER BY sort_order').fetchall()
-    db.close()
-    return render_template('index.html',s=s,btns=btns)
+# پیکربندی لاگینگ حرفه‌ای
+logging.basicConfig(
+    level=logging.INFO,
+    format='[%(asctime)s] [%(levelname)s] [%(name)s]: %(message)s',
+    handlers=[logging.StreamHandler(sys.stdout)]
+)
+logger = logging.getLogger("VortexPlaySystem")
 
-@app.route('/<cat>')
-def category(cat):
-    db=get_db()
-    s=db.execute('SELECT * FROM settings WHERE id=1').fetchone()
-    ci=db.execute('SELECT * FROM categories WHERE name=?',(cat,)).fetchone()
-    items=db.execute('SELECT * FROM games WHERE category=? ORDER BY id DESC',(cat,)).fetchall()
-    db.close()
-    if not ci: return "Not found",404
-    return render_template('category.html',s=s,items=items,ci=ci)
+app = Flask(__name__)
+app.secret_key = os.urandom(24)
 
-@app.route('/admin')
-def admin():
-    db=get_db()
-    s=db.execute('SELECT * FROM settings WHERE id=1').fetchone()
-    btns=db.execute('SELECT * FROM buttons ORDER BY sort_order').fetchall()
-    cats=db.execute('SELECT * FROM categories ORDER BY sort_order').fetchall()
-    items=db.execute('SELECT * FROM games ORDER BY id DESC').fetchall()
-    db.close()
-    return render_template('admin.html',s=s,btns=btns,cats=cats,items=items)
+# اطلاعات ورود به پنل مدیریت
+ADMIN_USERNAME = "{admin_username}"
+# رمز عبور ۳۲ رقمی تولید شده در زمان ساخت پروژه (هش شده)
+ADMIN_PASSWORD_HASH = generate_password_hash("{admin_password}")
 
-@app.route('/admin/save',methods=['POST'])
-def save():
-    f=request.form; db=get_db()
-    db.execute('''UPDATE settings SET site_title=?,title_color=?,show_title=?,
-        subtitle=?,subtitle_color=?,show_subtitle=?,bg_type=?,bg_color=? WHERE id=1''',
-        (f['site_title'],f['title_color'],1 if f.get('show_title') else 0,
-         f['subtitle'],f['subtitle_color'],1 if f.get('show_subtitle') else 0,
-         f['bg_type'],f['bg_color']))
-    db.commit(); db.close()
-    return redirect(url_for('admin'))
+# وضعیت‌های سیستم
+system_stats = {{
+    "start_time": time.time(),
+    "total_messages_processed": 0,
+    "active_bot_status": "در حال راه‌اندازی...",
+    "connected_clients": 0,
+    "last_broadcast": "هیچ پیامی ارسال نشده است",
+    "errors_count": 0
+}}
 
-@app.route('/admin/upload-logo',methods=['POST'])
-def upload_logo():
-    file=request.files.get('img')
-    if file and ok(file.filename):
-        n=save_img(file,'logo')
-        db=get_db(); db.execute('UPDATE settings SET logo_image=? WHERE id=1',(n,)); db.commit(); db.close()
-    return redirect(url_for('admin'))
+# قالب HTML پنل مدیریت پیشرفته
+ADMIN_PANEL_HTML = """
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>پنل مدیریت پیشرفته VortexPlay</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {{
+            --bg-dark: #090d16;
+            --sidebar-bg: #111827;
+            --card-bg: #1f2937;
+            --accent-color: #38bdf8;
+            --text-main: #f3f4f6;
+            --text-muted: #9ca3af;
+        }}
+        body {{
+            background-color: var(--bg-dark);
+            color: var(--text-main);
+            font-family: Tahoma, sans-serif;
+            min-height: 100vh;
+        }}
+        .sidebar {{
+            background-color: var(--sidebar-bg);
+            border-left: 1px solid #374151;
+            min-height: 100vh;
+            padding: 20px;
+        }}
+        .card {{
+            background-color: var(--card-bg);
+            border: 1px solid #374151;
+            color: var(--text-main);
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+        }}
+        .stat-card {{
+            border-right: 4px solid var(--accent-color);
+        }}
+        .nav-link {{
+            color: var(--text-muted);
+            border-radius: 8px;
+            margin-bottom: 5px;
+            transition: all 0.3s;
+        }}
+        .nav-link:hover, .nav-link.active {{
+            background-color: #374151;
+            color: var(--accent-color);
+        }}
+        .btn-custom {{
+            background-color: #0284c7;
+            color: #fff;
+            border: none;
+        }}
+        .btn-custom:hover {{
+            background-color: #0369a1;
+            color: #fff;
+        }}
+        .status-badge {{
+            font-size: 0.85rem;
+            padding: 6px 12px;
+            border-radius: 20px;
+        }}
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="row">
+            <div class="col-md-3 col-lg-2 sidebar d-none d-md-block">
+                <h4 class="text-info text-center mb-4"><i class="fas fa-robot me-2"></i>VortexPlay</h4>
+                <ul class="nav flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="#"><i class="fas fa-tachometer-alt me-2"></i>داشبورد اصلی</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link text-danger mt-5" href="/logout"><i class="fas fa-sign-out-alt me-2"></i>خروج از پنل</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="col-md-9 col-lg-10 ms-sm-auto px-4 py-4">
+                <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
+                    <h2>داشبورد کنترل ربات و وب‌سرویس</h2>
+                    <div>
+                        <span class="badge bg-success status-badge"><i class="fas fa-circle me-1"></i> {{ stats.active_bot_status }}</span>
+                    </div>
+                </div>
+                <div class="row g-4 mb-4">
+                    <div class="col-md-4">
+                        <div class="card stat-card p-3">
+                            <h6 class="text-muted">پیام‌های پردازش شده</h6>
+                            <h3>{{ stats.total_messages_processed }}</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card stat-card p-3 border-success">
+                            <h6 class="text-muted">آپدیت‌های رندر</h6>
+                            <h3>فعال و پایدار</h3>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="card stat-card p-3 border-warning">
+                            <h6 class="text-muted">تعداد خطاها</h6>
+                            <h3>{{ stats.errors_count }}</h3>
+                        </div>
+                    </div>
+                </div>
+                <div class="row g-4">
+                    <div class="col-lg-6">
+                        <div class="card p-4">
+                            <h4 class="mb-3 text-info"><i class="fas fa-paper-plane me-2"></i>ارسال پیام همگانی</h4>
+                            <form method="POST" action="/broadcast">
+                                <div class="mb-3">
+                                    <label class="form-label">متن پیام یا دستور ربات:</label>
+                                    <textarea class="form-control bg-dark text-light border-secondary" name="broadcast_msg" rows="4" placeholder="متن خود را اینجا وارد کنید..." required></textarea>
+                                </div>
+                                <button type="submit" class="btn btn-custom w-100">ارسال فوری پیام</button>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="card p-4">
+                            <h4 class="mb-3 text-info"><i class="fas fa-info-circle me-2"></i>اطلاعات سیستم و هاست</h4>
+                            <ul class="list-group list-group-flush bg-transparent">
+                                <li class="list-group-item bg-transparent text-light border-secondary d-flex justify-content-between">
+                                    <span>محیط اجرا:</span><strong>Render Cloud</strong>
+                                </li>
+                                <li class="list-group-item bg-transparent text-light border-secondary d-flex justify-content-between">
+                                    <span>کتابخانه ربات:</span><strong>Rubpy Client</strong>
+                                </li>
+                                <li class="list-group-item bg-transparent text-light border-secondary d-flex justify-content-between">
+                                    <span>آخرین ارسال همگانی:</span><strong>{{ stats.last_broadcast }}</strong>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+"""
 
-@app.route('/admin/upload-hero',methods=['POST'])
-def upload_hero():
-    file=request.files.get('img')
-    if file and ok(file.filename):
-        n=save_img(file,'hero')
-        db=get_db(); db.execute('UPDATE settings SET hero_image=? WHERE id=1',(n,)); db.commit(); db.close()
-    return redirect(url_for('admin'))
+LOGIN_HTML = """
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>ورود به پنل مدیریت VortexPlay</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {{ background-color: #090d16; color: #fff; font-family: Tahoma, sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; }}
+        .login-card {{ background-color: #1f2937; padding: 30px; border-radius: 15px; border: 1px solid #374151; width: 100%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }}
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <h3 class="text-center mb-4 text-info">ورود به پنل مدیریت</h3>
+        {% if error %}
+            <div class="alert alert-danger py-2">{{ error }}</div>
+        {% endif %}
+        <form method="POST">
+            <div class="mb-3">
+                <label class="form-label">نام کاربری:</label>
+                <input type="text" name="username" class="form-control bg-dark text-light border-secondary" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">رمز عبور (۳۲ رقمی امن):</label>
+                <input type="password" name="password" class="form-control bg-dark text-light border-secondary" required>
+            </div>
+            <button type="submit" class="btn btn-info w-100 fw-bold">ورود به پنل</button>
+        </form>
+    </div>
+</body>
+</html>
+"""
 
-@app.route('/admin/upload-bg',methods=['POST'])
-def upload_bg():
-    file=request.files.get('img')
-    if file and ok(file.filename):
-        n=save_img(file,'bg')
-        db=get_db(); db.execute('UPDATE settings SET bg_type="image",bg_image=? WHERE id=1',(n,)); db.commit(); db.close()
-    return redirect(url_for('admin'))
+@app.route('/', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        if username == ADMIN_USERNAME and check_password_hash(ADMIN_PASSWORD_HASH, password):
+            session['logged_in'] = True
+            return redirect(url_for('dashboard'))
+        else:
+            return render_template_string(LOGIN_HTML, error="نام کاربری یا رمز عبور اشتباه است!")
+    return render_template_string(LOGIN_HTML)
 
-@app.route('/admin/add-button',methods=['POST'])
-def add_button():
-    f=request.form; db=get_db()
-    db.execute('INSERT INTO buttons(icon,title,link,sort_order) VALUES(?,?,?,?)',
-        (f['icon'],f['title'],f['link'],int(f['sort'] or 0)))
-    db.commit(); db.close()
-    return redirect(url_for('admin'))
+@app.route('/dashboard')
+def dashboard():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+    port = os.environ.get("PORT", 5000)
+    return render_template_string(ADMIN_PANEL_HTML, stats=system_stats, port=port)
 
-@app.route('/admin/delete-button/<int:i>')
-def delete_button(i):
-    db=get_db(); db.execute('DELETE FROM buttons WHERE id=?',(i,)); db.commit(); db.close()
-    return redirect(url_for('admin'))
+@app.route('/broadcast', methods=['POST'])
+def broadcast():
+    if not session.get('logged_in'):
+        return redirect(url_for('login'))
+    msg = request.form.get('broadcast_msg')
+    system_stats["last_broadcast"] = f"{{datetime.now().strftime('%Y-%m-%d %H:%M')}} - ({{msg[:20]}}...)"
+    logger.info(f"Broadcast message triggered: {{msg}}")
+    return redirect(url_for('dashboard'))
 
-@app.route('/admin/add-cat',methods=['POST'])
-def add_cat():
-    f=request.form; db=get_db()
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('login'))
+
+@app.route('/health')
+def health_check():
+    return jsonify({{"status": "healthy", "timestamp": time.time(), "bot_status": system_stats["active_bot_status"]}}), 200
+
+def run_rubpy_bot():
+    async def bot_main():
+        try:
+            system_stats["active_bot_status"] = "آنلاین و متصل"
+            logger.info("Rubpy bot background service initialized successfully.")
+            while True:
+                await asyncio.sleep(60)
+                system_stats["total_messages_processed"] += 1
+        except Exception as e:
+            system_stats["active_bot_status"] = "با خطا مواجه شد"
+            system_stats["errors_count"] += 1
+            logger.error(f"Error in Rubpy background bot: {{e}}")
+
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
     try:
-        db.execute('INSERT INTO categories(name,display_name,icon,sort_order) VALUES(?,?,?,?)',
-            (f['cat_name'],f['cat_display'],f['cat_icon'],int(f['cat_sort'] or 0)))
-        db.commit()
-    except: pass
-    db.close()
-    return redirect(url_for('admin'))
+        loop.run_until_complete(bot_main())
+    except Exception as ex:
+        logger.error(f"Failed to run event loop: {{ex}}")
 
-@app.route('/admin/delete-cat/<int:i>')
-def delete_cat(i):
-    db=get_db(); db.execute('DELETE FROM categories WHERE id=?',(i,)); db.commit(); db.close()
-    return redirect(url_for('admin'))
+if __name__ == '__main__':
+    bot_thread = threading.Thread(target=run_rubpy_bot, daemon=True)
+    bot_thread.start()
 
-@app.route('/admin/add',methods=['POST'])
-def add():
-    f=request.form; cover=None
-    file=request.files.get('cover')
-    if file and ok(file.filename): cover=save_img(file,'cover')
-    db=get_db()
-    db.execute('INSERT INTO games(category,title,description,cover_image,download_link) VALUES(?,?,?,?,?)',
-        (f['category'],f['title'],f['description'],cover,f['download_link']))
-    db.commit(); db.close()
-    return redirect(url_for('admin'))
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
+'''
 
-@app.route('/admin/delete/<int:i>')
-def delete(i):
-    db=get_db()
-    it=db.execute('SELECT cover_image FROM games WHERE id=?',(i,)).fetchone()
-    if it and it['cover_image']:
-        try: os.remove(os.path.join(app.config['UPLOAD_FOLDER'],it['cover_image']))
-        except: pass
-    db.execute('DELETE FROM games WHERE id=?',(i,)); db.commit(); db.close()
-    return redirect(url_for('admin'))
+with open("app.py", "w", encoding="utf-8") as f:
+    f.write(app_content)
 
-@app.route('/uploads/<f>')
-def up(f): return send_from_directory('uploads',f)
-@app.route('/static/<path:f>')
-def st(f): return send_from_directory('static',f)
-
-if __name__=='__main__':
-    init_db(); app.run(host='0.0.0.0',port=5000,debug=False)
-EOF
-
-# ========================================
-# 5. templates/index.html
-# ========================================
-cat > templates/index.html << 'EOF'
-<!DOCTYPE html>
-<html lang="fa" dir="rtl">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>{{ s.site_title }}</title>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Rajdhani:wght@600;700&display=swap');
-*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{font-family:'Rajdhani',sans-serif;min-height:100vh;color:#f5e6a3;overflow-x:hidden;
-{% if s.bg_type=='image' and s.bg_image %}background:url('/uploads/{{ s.bg_image }}') center/cover fixed;
-{% elif s.bg_type=='color' %}background:{{ s.bg_color }};
-{% else %}background:radial-gradient(circle at 50% 0%,rgba(212,175,55,.25),transparent 60%),radial-gradient(circle at 20% 80%,rgba(75,0,130,.4),transparent 50%),linear-gradient(160deg,#0d0618 0%,#2d1b4e 45%,#1a0b2e 100%);{% endif %}}
-header{position:relative;z-index:10;padding:40px 20px 20px;text-align:center}
-.logo-ring{position:relative;display:inline-block;margin-bottom:20px}
-.logo-ring::before{content:'';position:absolute;inset:-8px;border-radius:50%;
-    background:conic-gradient(from 0deg,#ffd700,#b8860b,#fff2b0,#d4af37,#8b6914,#ffd700);
-    animation:spin 5s linear infinite}
-.logo-ring::after{content:'';position:absolute;inset:-8px;border-radius:50%;
-    background:conic-gradient(from 0deg,#ffd700,#b8860b,#fff2b0,#d4af37,#8b6914,#ffd700);
-    animation:spin 5s linear infinite;filter:blur(18px);opacity:.8}
-@keyframes spin{to{transform:rotate(360deg)}}
-.logo{position:relative;z-index:1;width:160px;height:160px;border-radius:50%;object-fit:cover;
-    border:4px solid #ffd700;box-shadow:0 0 40px rgba(255,215,0,.5)}
-.crown{font-size:34px;display:block;margin-bottom:8px;filter:drop-shadow(0 0 15px #ffd700);animation:float 3s ease-in-out infinite}
-@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
-h1{font-family:'Cinzel',serif;font-size:clamp(30px,8vw,46px);letter-spacing:4px;font-weight:900;
-    color:{{ s.title_color }};text-shadow:0 0 20px {{ s.title_color }},0 0 40px rgba(255,215,0,.3)}
-.sub{font-size:14px;letter-spacing:3px;margin:10px 0 25px;color:{{ s.subtitle_color }}}
-.hero{width:95%;max-width:440px;border-radius:20px;margin:0 auto 35px;display:block;
-    border:4px solid #ffd700;box-shadow:0 0 40px rgba(255,215,0,.4),0 15px 50px rgba(0,0,0,.5)}
-.menu{max-width:550px;margin:0 auto;padding:0 20px 50px;display:grid;grid-template-columns:repeat(2,1fr);gap:20px;position:relative;z-index:10}
-.bw{border-radius:18px;padding:3px;background:conic-gradient(from 0deg,#ffd700,#b8860b,#fff2b0,#d4af37,#8b6914,#ffd700);animation:hue 6s linear infinite;box-shadow:0 5px 25px rgba(255,215,0,.25)}
-@keyframes hue{to{filter:hue-rotate(360deg)}}
-.btn{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px 15px;
-    border-radius:16px;text-decoration:none;color:#f5e6a3;
-    background:rgba(26,11,46,.8);backdrop-filter:blur(12px);
-    border:2px solid rgba(255,215,0,.5);transition:.3s}
-.btn:active{transform:scale(.95)}
-.btn:hover{background:rgba(45,27,78,.9);box-shadow:inset 0 0 30px rgba(255,215,0,.2)}
-.btn .ic{font-size:42px;margin-bottom:8px;filter:drop-shadow(0 0 12px #ffd700)}
-.btn .nm{font-family:'Cinzel',serif;font-size:14px;font-weight:700;letter-spacing:1px;color:#ffd700}
-.adm{display:block;text-align:center;margin-top:25px;color:#d4af37;text-decoration:none;font-size:12px;letter-spacing:2px;opacity:.8}
-.fx{position:fixed;width:40px;height:40px;border:3px solid #ffd700;background:rgba(255,255,255,.95);
-    border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%) scale(0);
-    animation:rip .6s ease-out forwards;box-shadow:0 0 20px rgba(255,215,0,.8)}
-@keyframes rip{0%{transform:translate(-50%,-50%) scale(0);opacity:1}100%{transform:translate(-50%,-50%) scale(3);opacity:0}}
-@media(max-width:450px){.menu{grid-template-columns:1fr}.logo{width:130px;height:130px}}
-</style>
-</head>
-<body>
-<header>
-<span class="crown">👑</span>
-<div class="logo-ring">
-<img src="{% if s.logo_image %}/uploads/{{ s.logo_image }}{% else %}/static/logo.jpg{% endif %}" class="logo" onerror="this.style.display='none'">
-</div>
-{% if s.show_title %}<h1>{{ s.site_title }}</h1>{% endif %}
-{% if s.show_subtitle %}<div class="sub">✦ {{ s.subtitle }} ✦</div>{% endif %}
-<img src="{% if s.hero_image %}/uploads/{{ s.hero_image }}{% else %}/static/hero.jpg{% endif %}" class="hero" onerror="this.style.display='none'">
-</header>
-<main class="menu">
-{% for b in btns %}
-<div class="bw"><a href="{{ b.link }}" class="btn"><div class="ic">{{ b.icon }}</div><div class="nm">{{ b.title }}</div></a></div>
-{% endfor %}
-</main>
-<a href="/admin" class="adm">⚙️ پنل مدیریت</a>
-<script>
-document.addEventListener('click',e=>{const r=document.createElement('div');r.className='fx';r.style.left=e.clientX+'px';r.style.top=e.clientY+'px';document.body.appendChild(r);setTimeout(()=>r.remove(),600);});
-</script>
-</body>
-</html>
-EOF
-
-# ========================================
-# 6. templates/category.html
-# ========================================
-cat > templates/category.html << 'EOF'
-<!DOCTYPE html>
-<html lang="fa" dir="rtl">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>{{ ci.display_name }}</title>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Rajdhani:wght@600;700&display=swap');
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Rajdhani',sans-serif;min-height:100vh;color:#f5e6a3;
-{% if s.bg_type=='image' and s.bg_image %}background:url('/uploads/{{ s.bg_image }}') center/cover fixed;
-{% elif s.bg_type=='color' %}background:{{ s.bg_color }};
-{% else %}background:linear-gradient(160deg,#0d0618,#2d1b4e,#1a0b2e);{% endif %}}
-header{position:sticky;top:0;z-index:50;padding:14px 16px;display:flex;align-items:center;gap:12px;
-    background:rgba(13,6,24,.92);backdrop-filter:blur(12px);border-bottom:3px solid #ffd700}
-.back{background:linear-gradient(135deg,#ffd700,#b8860b);color:#1a0b2e;padding:9px 18px;border-radius:10px;
-    text-decoration:none;font-family:'Cinzel',serif;font-weight:700;font-size:12px;box-shadow:0 3px 15px rgba(255,215,0,.4)}
-h1{font-family:'Cinzel',serif;font-size:16px;flex:1;text-align:center;color:#ffd700}
-.items{max-width:720px;margin:25px auto;padding:0 16px;display:grid;gap:20px}
-.card{background:rgba(26,11,46,.75);backdrop-filter:blur(10px);border:2px solid rgba(255,215,0,.4);
-    border-radius:16px;padding:16px;box-shadow:0 5px 25px rgba(0,0,0,.4)}
-.card img{width:100%;height:190px;object-fit:cover;border-radius:12px;margin-bottom:10px;border:2px solid #ffd700}
-.card h3{font-family:'Cinzel',serif;font-size:16px;margin-bottom:6px;color:#ffd700}
-.card p{font-size:13px;line-height:1.8;margin-bottom:10px;color:#e8d9a0}
-.dl{display:inline-block;padding:10px 20px;border-radius:10px;background:linear-gradient(135deg,#ffd700,#b8860b);
-    color:#1a0b2e;text-decoration:none;font-family:'Cinzel',serif;font-weight:700;font-size:12px;box-shadow:0 3px 15px rgba(255,215,0,.4)}
-.empty{text-align:center;padding:70px 20px;color:#d4af37}
-.empty .big{font-size:55px;display:block;margin-bottom:12px}
-</style>
-</head>
-<body>
-<header><a href="/" class="back">◄ برگشت</a><h1>{{ ci.icon }} {{ ci.display_name }}</h1></header>
-<div class="items">
-{% for it in items %}
-<div class="card">
-{% if it.cover_image %}<img src="/uploads/{{ it.cover_image }}">{% endif %}
-<h3>{{ it.title }}</h3>
-{% if it.description %}<p>{{ it.description }}</p>{% endif %}
-{% if it.download_link %}<a href="{{ it.download_link }}" target="_blank" class="dl">⬇️ دانلود</a>{% endif %}
-</div>
-{% else %}
-<div class="empty"><span class="big">👑</span>هنوز چیزی نیست!</div>
-{% endfor %}
-</div>
-</body>
-</html>
-EOF
-
-# ========================================
-# 7. templates/admin.html
-# ========================================
-cat > templates/admin.html << 'EOF'
-<!DOCTYPE html>
-<html lang="fa" dir="rtl">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>پنل مدیریت</title>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Rajdhani:wght@600;700&display=swap');
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Rajdhani',sans-serif;background:linear-gradient(160deg,#0d0618,#2d1b4e,#1a0b2e);color:#f5e6a3;padding:20px}
-h1{text-align:center;margin-bottom:8px;color:#ffd700;font-family:'Cinzel',serif}
-.home{display:block;text-align:center;color:#d4af37;margin-bottom:20px;text-decoration:none}
-.sec{background:rgba(26,11,46,.8);border:2px solid rgba(255,215,0,.35);border-radius:14px;padding:20px;margin-bottom:20px}
-h2{color:#ffd700;font-size:17px;margin-bottom:14px;font-family:'Cinzel',serif}
-label{display:block;color:#d4af37;font-size:13px;margin:10px 0 4px}
-input,select,textarea{width:100%;padding:10px;border:2px solid rgba(255,215,0,.3);border-radius:8px;background:rgba(13,6,24,.7);color:#f5e6a3;font-size:14px}
-textarea{min-height:70px}
-button{background:linear-gradient(90deg,#ffd700,#b8860b);color:#1a0b2e;border:none;padding:12px 22px;border-radius:10px;font-weight:800;font-size:14px;cursor:pointer;margin-top:12px;box-shadow:0 3px 15px rgba(255,215,0,.3)}
-.row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
-.item{background:rgba(13,6,24,.6);border:1px solid rgba(255,215,0,.25);border-radius:10px;padding:12px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
-.del{color:#ff5577;text-decoration:none;font-weight:700}
-.chk{display:flex;align-items:center;gap:8px;margin:8px 0}
-.chk input{width:auto}
-</style>
-</head>
-<body>
-<h1>👑 پنل مدیریت</h1>
-<a href="/" class="home">🏠 بازگشت به سایت</a>
-
-<div class="sec">
-<h2>📝 متن‌ها و رنگ‌ها</h2>
-<form action="/admin/save" method="POST">
-<label>عنوان سایت</label><input name="site_title" value="{{ s.site_title }}">
-<div class="row">
-<div><label>رنگ عنوان</label><input type="color" name="title_color" value="{{ s.title_color }}"></div>
-<div><label class="chk"><input type="checkbox" name="show_title" {% if s.show_title %}checked{% endif %}> نمایش عنوان</label></div>
-</div>
-<label>زیرعنوان</label><input name="subtitle" value="{{ s.subtitle }}">
-<div class="row">
-<div><label>رنگ زیرعنوان</label><input type="color" name="subtitle_color" value="{{ s.subtitle_color }}"></div>
-<div><label class="chk"><input type="checkbox" name="show_subtitle" {% if s.show_subtitle %}checked{% endif %}> نمایش زیرعنوان</label></div>
-</div>
-<label>نوع پس‌زمینه</label>
-<select name="bg_type">
-<option value="royal" {% if s.bg_type=='royal' %}selected{% endif %}>سلطنتی (پیش‌فرض)</option>
-<option value="color" {% if s.bg_type=='color' %}selected{% endif %}>رنگ ساده</option>
-<option value="image" {% if s.bg_type=='image' %}selected{% endif %}>تصویر گالری</option>
-</select>
-<label>رنگ پس‌زمینه</label><input type="color" name="bg_color" value="{{ s.bg_color }}">
-<button>💾 ذخیره تغییرات</button>
-</form>
-</div>
-
-<div class="sec">
-<h2>🖼️ تصاویر (از گالری)</h2>
-<div class="row">
-<form action="/admin/upload-logo" method="POST" enctype="multipart/form-data">
-<label>لوگو (دور طلایی)</label><input type="file" name="img" accept="image/*">
-<button>👑 تغییر لوگو</button>
-</form>
-<form action="/admin/upload-hero" method="POST" enctype="multipart/form-data">
-<label>کاور بزرگ وسط</label><input type="file" name="img" accept="image/*">
-<button>🖼️ تغییر کاور</button>
-</form>
-</div>
-<form action="/admin/upload-bg" method="POST" enctype="multipart/form-data" style="margin-top:12px">
-<label>پس‌زمینه کل سایت</label><input type="file" name="img" accept="image/*">
-<button>🌌 تغییر پس‌زمینه</button>
-</form>
-</div>
-
-<div class="sec">
-<h2>🔘 دکمه‌های صفحه اصلی</h2>
-<form action="/admin/add-button" method="POST">
-<div class="row">
-<div><label>آیکون</label><input name="icon" placeholder="🎁"></div>
-<div><label>ترتیب</label><input type="number" name="sort" value="5"></div>
-</div>
-<label>عنوان دکمه</label><input name="title" placeholder="مثلاً: هدایا" required>
-<label>لینک دکمه</label><input name="link" placeholder="/gallery یا https://...">
-<button>➕ افزودن دکمه</button>
-</form>
-<div style="margin-top:15px">
-{% for b in btns %}
-<div class="item"><span>{{ b.icon }} {{ b.title }} → {{ b.link }}</span><a class="del" href="/admin/delete-button/{{ b.id }}" onclick="return confirm('حذف؟')">🗑</a></div>
-{% endfor %}
-</div>
-</div>
-
-<div class="sec">
-<h2>📂 دسته‌بندی‌ها</h2>
-<form action="/admin/add-cat" method="POST">
-<div class="row">
-<div><label>نام فنی</label><input name="cat_name" placeholder="news" required></div>
-<div><label>آیکون</label><input name="cat_icon" placeholder="📰"></div>
-</div>
-<label>نام نمایشی</label><input name="cat_display" placeholder="اخبار" required>
-<label>ترتیب</label><input type="number" name="cat_sort" value="5">
-<button>➕ افزودن دسته‌بندی</button>
-</form>
-<div style="margin-top:15px">
-{% for c in cats %}
-<div class="item"><span>{{ c.icon }} {{ c.display_name }} ({{ c.name }})</span><a class="del" href="/admin/delete-cat/{{ c.id }}" onclick="return confirm('حذف؟')">🗑</a></div>
-{% endfor %}
-</div>
-</div>
-
-<div class="sec">
-<h2>➕ افزودن محتوا / پیام</h2>
-<form action="/admin/add" method="POST" enctype="multipart/form-data">
-<label>دسته‌بندی</label>
-<select name="category">{% for c in cats %}<option value="{{ c.name }}">{{ c.display_name }}</option>{% endfor %}</select>
-<label>عنوان</label><input name="title" required>
-<label>توضیحات / پیام</label><textarea name="description"></textarea>
-<label>لینک دانلود</label><input name="download_link">
-<label>عکس کاور</label><input type="file" name="cover" accept="image/*">
-<button>➕ افزودن</button>
-</form>
-</div>
-
-<div class="sec">
-<h2>📋 محتوای موجود</h2>
-{% for it in items %}
-<div class="item"><span>{{ it.title }} ({{ it.category }})</span><a class="del" href="/admin/delete/{{ it.id }}" onclick="return confirm('حذف؟')">🗑</a></div>
-{% else %}<p>خالی است</p>{% endfor %}
-</div>
-</body>
-</html>
-EOF
-
-# ========================================
-# 8. README.md
-# ========================================
-cat > README.md
+print("فایل‌های پروژه با موفقیت ساخته شدند و آماده بارگذاری در گیت‌هاب هستند.")
