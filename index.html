@@ -13,148 +13,171 @@ def make_key():
     c = string.ascii_letters + string.digits + "!@#$%^&*()"
     return ''.join(secrets.choice(c) for _ in range(32))
 
-ADMIN_USER = "shah"
+ADMIN_USER = "admin"
 ADMIN_PASS = make_key()
 ADMIN_HASH = generate_password_hash(ADMIN_PASS)
 
 print("="*60)
-print("  👑 ورود به قلمرو VORTEXPLAY")
-print(f"  نام: {ADMIN_USER}")
+print("  🎮 VORTEXPLAY - پنل مدیریت")
+print(f"  نام کاربری: {ADMIN_USER}")
 print(f"  کلید ۳۲ رقمی: {ADMIN_PASS}")
-print("  ⚠️ بنویس!")
+print("  ⚠️ این کلید را بنویس!")
 print("="*60)
 
 # ──────────────────────────────────────
-# ⚙️ راه‌اندازی
+# ⚙️ داده‌ها
 # ──────────────────────────────────────
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
-DATA = "data.json"
+DATA_FILE = "vortex_data.json"
 
-def load():
-    if os.path.exists(DATA):
-        with open(DATA, encoding="utf-8") as f:
+def load_data():
+    if os.path.exists(DATA_FILE):
+        with open(DATA_FILE, encoding="utf-8") as f:
             return json.load(f)
     return {
-        "title": "VORTEXPLAY",
-        "subtitle": "قلمرو درخشان گیمینگ",
-        "welcome": "به درگاه شاهانه خوش آمدید",
-        "desc": "مجموعه بهترین بازی‌ها و سرورها در یک جایگاه باشکوه",
-        "announce": "قلمرو درخشان برقرار است ✨",
-        "cats": [
-            {"id":1,"name":"بازی‌های کنسول","icon":"fa-gamepad"},
-            {"id":2,"name":"بازی‌های رایانه‌ای","icon":"fa-desktop"},
-            {"id":3,"name":"بازی‌های موبایل","icon":"fa-mobile-alt"}
+        "site_title": "VORTEXPLAY",
+        "site_subtitle": "GAMING EMPIRE",
+        "status_text": "SYSTEM STATUS: ONLINE",
+        "status_color": "#00ff88",
+        "blocks": [
+            {"id":1,"title":"BACKUP & TUTORIALS","desc":"Guides & System Files","icon":"fa-book","color":"#4169e1","link":""},
+            {"id":2,"title":"PS5 GAME","desc":"PlayStation 5 Games & PKGs","icon":"fa-gamepad","color":"#1e90ff","link":""},
+            {"id":3,"title":"GAME PHOTOS","desc":"Wallpapers & Screenshots","icon":"fa-images","color":"#9932cc","link":""}
         ],
-        "since": datetime.now().strftime("%Y/%m/%d")
+        "footer_text": "ویرایش توسط مدیریت"
     }
 
-def save(d):
-    with open(DATA,"w",encoding="utf-8") as f:
+def save_data(d):
+    with open(DATA_FILE,"w",encoding="utf-8") as f:
         json.dump(d,f,ensure_ascii=False,indent=2)
 
 # ──────────────────────────────────────
-# 🏠 صفحه اصلی — روشن و درخشان
+# 🏠 صفحه اصلی — دقیقاً شبیه عکس
 # ──────────────────────────────────────
 HOME = """
 <!DOCTYPE html>
-<html lang="fa" dir="rtl">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>{{d.title}} | قلمرو درخشان</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{d.site_title}}</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:Tahoma,sans-serif}
-:root{--sky:#0099ff;--sun:#ff9500;--gold:#ffc107;--royal:#6c5ce7;--soft:#f8fbff;--text:#1e293b;--card:#fff;--line:#e2e8f0}
-body{background:linear-gradient(180deg,#f0f7ff 0%,#fff9f0 100%);min-height:100vh;color:var(--text)}
-.hero{text-align:center;padding:60px 20px 40px}
-.crown{font-size:3.5rem;color:var(--gold);text-shadow:0 4px 20px rgba(255,193,7,.4);margin-bottom:15px}
-.hero h1{font-size:2.8rem;font-weight:800;background:linear-gradient(90deg,var(--sky),var(--royal));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
-.hero p.lead{font-size:1.2rem;color:#475569;max-width:600px;margin:15px auto}
-.announce{max-width:650px;margin:0 auto 50px;background:#fff;border-radius:20px;padding:25px 30px;box-shadow:0 8px 30px rgba(0,153,255,.12);border-left:4px solid var(--gold)}
-.announce h5{color:var(--royal);font-weight:bold}
-.announce p{font-size:1.1rem;color:var(--text);margin-top:10px}
-.grid{max-width:1200px;margin:0 auto;padding:0 20px 60px}
-.cat{background:#fff;border-radius:20px;padding:35px 25px;text-align:center;box-shadow:0 6px 25px rgba(0,153,255,.08);transition:all .35s;border-top:4px solid transparent;margin-bottom:25px}
-.cat:hover{transform:translateY(-8px);box-shadow:0 15px 40px rgba(0,153,255,.15);border-top-color:var(--sky)}
-.cat i{font-size:2.5rem;background:linear-gradient(135deg,var(--sky),var(--royal));-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:15px}
-.cat h4{color:var(--text);font-weight:bold}
-.footer{text-align:center;padding:30px 20px;color:#64748b;border-top:1px solid var(--line)}
-.footer span{color:var(--royal);font-weight:bold}
-.admin-link{position:fixed;left:20px;bottom:20px;color:#94a3b8;text-decoration:none;font-size:.9rem}
-.admin-link:hover{color:var(--royal)}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif}
+body{background:linear-gradient(180deg,#0b061a 0%,#1a1040 50%,#050520 100%);min-height:100vh;color:#fff;overflow-x:hidden}
+/* پس‌زمینه آتشین */
+.bg-flame{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0}
+.flame-1{position:absolute;top:-10%;right:-10%;width:70%;height:60%;background:radial-gradient(ellipse at center,rgba(255,140,0,.25) 0%,transparent 70%);filter:blur(40px)}
+.flame-2{position:absolute;bottom:-10%;left:-10%;width:70%;height:60%;background:radial-gradient(ellipse at center,rgba(30,144,255,.25) 0%,transparent 70%);filter:blur(40px)}
+.flame-3{position:absolute;top:30%;left:5%;width:90%;height:40%;background:linear-gradient(90deg,transparent,rgba(138,43,226,.15),transparent);filter:blur(30px)}
+/* الگوهای هندسی */
+.deco{position:absolute;opacity:.15}
+.deco-tri{top:15%;left:8%;font-size:2rem;color:#ff8c00}
+.deco-x{top:20%;right:12%;font-size:1.5rem;color:#1e90ff}
+.deco-dot{bottom:25%;left:15%;width:8px;height:8px;background:#ffd700;border-radius:50%}
+.deco-square{bottom:20%;right:10%;width:12px;height:12px;border:2px solid #9932cc}
+/* کانتینر اصلی */
+.container{position:relative;z-index:1;padding:30px 20px;max-width:480px;margin:0 auto}
+/* لوگو */
+.logo-box{text-align:center;margin-bottom:25px}
+.logo-circle{width:120px;height:120px;border-radius:50%;background:linear-gradient(135deg,#1e90ff,#9932cc);display:flex;align-items:center;justify-content:center;margin:0 auto 15px;box-shadow:0 0 30px rgba(30,144,255,.5),inset 0 0 15px rgba(255,255,255,.2)}
+.logo-inner{width:106px;height:106px;border-radius:50%;background:#0b061a;display:flex;align-items:center;justify-content:center;font-size:2.5rem;font-weight:bold;background:linear-gradient(90deg,#ffd700,#ff8c00);-webkit-background-clip:text;-webkit-text-fill-color:text}
+.logo-title{font-size:2.2rem;font-weight:800;letter-spacing:2px;background:linear-gradient(90deg,#fff,#a0d8ff);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.logo-sub{color:#6ab7ff;letter-spacing:3px;font-size:.9rem;margin-top:5px}
+/* وضعیت سیستم */
+.status-bar{background:rgba(0,0,0,.5);border:2px solid #1e90ff;border-radius:50px;padding:10px 25px;text-align:center;margin:20px 0;font-weight:bold;letter-spacing:1px;box-shadow:0 0 15px rgba(30,144,255,.3)}
+.status-dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:{{d.status_color}};margin-right:10px;box-shadow:0 0 10px {{d.status_color}}}
+/* بلوک‌ها */
+.block{background:rgba(20,20,50,.7);border-radius:14px;padding:20px;margin-bottom:15px;border-left:4px solid;transition:all .3s;backdrop-filter:blur(5px)}
+.block:hover{transform:scale(1.02);box-shadow:0 0 20px rgba(30,144,255,.3)}
+.block h3{font-size:1.2rem;font-weight:bold;margin-bottom:5px}
+.block p{color:#9ab8d6;font-size:.85rem;margin:0}
+.block-icon{font-size:1.8rem}
+.footer{text-align:center;margin-top:30px;color:#5566aa;font-size:.85rem}
+.admin-link{display:block;text-align:center;margin-top:15px;color:#4169e1;text-decoration:none;font-size:.8rem}
 </style>
 </head>
 <body>
-<div class="hero">
-    <div class="crown"><i class="fas fa-crown"></i></div>
-    <h1>{{d.title}}</h1>
-    <p class="lead">{{d.subtitle}}</p>
-    <h3 style="color:var(--royal);margin-top:10px">{{d.welcome}}</h3>
-    <p style="color:#64748b">{{d.desc}}</p>
+<div class="bg-flame">
+    <div class="flame-1"></div>
+    <div class="flame-2"></div>
+    <div class="flame-3"></div>
 </div>
-<div class="announce">
-    <h5><i class="fas fa-bullhorn me-2"></i> فرمان شاهانه</h5>
-    <p>{{d.announce}}</p>
-    <small style="color:#94a3b8">تاسیس: {{d.since}}</small>
-</div>
-<h3 class="text-center mb-4" style="color:var(--royal)">دروازه‌های قلمرو</h3>
-<div class="grid row">
-{%for c in d.cats%}
-<div class="col-md-4 col-sm-6">
-    <div class="cat">
-        <i class="fas {{c.icon}}"></i>
-        <h4>{{c.name}}</h4>
+<div class="deco deco-tri"><i class="fas fa-triangle"></i></div>
+<div class="deco deco-x"><i class="fas fa-times"></i></div>
+<div class="deco deco-dot"></div>
+<div class="deco deco-square"></div>
+
+<div class="container">
+    <div class="logo-box">
+        <div class="logo-circle">
+            <div class="logo-inner">VP</div>
+        </div>
+        <h1 class="logo-title">{{d.site_title}}</h1>
+        <p class="logo-sub">◆ {{d.site_subtitle}} ◆</p>
     </div>
+
+    <div class="status-bar">
+        <span class="status-dot"></span>{{d.status_text}}
+    </div>
+
+    {%for b in d.blocks%}
+    <div class="block" style="border-color:{{b.color}}">
+        <div class="d-flex justify-content-between align-items-center">
+            <div>
+                <h3>{{b.title}}</h3>
+                <p>{{b.desc}}</p>
+            </div>
+            <i class="fas {{b.icon}} block-icon" style="color:{{b.color}}"></i>
+        </div>
+    </div>
+    {%endfor%}
+
+    <div class="footer">{{d.footer_text}}</div>
+    <a href="/login" class="admin-link"><i class="fas fa-cog"></i> ورود مدیریت</a>
 </div>
-{%endfor%}
-</div>
-<div class="footer">
-    <p>تحت فرمان <span>{{d.title}}</span> | همه حقوق محفوظ است © {{d.since[:4]}}</p>
-</div>
-<a href="/login" class="admin-link"><i class="fas fa-shield-alt"></i> ورود فرمانروا</a>
 </body>
 </html>
 """
 
 # ──────────────────────────────────────
-# 🔐 ورود
+# 🔐 صفحه ورود
 # ──────────────────────────────────────
-LOGIN = """
+LOGIN_PAGE = """
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ورود | VORTEXPLAY</title>
+<title>ورود مدیریت | VORTEXPLAY</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
-body{background:linear-gradient(180deg,#f0f7ff,#fff9f0);min-height:100vh;display:flex;align-items:center;justify-content:center}
-.box{background:#fff;border-radius:24px;padding:40px;width:100%;max-width:440px;box-shadow:0 10px 40px rgba(108,92,231,.15)}
-.box h3{text-align:center;color:#6c5ce7;margin-bottom:30px}
-.form-control{border:2px solid #e2e8f0;border-radius:12px;padding:14px 16px;width:100%;margin-bottom:15px;transition:.3s}
-.form-control:focus{border-color:#6c5ce7;box-shadow:0 0 0 4px rgba(108,92,231,.1);outline:none}
-.btn-royal{background:linear-gradient(90deg,#6c5ce7,#a29bfe);border:none;color:#fff;padding:14px;border-radius:12px;width:100%;font-weight:bold;font-size:1rem;transition:.3s}
-.btn-royal:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(108,92,231,.35)}
-.hint{background:#f0f4ff;border-radius:10px;padding:15px;margin-top:20px;font-size:.9rem;color:#475569}
+body{background:linear-gradient(180deg,#0b061a,#1a1040);min-height:100vh;display:flex;align-items:center;justify-content:center;color:#fff}
+.box{background:rgba(20,20,50,.8);border:2px solid #1e90ff;border-radius:16px;padding:35px;width:100%;max-width:400px;box-shadow:0 0 30px rgba(30,144,255,.3)}
+.box h3{text-align:center;color:#ffd700;margin-bottom:25px}
+.form-control{background:#151535;border:1px solid #2a2a60;color:#fff;border-radius:10px;padding:12px 15px;margin-bottom:15px;width:100%}
+.form-control:focus{outline:none;border-color:#ffd700;box-shadow:0 0 10px rgba(255,215,0,.25)}
+.btn-login{background:linear-gradient(90deg,#ff8c00,#ffd700);border:none;color:#000;font-weight:bold;padding:12px;border-radius:10px;width:100%;font-size:1rem}
+.btn-login:hover{box-shadow:0 0 15px rgba(255,215,0,.4)}
+.hint{background:rgba(30,144,255,.1);border-radius:8px;padding:12px;margin-top:20px;font-size:.85rem;color:#9ab8d6}
 </style>
 </head>
 <body>
 <div class="box">
-    <h3><i class="fas fa-crown"></i> دروازه فرمانروایی</h3>
-    {%if err%}<div class="alert alert-danger py-2 mb-3">{{err}}</div>{%endif%}
+    <h3><i class="fas fa-crown"></i> پنل مدیریت</h3>
+    {%if error%}<div class="alert alert-danger py-2 mb-3">{{error}}</div>{%endif%}
     <form method="POST">
-        <label class="d-block mb-2" style="color:#475569">نام فرمانروا</label>
-        <input type="text" name="u" class="form-control" required>
-        <label class="d-block mb-2" style="color:#475569">کلید ۳۲ رقمی</label>
-        <input type="password" name="p" class="form-control" required>
-        <button class="btn-royal">ورود به قلمرو ✨</button>
+        <label class="d-block mb-2" style="color:#9ab8d6">نام کاربری</label>
+        <input type="text" name="username" class="form-control" required>
+        <label class="d-block mb-2" style="color:#9ab8d6">کلید ۳۲ رقمی</label>
+        <input type="password" name="password" class="form-control" required>
+        <button class="btn-login">ورود به کنترل 🔐</button>
     </form>
     <div class="hint">
-        <i class="fas fa-info-circle"></i> نام کاربری: <strong>shah</strong><br>
+        <i class="fas fa-info-circle"></i> نام: <strong>admin</strong><br>
         کلید در ترمینال نمایش داده شده
     </div>
 </div>
@@ -163,7 +186,7 @@ body{background:linear-gradient(180deg,#f0f7ff,#fff9f0);min-height:100vh;display
 """
 
 # ──────────────────────────────────────
-# 🏰 پنل مدیریت — روشن و تمیز
+# ⚙️ پنل مدیریت
 # ──────────────────────────────────────
 PANEL = """
 <!DOCTYPE html>
@@ -171,70 +194,77 @@ PANEL = """
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>اتاق فرمان | VORTEXPLAY</title>
+<title>پنل مدیریت | VORTEXPLAY</title>
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <style>
-*{margin:0;padding:0;box-sizing:border-box;font-family:Tahoma,sans-serif}
-:root{--sky:#0099ff;--sun:#ff9500;--royal:#6c5ce7;--soft:#f8fbff;--text:#1e293b;--card:#fff;--line:#e2e8f0}
-body{background:#f0f7ff;color:var(--text);min-height:100vh}
-.sidebar{background:#fff;border-left:3px solid var(--royal);position:fixed;top:0;right:0;width:230px;height:100vh;padding:25px 20px;box-shadow:-3px 0 15px rgba(108,92,231,.08)}
-.sidebar h4{color:var(--royal);text-align:center;margin-bottom:30px}
-.sidebar a{display:block;color:#64748b;padding:12px 15px;margin:6px 0;border-radius:10px;text-decoration:none}
-.sidebar a:hover,.sidebar a.active{background:linear-gradient(90deg,rgba(108,92,231,.1),rgba(255,193,7,.1));color:var(--royal)}
-.sidebar a.out{color:#ef4444;margin-top:40px}
-.main{margin-right:250px;padding:30px}
-.card{background:#fff;border-radius:20px;padding:28px;margin-bottom:25px;box-shadow:0 6px 25px rgba(0,153,255,.08)}
-.card h5{color:var(--royal);margin-bottom:20px;font-weight:bold}
-.form-control{border:2px solid #e2e8f0;border-radius:12px;padding:12px 16px;width:100%;margin-bottom:15px}
-.form-control:focus{border-color:var(--royal);box-shadow:0 0 0 4px rgba(108,92,231,.1);outline:none}
-.btn-save{background:linear-gradient(90deg,#6c5ce7,#a29bfe);border:none;color:#fff;padding:12px 25px;border-radius:12px;font-weight:bold}
-.btn-del{background:#fee2e2;color:#dc2626;border:none;padding:8px 14px;border-radius:8px}
-.cat-row{display:flex;justify-content:space-between;align-items:center;background:#f8fafc;padding:14px 18px;border-radius:12px;margin-bottom:10px}
+*{margin:0;padding:0;box-sizing:border-box;font-family:'Segoe UI',sans-serif}
+body{background:#0b061a;color:#fff;min-height:100vh}
+.sidebar{position:fixed;top:0;right:0;width:220px;height:100vh;background:rgba(20,20,50,.9);border-left:2px solid #1e90ff;padding:25px 15px}
+.sidebar h4{color:#ffd700;text-align:center;margin-bottom:25px}
+.sidebar a{display:block;color:#9ab8d6;padding:12px 15px;margin:5px 0;border-radius:8px;text-decoration:none}
+.sidebar a:hover,.sidebar a.active{background:rgba(30,144,255,.2);color:#ffd700}
+.sidebar a.logout{color:#ff6b6b;margin-top:30px}
+.main{margin-right:240px;padding:30px}
+.card{background:rgba(20,20,50,.7);border:2px solid #2a2a60;border-radius:14px;padding:25px;margin-bottom:20px}
+.card h5{color:#ffd700;margin-bottom:20px}
+.form-control{background:#151535;border:1px solid #3a3a70;color:#fff;border-radius:8px;padding:10px 14px;width:100%;margin-bottom:12px}
+.form-control:focus{outline:none;border-color:#ffd700}
+.btn-save{background:linear-gradient(90deg,#1e90ff,#9932cc);border:none;color:#fff;padding:10px 25px;border-radius:8px;font-weight:bold}
+.btn-del{background:#991b1b;border:none;color:#fff;padding:6px 12px;border-radius:6px}
+.block-row{display:flex;justify-content:space-between;align-items:center;background:rgba(30,144,255,.1);padding:12px 15px;border-radius:8px;margin-bottom:8px}
 @media(max-width:768px){.sidebar{position:static;width:100%;height:auto}.main{margin-right:0}}
 </style>
 </head>
 <body>
 <div class="sidebar">
-    <h4><i class="fas fa-crown"></i> اتاق فرمان</h4>
-    <a href="#" class="active"><i class="fas fa-pen"></i> ویرایش دربار</a>
-    <a href="/logout" class="out"><i class="fas fa-door-open"></i> خروج</a>
+    <h4><i class="fas fa-sliders-h"></i> کنترل</h4>
+    <a href="#" class="active"><i class="fas fa-pen"></i> ویرایش سایت</a>
+    <a href="/logout" class="logout"><i class="fas fa-sign-out-alt"></i> خروج</a>
 </div>
 <div class="main">
-    <h2 style="color:var(--royal);margin-bottom:30px">فرمانروایی VORTEXPLAY</h2>
+    <h2 style="color:#ffd700;margin-bottom:25px">پنل مدیریت VORTEXPLAY</h2>
     {%if saved%}<div class="alert alert-success">✅ تغییرات اعمال شد</div>{%endif%}
-    
-    <form method="POST" action="/save">
+
+    <!-- تنظیمات کلی -->
+    <form method="POST" action="/save_global">
         <div class="card">
-            <h5>نشان و عنوان قلمرو</h5>
-            <label class="form-label">نام اصلی</label>
-            <input type="text" name="title" class="form-control" value="{{d.title}}" required>
-            <label class="form-label">زیرنویس</label>
-            <input type="text" name="subtitle" class="form-control" value="{{d.subtitle}}" required>
-            <label class="form-label">خوشامدگویی</label>
-            <input type="text" name="welcome" class="form-control" value="{{d.welcome}}" required>
-            <label class="form-label">توصیف</label>
-            <textarea name="desc" rows="2" class="form-control">{{d.desc}}</textarea>
-            <label class="form-label">فرمان شاهانه</label>
-            <textarea name="announce" rows="3" class="form-control">{{d.announce}}</textarea>
-            <button class="btn-save">ذخیره فرمان 👑</button>
+            <h5><i class="fas fa-globe"></i> تنظیمات کلی</h5>
+            <label>نام سایت</label>
+            <input type="text" name="site_title" class="form-control" value="{{d.site_title}}" required>
+            <label>زیرنویس</label>
+            <input type="text" name="site_subtitle" class="form-control" value="{{d.site_subtitle}}" required>
+            <label>متن وضعیت</label>
+            <input type="text" name="status_text" class="form-control" value="{{d.status_text}}" required>
+            <label>رنگ نقطه وضعیت (کد رنگ)</label>
+            <input type="text" name="status_color" class="form-control" value="{{d.status_color}}" required>
+            <label>متن پایین صفحه</label>
+            <input type="text" name="footer_text" class="form-control" value="{{d.footer_text}}">
+            <button class="btn-save">ذخیره تنظیمات</button>
         </div>
     </form>
 
+    <!-- مدیریت بلوک‌ها -->
     <div class="card">
-        <h5>دروازه‌ها</h5>
-        {%for c in d.cats%}
-        <div class="cat-row">
-            <span><i class="fas {{c.icon}}" style="color:var(--royal)"></i> {{c.name}}</span>
-            <a href="/del/{{c.id}}" class="btn-del" onclick="return confirm('حذف شود؟')">حذف</a>
+        <h5><i class="fas fa-th-large"></i> مدیریت بلوک‌ها</h5>
+        {%for b in d.blocks%}
+        <div class="block-row">
+            <span><i class="fas {{b.icon}}" style="color:{{b.color}}"></i> {{b.title}}</span>
+            <a href="/del_block/{{b.id}}" class="btn-del" onclick="return confirm('حذف شود؟')">حذف</a>
         </div>
         {%endfor%}
-        <hr style="margin:20px 0;border-color:#e2e8f0">
-        <h6 style="color:var(--royal)">افزودن دروازه جدید</h6>
-        <form method="POST" action="/add">
-            <input type="text" name="name" class="form-control" placeholder="نام" required>
-            <input type="text" name="icon" class="form-control" placeholder="مثال: fa-gamepad" required>
-            <button class="btn-save">افزودن</button>
+        <hr style="border-color:#2a2a60;margin:20px 0">
+        <h6 style="color:#ffd700">افزودن بلوک جدید</h6>
+        <form method="POST" action="/add_block">
+            <label>عنوان</label>
+            <input type="text" name="title" class="form-control" placeholder="مثال: NEW SECTION" required>
+            <label>توضیح</label>
+            <input type="text" name="desc" class="form-control" placeholder="توضیح کوتاه">
+            <label>آیکون (مثال: fa-gamepad)</label>
+            <input type="text" name="icon" class="form-control" placeholder="fa-gamepad" required>
+            <label>رنگ (کد رنگ)</label>
+            <input type="text" name="color" class="form-control" placeholder="#ff8c00" required>
+            <button class="btn-save">افزودن بلوک</button>
         </form>
     </div>
 </div>
@@ -247,55 +277,63 @@ body{background:#f0f7ff;color:var(--text);min-height:100vh}
 # ──────────────────────────────────────
 @app.route('/')
 def home():
-    return render_template_string(HOME, d=load())
+    return render_template_string(HOME, d=load_data())
 
 @app.route('/login', methods=['GET','POST'])
 def login():
-    if session.get('ok'): return redirect(url_for('panel'))
+    if session.get('admin_ok'):
+        return redirect(url_for('panel'))
     if request.method == 'POST':
-        u = request.form.get('u','')
-        p = request.form.get('p','')
+        u = request.form.get('username','')
+        p = request.form.get('password','')
         if u == ADMIN_USER and check_password_hash(ADMIN_HASH, p):
-            session['ok'] = True
+            session['admin_ok'] = True
             return redirect(url_for('panel'))
-        return render_template_string(LOGIN, err="نام یا کلید نادرست!")
-    return render_template_string(LOGIN)
+        return render_template_string(LOGIN_PAGE, error="نام یا کلید نادرست!")
+    return render_template_string(LOGIN_PAGE)
 
 @app.route('/panel')
 def panel():
-    if not session.get('ok'): return redirect(url_for('login'))
-    return render_template_string(PANEL, d=load(), saved=request.args.get('saved'))
+    if not session.get('admin_ok'):
+        return redirect(url_for('login'))
+    return render_template_string(PANEL, d=load_data(), saved=request.args.get('saved'))
 
-@app.route('/save', methods=['POST'])
-def save_changes():
-    if not session.get('ok'): return redirect(url_for('login'))
-    d = load()
-    d['title'] = request.form.get('title','')
-    d['subtitle'] = request.form.get('subtitle','')
-    d['welcome'] = request.form.get('welcome','')
-    d['desc'] = request.form.get('desc','')
-    d['announce'] = request.form.get('announce','')
-    save(d)
+@app.route('/save_global', methods=['POST'])
+def save_global():
+    if not session.get('admin_ok'):
+        return redirect(url_for('login'))
+    d = load_data()
+    d['site_title'] = request.form.get('site_title','')
+    d['site_subtitle'] = request.form.get('site_subtitle','')
+    d['status_text'] = request.form.get('status_text','')
+    d['status_color'] = request.form.get('status_color','#00ff88')
+    d['footer_text'] = request.form.get('footer_text','')
+    save_data(d)
     return redirect(url_for('panel', saved=1))
 
-@app.route('/add', methods=['POST'])
-def add_cat():
-    if not session.get('ok'): return redirect(url_for('login'))
-    d = load()
-    d['cats'].append({
+@app.route('/add_block', methods=['POST'])
+def add_block():
+    if not session.get('admin_ok'):
+        return redirect(url_for('login'))
+    d = load_data()
+    d['blocks'].append({
         "id": int(datetime.now().timestamp()),
-        "name": request.form.get('name',''),
-        "icon": request.form.get('icon','fa-folder')
+        "title": request.form.get('title',''),
+        "desc": request.form.get('desc',''),
+        "icon": request.form.get('icon','fa-folder'),
+        "color": request.form.get('color','#1e90ff'),
+        "link": ""
     })
-    save(d)
-    return redirect(url_for('panel'))
+    save_data(d)
+    return redirect(url_for('panel', saved=1))
 
-@app.route('/del/<id>')
-def del_cat(id):
-    if not session.get('ok'): return redirect(url_for('login'))
-    d = load()
-    d['cats'] = [c for c in d['cats'] if str(c['id']) != str(id)]
-    save(d)
+@app.route('/del_block/<id>')
+def del_block(id):
+    if not session.get('admin_ok'):
+        return redirect(url_for('login'))
+    d = load_data()
+    d['blocks'] = [b for b in d['blocks'] if str(b['id']) != str(id)]
+    save_data(d)
     return redirect(url_for('panel'))
 
 @app.route('/logout')
