@@ -1,442 +1,687 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VORTEXPLAY</title>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Rajdhani:wght@600;700&display=swap');
-*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{font-family:'Rajdhani',sans-serif;min-height:100vh;color:#f5e6a3;overflow-x:hidden;
-    background:radial-gradient(circle at 50% 0%,rgba(212,175,55,.25),transparent 60%),
-               radial-gradient(circle at 20% 80%,rgba(75,0,130,.4),transparent 50%),
-               linear-gradient(160deg,#0d0618 0%,#2d1b4e 45%,#1a0b2e 100%);
-    background-attachment:fixed;transition:background .5s}
-body.has-bg{background-size:cover;background-position:center}
-header{position:relative;z-index:10;padding:40px 20px 20px;text-align:center}
-.logo-ring{position:relative;display:inline-block;margin-bottom:20px}
-.logo-ring::before{content:'';position:absolute;inset:-8px;border-radius:50%;
-    background:conic-gradient(from 0deg,#ffd700,#b8860b,#fff2b0,#d4af37,#8b6914,#ffd700);
-    animation:spin 5s linear infinite}
-.logo-ring::after{content:'';position:absolute;inset:-8px;border-radius:50%;
-    background:conic-gradient(from 0deg,#ffd700,#b8860b,#fff2b0,#d4af37,#8b6914,#ffd700);
-    animation:spin 5s linear infinite;filter:blur(18px);opacity:.8}
-@keyframes spin{to{transform:rotate(360deg)}}
-.logo{position:relative;z-index:1;width:160px;height:160px;border-radius:50%;object-fit:cover;
-    border:4px solid #ffd700;box-shadow:0 0 40px rgba(255,215,0,.5);background:#1a0b2e}
-.crown{font-size:34px;display:block;margin-bottom:8px;filter:drop-shadow(0 0 15px #ffd700);animation:float 3s ease-in-out infinite}
-@keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}
-h1{font-family:'Cinzel',serif;font-size:clamp(30px,8vw,46px);letter-spacing:4px;font-weight:900;
-    color:#ffd700;text-shadow:0 0 20px #ffd700,0 0 40px rgba(255,215,0,.3)}
-.sub{font-size:14px;letter-spacing:3px;margin:10px 0 25px;color:#d4af37}
-.hero{width:95%;max-width:440px;border-radius:20px;margin:0 auto 35px;display:block;
-    border:4px solid #ffd700;box-shadow:0 0 40px rgba(255,215,0,.4),0 15px 50px rgba(0,0,0,.5)}
-.menu{max-width:550px;margin:0 auto;padding:0 20px 50px;display:grid;grid-template-columns:repeat(2,1fr);gap:20px;position:relative;z-index:10}
-.bw{border-radius:18px;padding:3px;background:conic-gradient(from 0deg,#ffd700,#b8860b,#fff2b0,#d4af37,#8b6914,#ffd700);animation:hue 6s linear infinite;box-shadow:0 5px 25px rgba(255,215,0,.25)}
-@keyframes hue{to{filter:hue-rotate(360deg)}}
-.btn{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:30px 15px;
-    border-radius:16px;text-decoration:none;color:#f5e6a3;
-    background:rgba(26,11,46,.8);backdrop-filter:blur(12px);
-    border:2px solid rgba(255,215,0,.5);transition:.3s;cursor:pointer}
-.btn:active{transform:scale(.95)}
-.btn:hover{background:rgba(45,27,78,.9);box-shadow:inset 0 0 30px rgba(255,215,0,.2)}
-.btn .ic{font-size:42px;margin-bottom:8px;filter:drop-shadow(0 0 12px #ffd700)}
-.btn .nm{font-family:'Cinzel',serif;font-size:14px;font-weight:700;letter-spacing:1px;color:#ffd700}
-.adm{display:block;text-align:center;margin-top:25px;color:#d4af37;text-decoration:none;font-size:12px;letter-spacing:2px;opacity:.8;cursor:pointer}
-.fx{position:fixed;width:40px;height:40px;border:3px solid #ffd700;background:rgba(255,255,255,.95);
-    border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%) scale(0);
-    animation:rip .6s ease-out forwards;box-shadow:0 0 20px rgba(255,215,0,.8)}
-@keyframes rip{0%{transform:translate(-50%,-50%) scale(0);opacity:1}100%{transform:translate(-50%,-50%) scale(3);opacity:0}}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VORTEXPLAY | CYBER</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        
+        :root {
+            --cyber-pink: #FF2E97;
+            --cyber-cyan: #00F0FF;
+            --cyber-purple: #9D2EFF;
+            --cyber-green: #00FF88;
+            --bg-dark: #050508;
+            --bg-card: #0F0F1A;
+            --bg-glass: rgba(18, 18, 32, 0.7);
+            --text-white: #FFFFFF;
+            --text-dim: #8888AA;
+        }
 
-/* Modal */
-.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);z-index:1000;overflow-y:auto;padding:20px}
-.modal.active{display:block}
-.modal-content{max-width:720px;margin:20px auto;background:linear-gradient(160deg,#0d0618,#2d1b4e,#1a0b2e);
-    border:2px solid rgba(255,215,0,.4);border-radius:18px;padding:25px}
-.modal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;
-    padding-bottom:15px;border-bottom:2px solid rgba(255,215,0,.3)}
-.modal-title{font-family:'Cinzel',serif;color:#ffd700;font-size:20px}
-.close-btn{background:linear-gradient(135deg,#ff0066,#ffd700);color:#1a0b2e;border:none;
-    padding:8px 16px;border-radius:8px;cursor:pointer;font-weight:700;font-family:'Cinzel',serif}
+        body {
+            background-color: var(--bg-dark);
+            color: var(--text-white);
+            min-height: 100vh;
+            background-size: cover;
+            background-position: center center;
+            background-repeat: no-repeat;
+            background-attachment: fixed;
+            transition: background-image 0.4s ease-in-out;
+        }
 
-/* Cards */
-.card{background:rgba(26,11,46,.75);backdrop-filter:blur(10px);border:2px solid rgba(255,215,0,.4);
-    border-radius:16px;padding:16px;margin-bottom:15px}
-.card img{width:100%;height:190px;object-fit:cover;border-radius:12px;margin-bottom:10px;border:2px solid #ffd700}
-.card h3{font-family:'Cinzel',serif;font-size:16px;margin-bottom:6px;color:#ffd700}
-.card p{font-size:13px;line-height:1.8;margin-bottom:10px;color:#e8d9a0}
-.dl{display:inline-block;padding:10px 20px;border-radius:10px;background:linear-gradient(135deg,#ffd700,#b8860b);
-    color:#1a0b2e;text-decoration:none;font-family:'Cinzel',serif;font-weight:700;font-size:12px}
-.empty{text-align:center;padding:40px 20px;color:#d4af37}
-.empty .big{font-size:55px;display:block;margin-bottom:12px}
+        .grid-bg {
+            position: fixed; inset: 0;
+            background-image: 
+                linear-gradient(rgba(0, 240, 255, 0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(0, 240, 255, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
+            pointer-events: none; z-index: 0;
+        }
 
-/* Forms */
-.form-group{margin-bottom:15px}
-label{display:block;color:#d4af37;font-size:13px;margin-bottom:5px}
-input,select,textarea{width:100%;padding:11px;border:2px solid rgba(255,215,0,.3);border-radius:8px;
-    background:rgba(13,6,24,.7);color:#f5e6a3;font-size:14px;font-family:inherit}
-textarea{min-height:80px;resize:vertical}
-input:focus,select:focus,textarea:focus{outline:none;border-color:#ffd700}
-.btn-submit{background:linear-gradient(90deg,#ffd700,#b8860b);color:#1a0b2e;border:none;padding:12px 22px;
-    border-radius:10px;font-weight:800;font-size:14px;cursor:pointer;width:100%;font-family:'Cinzel',serif}
-.btn-submit:hover{opacity:.9}
-.btn-danger{background:linear-gradient(90deg,#ff0044,#ff0066);color:#fff}
+        .container { max-width: 480px; margin: 0 auto; padding: 25px 20px 40px; position: relative; z-index: 1; }
 
-/* Login */
-.login-card{max-width:360px;margin:80px auto;text-align:center;padding:35px;
-    background:rgba(26,11,46,.9);border:2px solid rgba(255,215,0,.5);border-radius:18px}
-.login-card .crown{font-size:45px}
-.err{color:#ff5577;font-size:13px;margin-bottom:12px}
+        .header { text-align: center; margin-bottom: 30px; }
+        .logo-ring {
+            width: 130px; height: 130px; margin: 0 auto 15px; border-radius: 50%;
+            background: conic-gradient(from 0deg, var(--cyber-pink), var(--cyber-cyan), var(--cyber-purple), var(--cyber-pink));
+            padding: 3px; animation: spin 8s linear infinite;
+            box-shadow: 0 0 30px rgba(0, 240, 255, 0.4), 0 0 60px rgba(255, 46, 151, 0.25);
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .logo-inner {
+            width: 100%; height: 100%; border-radius: 50%; background: var(--bg-dark);
+            display: flex; align-items: center; justify-content: center;
+            animation: unspin 8s linear infinite;
+            overflow: hidden;
+        }
+        @keyframes unspin { to { transform: rotate(-360deg); } }
+        .logo-img {
+            width: 100%; height: 100%;
+            object-fit: cover;
+            display: none;
+        }
+        .logo-text {
+            font-size: 32px; font-weight: 900;
+            background: linear-gradient(135deg, var(--cyber-cyan), var(--cyber-pink));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .site-title {
+            font-size: 28px; font-weight: 900; letter-spacing: 3px; color: var(--cyber-cyan);
+            text-shadow: 0 0 10px rgba(0, 240, 255, 0.7); margin-bottom: 5px;
+        }
+        .site-desc { color: var(--cyber-pink); font-size: 14px; letter-spacing: 2px; }
 
-/* Admin */
-.admin-sec{background:rgba(26,11,46,.8);border:2px solid rgba(255,215,0,.35);border-radius:14px;padding:20px;margin-bottom:20px}
-.admin-sec h2{color:#ffd700;font-size:17px;margin-bottom:14px;font-family:'Cinzel',serif}
-.admin-item{background:rgba(13,6,24,.6);border:1px solid rgba(255,215,0,.25);border-radius:10px;padding:12px;
-    margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px}
-.preview{max-width:120px;max-height:120px;border-radius:10px;border:2px solid #ffd700;margin-top:10px}
+        .status-bar {
+            background: var(--bg-glass); border: 1px solid rgba(0, 240, 255, 0.35);
+            border-radius: 6px; padding: 12px 20px; margin-bottom: 25px;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+        }
+        .status-dot {
+            width: 12px; height: 12px; border-radius: 2px; background: var(--cyber-green);
+            box-shadow: 0 0 10px var(--cyber-green); animation: blink 1.5s infinite;
+        }
+        @keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.2; } }
 
-@media(max-width:450px){.menu{grid-template-columns:1fr}.logo{width:130px;height:130px}}
-</style>
+        .cat-card {
+            background: var(--bg-glass); border: 1px solid rgba(157, 46, 255, 0.3);
+            border-radius: 8px; padding: 20px; margin-bottom: 14px; cursor: pointer;
+            transition: 0.3s; position: relative; overflow: hidden;
+            backdrop-filter: blur(8px);
+        }
+        .cat-card::before {
+            content: ''; position: absolute; top: 0; right: 0; width: 4px; height: 100%;
+            background: linear-gradient(180deg, var(--cyber-pink), var(--cyber-purple));
+        }
+        .cat-card:hover {
+            transform: translateX(-5px); border-color: var(--cyber-cyan);
+            box-shadow: -8px 0 25px rgba(0, 240, 255, 0.2);
+        }
+        .cat-name { font-size: 18px; font-weight: 800; color: var(--cyber-cyan); margin-bottom: 6px; }
+        .cat-desc { font-size: 13px; color: var(--text-dim); }
+
+        .admin-btn {
+            width: 100%; margin-top: 30px; padding: 15px;
+            background: linear-gradient(90deg, var(--cyber-purple), var(--cyber-pink));
+            border: none; border-radius: 6px; color: #fff; font-weight: 800;
+            font-size: 15px; cursor: pointer; box-shadow: 0 0 15px rgba(157, 46, 255, 0.4);
+        }
+
+        .msg-page {
+            position: fixed; inset: 0; background: rgba(5,5,8,0.95); z-index: 100;
+            display: none; flex-direction: column;
+        }
+        .msg-page.active { display: flex; }
+        .page-head {
+            background: var(--bg-card); padding: 15px 20px;
+            display: flex; align-items: center; justify-content: space-between;
+            border-bottom: 1px solid rgba(0, 240, 255, 0.25);
+        }
+        .back-btn {
+            width: 38px; height: 38px; border-radius: 4px;
+            background: rgba(0, 240, 255, 0.1); border: 1px solid rgba(0, 240, 255, 0.4);
+            color: var(--cyber-cyan); font-size: 16px; cursor: pointer;
+        }
+        .page-name { font-size: 17px; font-weight: 800; color: var(--cyber-cyan); }
+        .msgs-box { flex: 1; overflow-y: auto; padding: 20px; }
+        .msg-bubble {
+            background: rgba(157, 46, 255, 0.08);
+            border: 1px solid rgba(255, 46, 151, 0.3);
+            border-radius: 6px; padding: 16px; margin-bottom: 14px;
+            line-height: 1.7; position: relative;
+        }
+        .msg-bubble::before {
+            content: ''; position: absolute; top: 0; right: 15px; width: 30px; height: 2px;
+            background: linear-gradient(90deg, var(--cyber-pink), transparent);
+        }
+        .empty { text-align: center; color: var(--text-dim); padding: 60px 20px; }
+
+        .modal {
+            position: fixed; inset: 0; background: rgba(5, 5, 8, 0.95); z-index: 200;
+            display: none; align-items: center; justify-content: center; padding: 20px;
+        }
+        .modal.active { display: flex; }
+        .modal-box {
+            width: 100%; max-width: 400px; background: var(--bg-card);
+            border: 1px solid var(--cyber-purple); border-radius: 8px; padding: 25px;
+        }
+        .modal-title {
+            font-size: 20px; font-weight: 900; color: var(--cyber-cyan);
+            text-align: center; margin-bottom: 20px;
+        }
+        .input {
+            width: 100%; padding: 14px 16px; margin-bottom: 12px;
+            background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(0, 240, 255, 0.3);
+            border-radius: 4px; color: #fff; font-size: 15px;
+        }
+        .input:focus { outline: none; border-color: var(--cyber-cyan); box-shadow: 0 0 12px rgba(0, 240, 255, 0.4); }
+        .err { color: var(--cyber-pink); text-align: center; margin-top: 10px; display: none; }
+
+        .panel {
+            position: fixed; inset: 0; background: rgba(5,5,8,0.98); z-index: 300;
+            display: none; overflow-y: auto;
+        }
+        .panel.active { display: block; }
+        .panel-wrap { max-width: 480px; margin: 0 auto; padding: 25px 20px 50px; }
+        .panel-head {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 25px; padding-bottom: 15px;
+            border-bottom: 1px solid rgba(0, 240, 255, 0.25);
+        }
+        .panel-title {
+            font-size: 22px; font-weight: 900;
+            background: linear-gradient(90deg, var(--cyber-cyan), var(--cyber-pink));
+            -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+        }
+        .close-panel {
+            width: 38px; height: 38px; border-radius: 4px;
+            background: rgba(255, 46, 151, 0.1); border: 1px solid rgba(255, 46, 151, 0.4);
+            color: var(--cyber-pink); font-size: 18px; cursor: pointer;
+        }
+        .section { margin-bottom: 30px; }
+        .sec-title {
+            font-size: 16px; font-weight: 800; color: var(--cyber-cyan); margin-bottom: 12px;
+        }
+        label { font-size: 14px; color: var(--text-dim); margin-bottom: 6px; display: block; }
+        textarea { resize: vertical; min-height: 90px; }
+
+        .btn-row { display: flex; flex-direction: column; gap: 12px; margin-bottom: 30px; }
+        .action-btn {
+            width: 100%; padding: 16px 20px; border: none; border-radius: 8px;
+            font-weight: 800; font-size: 15px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; gap: 10px;
+            transition: 0.3s;
+        }
+        .btn-send {
+            background: linear-gradient(90deg, #0088CC, var(--cyber-cyan));
+            color: #000; box-shadow: 0 0 15px rgba(0, 240, 255, 0.4);
+        }
+        .btn-send:hover { box-shadow: 0 0 25px rgba(0, 240, 255, 0.7); transform: scale(1.02); }
+        
+        .btn-create {
+            background: linear-gradient(90deg, #009944, var(--cyber-green));
+            color: #000; box-shadow: 0 0 15px rgba(0, 255, 136, 0.4);
+        }
+        .btn-create:hover { box-shadow: 0 0 25px rgba(0, 255, 136, 0.7); transform: scale(1.02); }
+        
+        .btn-delete {
+            background: linear-gradient(90deg, #CC0044, var(--cyber-pink));
+            color: #fff; box-shadow: 0 0 15px rgba(255, 46, 151, 0.4);
+        }
+        .btn-delete:hover { box-shadow: 0 0 25px rgba(255, 46, 151, 0.7); transform: scale(1.02); }
+
+        .note {
+            margin-top: 12px; padding: 12px; border-radius: 6px; text-align: center; display: none;
+        }
+        .note.success { background: rgba(0, 255, 136, 0.1); border: 1px solid rgba(0, 255, 136, 0.4); color: var(--cyber-green); }
+        .note.danger { background: rgba(255, 46, 151, 0.1); border: 1px solid rgba(255, 46, 151, 0.4); color: var(--cyber-pink); }
+
+        .hidden-section { display: none; margin-top: 15px; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 6px; border: 1px solid rgba(255,255,255,0.05); }
+        .hidden-section.active { display: block; }
+
+        .two-parts {
+            display: flex; flex-direction: column; gap: 25px;
+            margin-top: 30px; padding-top: 25px;
+            border-top: 1px solid rgba(255,255,255,0.08);
+        }
+        .part-card {
+            background: rgba(0,0,0,0.25);
+            border: 1px solid rgba(0, 240, 255, 0.2);
+            border-radius: 10px; padding: 20px;
+        }
+        .part-title {
+            font-size: 15px; font-weight: 800; color: var(--cyber-cyan);
+            margin-bottom: 12px; display: flex; align-items: center; gap: 8px;
+        }
+        .upload-box {
+            border: 2px dashed rgba(0, 240, 255, 0.4);
+            border-radius: 8px; padding: 25px; text-align: center;
+            cursor: pointer; transition: 0.3s;
+        }
+        .upload-box:hover {
+            border-color: var(--cyber-cyan);
+            background: rgba(0, 240, 255, 0.05);
+        }
+        .upload-box i {
+            font-size: 28px; color: var(--cyber-cyan);
+            margin-bottom: 10px; display: block;
+        }
+        .upload-box span {
+            color: var(--text-white); font-size: 14px;
+        }
+        .preview-area {
+            margin-top: 15px; display: none;
+        }
+        .preview-area.active { display: block; }
+        .preview-img {
+            max-width: 100%; border-radius: 6px;
+            border: 1px solid rgba(0, 240, 255, 0.3);
+            margin-bottom: 10px;
+        }
+        input[type="file"] { display: none; }
+        .reset-btn {
+            width: 100%; padding: 10px;
+            background: rgba(255, 46, 151, 0.15);
+            border: 1px solid rgba(255, 46, 151, 0.4);
+            color: var(--cyber-pink); border-radius: 4px;
+            cursor: pointer; font-size: 13px;
+        }
+        .auto-status {
+            font-size: 12px; margin-top: 8px;
+            color: var(--cyber-green); display: none;
+        }
+        .auto-status.show { display: block; }
+    </style>
 </head>
-<body>
-
-<!-- صفحه اصلی -->
-<div id="mainPage">
-<header>
-<span class="crown">👑</span>
-<div class="logo-ring">
-<img id="logoImg" class="logo" src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect fill='%231a0b2e' width='100' height='100'/><text x='50' y='55' font-size='40' text-anchor='middle' fill='%23ffd700' font-family='serif'>VP</text></svg>">
-</div>
-<h1 id="titleText">VORTEXPLAY</h1>
-<div class="sub" id="subtitleText">✦ ROYAL GAMING EMPIRE ✦</div>
-<img id="heroImg" class="hero" style="display:none">
-</header>
-<main class="menu" id="menuGrid"></main>
-<a class="adm" onclick="showLogin()">⚙️ پنل مدیریت</a>
-</div>
-
-<!-- Modal دسته‌بندی -->
-<div class="modal" id="catModal">
-<div class="modal-content">
-<div class="modal-header">
-<div class="modal-title" id="catTitle"></div>
-<button class="close-btn" onclick="closeModal('catModal')">✕</button>
-</div>
-<div id="catItems"></div>
-</div>
-</div>
-
-<!-- Modal ورود -->
-<div class="modal" id="loginModal">
-<div class="login-card">
-<span class="crown">👑</span>
-<h2 style="font-family:'Cinzel',serif;color:#ffd700;margin-bottom:22px">ورود به پنل</h2>
-<div class="err" id="loginErr" style="display:none">❌ رمز اشتباه است!</div>
-<input type="password" id="passInput" placeholder="رمز ۳۲ رقمی" style="text-align:center;letter-spacing:2px">
-<button class="btn-submit" onclick="doLogin()" style="margin-top:12px">🔓 ورود</button>
-<button class="btn-submit" onclick="closeModal('loginModal')" style="margin-top:8px;background:rgba(255,255,255,.1);color:#d4af37">انصراف</button>
-</div>
-</div>
-
-<!-- Modal مدیریت -->
-<div class="modal" id="adminModal">
-<div class="modal-content">
-<div class="modal-header">
-<div class="modal-title">👑 پنل مدیریت</div>
-<button class="close-btn" onclick="closeAdmin()">✕</button>
-</div>
-
-<div class="admin-sec">
-<h2>📝 متن‌ها</h2>
-<div class="form-group"><label>عنوان سایت</label><input id="setTitle" type="text"></div>
-<div class="form-group"><label>زیرعنوان</label><input id="setSubtitle" type="text"></div>
-<button class="btn-submit" onclick="saveTexts()">💾 ذخیره متن‌ها</button>
-</div>
-
-<div class="admin-sec">
-<h2>🖼️ تصاویر (از گالری)</h2>
-<div class="form-group"><label>لوگو</label><input type="file" id="logoFile" accept="image/*" onchange="uploadImg('logo')"></div>
-<img id="logoPreview" class="preview" style="display:none">
-<div class="form-group" style="margin-top:15px"><label>کاور بزرگ وسط</label><input type="file" id="heroFile" accept="image/*" onchange="uploadImg('hero')"></div>
-<img id="heroPreview" class="preview" style="display:none">
-<div class="form-group" style="margin-top:15px"><label>پس‌زمینه کل سایت</label><input type="file" id="bgFile" accept="image/*" onchange="uploadImg('bg')"></div>
-<button class="btn-submit btn-danger" onclick="resetImages()" style="margin-top:10px">🗑 حذف همه تصاویر</button>
-</div>
-
-<div class="admin-sec">
-<h2>📂 مدیریت دسته‌بندی‌ها</h2>
-<div class="form-group"><label>نام دسته‌بندی جدید</label><input id="newCat" placeholder="مثلاً: اخبار"></div>
-<div class="form-group"><label>آیکون</label><input id="newCatIcon" placeholder="📰" maxlength="2"></div>
-<button class="btn-submit" onclick="addCat()">➕ افزودن دسته</button>
-<div style="margin-top:15px" id="catList"></div>
-</div>
-
-<div class="admin-sec">
-<h2>➕ افزودن پیام / آیتم</h2>
-<div class="form-group"><label>دسته‌بندی</label><select id="msgCat"></select></div>
-<div class="form-group"><label>عنوان</label><input id="msgTitle" type="text"></div>
-<div class="form-group"><label>توضیحات</label><textarea id="msgDesc"></textarea></div>
-<div class="form-group"><label>لینک دانلود (اختیاری)</label><input id="msgLink" type="url" placeholder="https://..."></div>
-<div class="form-group"><label>عکس کاور (اختیاری)</label><input type="file" id="msgCover" accept="image/*"></div>
-<button class="btn-submit" onclick="addMessage()">➕ افزودن</button>
-</div>
-
-<div class="admin-sec">
-<h2>📋 همه پیام‌ها</h2>
-<div id="allMsgs"></div>
-</div>
-
-<button class="btn-submit btn-danger" onclick="logoutAdmin()" style="margin-top:15px">🚪 خروج از پنل</button>
-</div>
-</div>
-
-<script>
-// ===== داده‌ها =====
-const ADMIN_PASS='CECGAA0MMLOGOBYEIZXQUXKCFOJOKYFRTUJDXHRHDAOFCUXMUGXMMLGZBPSWWZGR';
-let data=JSON.parse(localStorage.getItem('vortex_data'))||{
-    title:'VORTEXPLAY',
-    subtitle:'ROYAL GAMING EMPIRE',
-    logo:'',
-    hero:'',
-    bg:'',
-    categories:[
-        {name:'payload',display:'PAYLOAD',icon:'👑'},
-        {name:'backup',display:'BACKUP & آموزش',icon:'💾'},
-        {name:'game',display:'GAME',icon:'🎮'},
-        {name:'gallery',display:'عکس‌های بازی',icon:'🖼️'}
-    ],
-    messages:[]
-};
-let isAdmin=false;
-
-function save(){localStorage.setItem('vortex_data',JSON.stringify(data));}
-
-// ===== رندر صفحه اصلی =====
-function render(){
-    document.getElementById('titleText').textContent=data.title;
-    document.getElementById('subtitleText').textContent='✦ '+data.subtitle+' ✦';
+<body id="bodyEl">
+    <div class="grid-bg"></div>
     
-    if(data.logo){document.getElementById('logoImg').src=data.logo;}
-    if(data.hero){
-        const h=document.getElementById('heroImg');
-        h.src=data.hero;h.style.display='block';
-    }
-    if(data.bg){
-        document.body.style.backgroundImage=`url(${data.bg})`;
-        document.body.classList.add('has-bg');
-    }
-    
-    const grid=document.getElementById('menuGrid');
-    grid.innerHTML='';
-    data.categories.forEach(c=>{
-        const count=data.messages.filter(m=>m.cat===c.name).length;
-        grid.innerHTML+=`
-        <div class="bw"><div class="btn" onclick="openCat('${c.name}')">
-            <div class="ic">${c.icon}</div>
-            <div class="nm">${c.display}</div>
-            <div style="color:#d4af37;font-size:12px;margin-top:5px">(${count} آیتم)</div>
-        </div></div>`;
-    });
-}
-
-// ===== Modal دسته‌بندی =====
-function openCat(name){
-    const c=data.categories.find(x=>x.name===name);
-    if(!c)return;
-    document.getElementById('catTitle').textContent=`${c.icon} ${c.display}`;
-    const msgs=data.messages.filter(m=>m.cat===name);
-    const box=document.getElementById('catItems');
-    if(!msgs.length){
-        box.innerHTML='<div class="empty"><span class="big">👑</span>هنوز پیامی نیست!</div>';
-    }else{
-        box.innerHTML=msgs.map(m=>`
-            <div class="card">
-                ${m.cover?`<img src="${m.cover}">`:''}
-                <h3>${m.title}</h3>
-                ${m.desc?`<p>${m.desc}</p>`:''}
-                ${m.link?`<a href="${m.link}" target="_blank" class="dl">⬇️ دانلود</a>`:''}
+    <div class="container" id="mainPage">
+        <div class="header">
+            <div class="logo-ring">
+                <div class="logo-inner">
+                    <img id="logoImg" class="logo-img" alt="لوگو">
+                    <span id="logoText" class="logo-text">VP</span>
+                </div>
             </div>
-        `).join('');
-    }
-    document.getElementById('catModal').classList.add('active');
-}
-
-function closeModal(id){document.getElementById(id).classList.remove('active');}
-
-// ===== ورود =====
-function showLogin(){
-    if(isAdmin){openAdmin();return;}
-    document.getElementById('loginErr').style.display='none';
-    document.getElementById('passInput').value='';
-    document.getElementById('loginModal').classList.add('active');
-}
-
-function doLogin(){
-    const p=document.getElementById('passInput').value;
-    if(p===ADMIN_PASS){
-        isAdmin=true;
-        closeModal('loginModal');
-        openAdmin();
-    }else{
-        document.getElementById('loginErr').style.display='block';
-    }
-}
-
-// ===== پنل مدیریت =====
-function openAdmin(){
-    document.getElementById('setTitle').value=data.title;
-    document.getElementById('setSubtitle').value=data.subtitle;
-    
-    if(data.logo){
-        const p=document.getElementById('logoPreview');
-        p.src=data.logo;p.style.display='block';
-    }
-    if(data.hero){
-        const p=document.getElementById('heroPreview');
-        p.src=data.hero;p.style.display='block';
-    }
-    
-    // لیست دسته‌ها
-    const catList=document.getElementById('catList');
-    catList.innerHTML=data.categories.map((c,i)=>`
-        <div class="admin-item">
-            <span>${c.icon} ${c.display} (${data.messages.filter(m=>m.cat===c.name).length} آیتم)</span>
-            <button class="btn-submit btn-danger" onclick="deleteCat(${i})" style="width:auto;padding:6px 12px">🗑</button>
+            <h1 class="site-title">VORTEXPLAY</h1>
+            <p class="site-desc">CYBER GAMING STATION</p>
         </div>
-    `).join('');
-    
-    // select دسته برای افزودن پیام
-    const sel=document.getElementById('msgCat');
-    sel.innerHTML=data.categories.map(c=>`<option value="${c.name}">${c.icon} ${c.display}</option>`).join('');
-    
-    // همه پیام‌ها
-    const allBox=document.getElementById('allMsgs');
-    if(!data.messages.length){
-        allBox.innerHTML='<p style="color:#d4af37;text-align:center">هنوز پیامی نیست</p>';
-    }else{
-        allBox.innerHTML=data.messages.map((m,i)=>{
-            const cat=data.categories.find(c=>c.name===m.cat);
-            return `<div class="admin-item">
-                <span>${cat?cat.icon:''} ${m.title}</span>
-                <button class="btn-submit btn-danger" onclick="deleteMsg(${i})" style="width:auto;padding:6px 12px">🗑</button>
-            </div>`;
-        }).join('');
-    }
-    
-    document.getElementById('adminModal').classList.add('active');
-}
 
-function closeAdmin(){closeModal('adminModal');}
-function logoutAdmin(){isAdmin=false;closeAdmin();alert('خروج موفق');}
+        <div class="status-bar">
+            <span class="status-dot"></span>
+            <span>سیستم آنلاین و فعال</span>
+        </div>
 
-function saveTexts(){
-    data.title=document.getElementById('setTitle').value||'VORTEXPLAY';
-    data.subtitle=document.getElementById('setSubtitle').value||'ROYAL GAMING EMPIRE';
-    save();render();alert('✅ ذخیره شد');
-}
+        <div id="catsList"></div>
 
-// ===== آپلود تصویر =====
-function uploadImg(type){
-    const fileInput={logo:'logoFile',hero:'heroFile',bg:'bgFile'}[type];
-    const file=document.getElementById(fileInput).files[0];
-    if(!file)return;
-    const reader=new FileReader();
-    reader.onload=e=>{
-        data[type]=e.target.result;
-        save();render();
-        if(type==='logo'){
-            const p=document.getElementById('logoPreview');
-            p.src=data.logo;p.style.display='block';
+        <button class="admin-btn" id="openPanelBtn">
+            <i class="fas fa-cog"></i> پنل مدیریت
+        </button>
+    </div>
+
+    <div class="msg-page" id="msgPage">
+        <div class="page-head">
+            <button class="back-btn" id="backBtn"><i class="fas fa-chevron-right"></i></button>
+            <h2 class="page-name" id="pageTitle"></h2>
+            <div></div>
+        </div>
+        <div class="msgs-box" id="msgsBox"></div>
+    </div>
+
+    <div class="modal" id="loginModal">
+        <div class="modal-box">
+            <h2 class="modal-title">ورود به سیستم مدیریت</h2>
+            <input type="password" class="input" id="passInput" placeholder="رمز ۳۲ رقمی" maxlength="64">
+            <p class="err" id="passErr">⚠️ رمز نامعتبر است!</p>
+            <button class="action-btn btn-send" id="loginBtn">
+                <i class="fas fa-unlock"></i> ورود
+            </button>
+        </div>
+    </div>
+
+    <div class="panel" id="adminPanel">
+        <div class="panel-wrap">
+            <div class="panel-head">
+                <h2 class="panel-title">کنسول مدیریت</h2>
+                <button class="close-panel" id="closePanelBtn"><i class="fas fa-times"></i></button>
+            </div>
+
+            <div class="btn-row">
+                <button class="action-btn btn-send" id="showSendBtn">
+                    <i class="fas fa-paper-plane"></i> ارسال پیام به دسته‌بندی
+                </button>
+                <button class="action-btn btn-create" id="showCreateBtn">
+                    <i class="fas fa-folder-plus"></i> ساخت دسته‌بندی جدید
+                </button>
+                <button class="action-btn btn-delete" id="showDeleteBtn">
+                    <i class="fas fa-folder-minus"></i> حذف دسته‌بندی
+                </button>
+            </div>
+
+            <div class="hidden-section" id="sendSection">
+                <h3 class="sec-title"><i class="fas fa-paper-plane"></i> ارسال پیام</h3>
+                <label>انتخاب دسته‌بندی</label>
+                <select class="input" id="targetCat"></select>
+                <label>متن پیام</label>
+                <textarea class="input" id="msgText" placeholder="متن پیام خود را بنویسید..."></textarea>
+                <button class="action-btn btn-send" id="sendMsgBtn" style="margin-top:10px;">
+                    <i class="fas fa-send"></i> ارسال پیام
+                </button>
+                <p class="note success" id="sendNote">✅ پیام ارسال شد!</p>
+            </div>
+
+            <div class="hidden-section" id="createSection">
+                <h3 class="sec-title"><i class="fas fa-folder-plus"></i> ساخت دسته‌بندی جدید</h3>
+                <label>نام دسته‌بندی</label>
+                <input type="text" class="input" id="newCatName" placeholder="مثال: بازی‌های کامپیوتر">
+                <label>توضیحات</label>
+                <input type="text" class="input" id="newCatDesc" placeholder="مثال: دانلود بازی‌های کامپیوتر">
+                <button class="action-btn btn-create" id="createCatBtn" style="margin-top:10px;">
+                    <i class="fas fa-plus-circle"></i> ایجاد دسته
+                </button>
+                <p class="note success" id="createNote">✅ دسته‌بندی ساخته شد!</p>
+            </div>
+
+            <div class="hidden-section" id="deleteSection">
+                <h3 class="sec-title"><i class="fas fa-folder-minus"></i> حذف دسته‌بندی</h3>
+                <label>انتخاب دسته برای حذف</label>
+                <select class="input" id="delCatSelect"></select>
+                <p style="font-size:12px; color:var(--cyber-pink); margin:8px 0;">⚠️ با حذف، تمام پیام‌های این دسته نیز حذف می‌شوند!</p>
+                <button class="action-btn btn-delete" id="delCatBtn" style="margin-top:10px;">
+                    <i class="fas fa-trash"></i> حذف این دسته
+                </button>
+                <p class="note danger" id="delNote">✅ دسته حذف شد!</p>
+            </div>
+
+            <div class="two-parts">
+                <div class="part-card">
+                    <h3 class="part-title">
+                        <i class="fas fa-images"></i>
+                        پس‌زمینه خودکار
+                    </h3>
+                    <div class="upload-box" id="bgUpload">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <span>از گالری عکس انتخاب کن → بلافاصله اعمال می‌شود ✅</span>
+                        <input type="file" id="bgInput" accept="image/*">
+                    </div>
+                    <div class="preview-area" id="bgPreviewArea">
+                        <p style="font-size:12px; color:var(--text-dim); margin:8px 0;">پیش‌نمایش:</p>
+                        <img id="bgPreviewImg" class="preview-img" alt="پیش‌نمایش پس‌زمینه">
+                        <p class="auto-status" id="bgStatus">✅ پس‌زمینه اعمال و ذخیره شد!</p>
+                        <button class="reset-btn" id="resetBgBtn">حذف پس‌زمینه</button>
+                    </div>
+                </div>
+
+                <div class="part-card">
+                    <h3 class="part-title">
+                        <i class="fas fa-picture-o"></i>
+                        لوگوی خودکار
+                    </h3>
+                    <div class="upload-box" id="logoUpload">
+                        <i class="fas fa-user-circle"></i>
+                        <span>از گالری عکس انتخاب کن → بلافاصله اعمال می‌شود ✅</span>
+                        <input type="file" id="logoInput" accept="image/*">
+                    </div>
+                    <div class="preview-area" id="logoPreviewArea">
+                        <p style="font-size:12px; color:var(--text-dim); margin:8px 0;">پیش‌نمایش:</p>
+                        <img id="logoPreviewImg" class="preview-img" alt="پیش‌نمایش لوگو" style="border-radius:50%; max-width:120px;">
+                        <p class="auto-status" id="logoStatus">✅ لوگو اعمال و ذخیره شد!</p>
+                        <button class="reset-btn" id="resetLogoBtn">حذف لوگو</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const ADMIN_PASS = 'CECGAA0MMLOGOBYEIZXQUXKCFOJOKYFRTUJDXHRHDAOFCUXMUGXMMLGZBPSWWZGR';
+
+        let data = {
+            categories: [
+                { id: 1, name: 'بکاپ و آموزش', desc: 'فایل‌های پشتیبان و راهنمای نصب', messages: [] },
+                { id: 2, name: 'بازی‌های PS5', desc: 'آرشیو کامل بازی‌های پلی‌استیشن ۵', messages: [] },
+                { id: 3, name: 'تصاویر و والپیپر', desc: 'گالری تصاویر رسمی بازی‌ها', messages: [] }
+            ],
+            bgImage: null,
+            logoImage: null
+        };
+
+        function save() {
+            localStorage.setItem('vortex_data', JSON.stringify({
+                categories: data.categories,
+                bgImage: data.bgImage,
+                logoImage: data.logoImage
+            }));
         }
-        if(type==='hero'){
-            const p=document.getElementById('heroPreview');
-            p.src=data.hero;p.style.display='block';
+
+        function load() {
+            const saved = localStorage.getItem('vortex_data');
+            if (saved) {
+                const parsed = JSON.parse(saved);
+                data.bgImage = parsed.bgImage || null;
+                data.logoImage = parsed.logoImage || null;
+                data.categories = parsed.categories || data.categories;
+            }
+            applyAll();
+            renderMain();
         }
-        alert('✅ آپلود شد');
-    };
-    reader.readAsDataURL(file);
-}
 
-function resetImages(){
-    if(!confirm('مطمئنی همه تصاویر حذف بشن؟'))return;
-    data.logo='';data.hero='';data.bg='';
-    save();render();
-    document.body.style.backgroundImage='';
-    document.body.classList.remove('has-bg');
-    document.getElementById('logoPreview').style.display='none';
-    document.getElementById('heroPreview').style.display='none';
-    alert('🗑 حذف شد');
-}
+        // === اعمال پس‌زمینه و لوگو به صورت خودکار ===
+        function applyAll() {
+            // پس‌زمینه
+            if (data.bgImage) {
+                document.getElementById('bodyEl').style.backgroundImage = `url("${data.bgImage}")`;
+                document.getElementById('bgPreviewImg').src = data.bgImage;
+                document.getElementById('bgPreviewArea').classList.add('active');
+                document.getElementById('bgStatus').classList.add('show');
+            } else {
+                document.getElementById('bodyEl').style.backgroundImage = '';
+                document.getElementById('bgPreviewArea').classList.remove('active');
+                document.getElementById('bgStatus').classList.remove('show');
+            }
 
-// ===== دسته‌بندی‌ها =====
-function addCat(){
-    const name=document.getElementById('newCat').value.trim();
-    const icon=document.getElementById('newCatIcon').value.trim()||'📁';
-    if(!name){alert('نام را وارد کن');return;}
-    const safe=name.toLowerCase().replace(/[^a-z0-9]/g,'_');
-    if(data.categories.find(c=>c.name===safe)){alert('این نام تکراری است');return;}
-    data.categories.push({name:safe,display:name,icon:icon});
-    save();render();openAdmin();
-    document.getElementById('newCat').value='';
-    document.getElementById('newCatIcon').value='';
-}
+            // لوگو
+            if (data.logoImage) {
+                document.getElementById('logoImg').src = data.logoImage;
+                document.getElementById('logoImg').style.display = 'block';
+                document.getElementById('logoText').style.display = 'none';
+                document.getElementById('logoPreviewImg').src = data.logoImage;
+                document.getElementById('logoPreviewArea').classList.add('active');
+                document.getElementById('logoStatus').classList.add('show');
+            } else {
+                document.getElementById('logoImg').style.display = 'none';
+                document.getElementById('logoText').style.display = 'block';
+                document.getElementById('logoPreviewArea').classList.remove('active');
+                document.getElementById('logoStatus').classList.remove('show');
+            }
+        }
 
-function deleteCat(i){
-    if(!confirm(`حذف "${data.categories[i].display}" و همه پیام‌هایش؟`))return;
-    const catName=data.categories[i].name;
-    data.categories.splice(i,1);
-    data.messages=data.messages.filter(m=>m.cat!==catName);
-    save();render();openAdmin();
-}
+        function showNote(elId) {
+            const el = document.getElementById(elId);
+            el.style.display = 'block';
+            setTimeout(() => el.style.display = 'none', 3000);
+        }
 
-// ===== پیام‌ها =====
-function addMessage(){
-    const cat=document.getElementById('msgCat').value;
-    const title=document.getElementById('msgTitle').value.trim();
-    const desc=document.getElementById('msgDesc').value.trim();
-    const link=document.getElementById('msgLink').value.trim();
-    const coverFile=document.getElementById('msgCover').files[0];
-    
-    if(!title){alert('عنوان را وارد کن');return;}
-    
-    const add=(cover)=>{
-        data.messages.push({cat,title,desc,link,cover,date:Date.now()});
-        save();render();openAdmin();
-        document.getElementById('msgTitle').value='';
-        document.getElementById('msgDesc').value='';
-        document.getElementById('msgLink').value='';
-        document.getElementById('msgCover').value='';
-        alert('✅ اضافه شد');
-    };
-    
-    if(coverFile){
-        const r=new FileReader();
-        r.onload=e=>add(e.target.result);
-        r.readAsDataURL(coverFile);
-    }else{
-        add('');
-    }
-}
+        function renderMain() {
+            const list = document.getElementById('catsList');
+            list.innerHTML = '';
+            data.categories.forEach((cat, index) => {
+                const card = document.createElement('div');
+                card.className = 'cat-card';
+                card.innerHTML = `
+                    <h3 class="cat-name">${cat.name}</h3>
+                    <p class="cat-desc">${cat.desc}</p>
+                `;
+                card.onclick = () => openPage(index);
+                list.appendChild(card);
+            });
+            renderPanelLists();
+        }
 
-function deleteMsg(i){
-    if(!confirm('حذف این پیام؟'))return;
-    data.messages.splice(i,1);
-    save();render();openAdmin();
-}
+        function openPage(index) {
+            const cat = data.categories[index];
+            document.getElementById('pageTitle').textContent = cat.name;
+            const box = document.getElementById('msgsBox');
+            box.innerHTML = '';
+            if (cat.messages.length === 0) {
+                box.innerHTML = '<p class="empty">هنوز پیامی ارسال نشده</p>';
+            } else {
+                cat.messages.forEach(msg => {
+                    const bubble = document.createElement('div');
+                    bubble.className = 'msg-bubble';
+                    bubble.textContent = msg;
+                    box.appendChild(bubble);
+                });
+            }
+            document.getElementById('msgPage').classList.add('active');
+        }
 
-// ===== افکت کلیک =====
-document.addEventListener('click',e=>{
-    if(e.target.closest('input,button,select,textarea,.adm'))return;
-    const r=document.createElement('div');
-    r.className='fx';
-    r.style.left=e.clientX+'px';
-    r.style.top=e.clientY+'px';
-    document.body.appendChild(r);
-    setTimeout(()=>r.remove(),600);
-});
+        function closePage() {
+            document.getElementById('msgPage').classList.remove('active');
+        }
 
-// ===== اجرای اولیه =====
-render();
-</script>
+        function renderPanelLists() {
+            const targetSel = document.getElementById('targetCat');
+            const delSel = document.getElementById('delCatSelect');
+            targetSel.innerHTML = '';
+            delSel.innerHTML = '';
+            data.categories.forEach((cat, index) => {
+                const opt1 = document.createElement('option');
+                opt1.value = index; opt1.textContent = cat.name;
+                targetSel.appendChild(opt1);
+                const opt2 = document.createElement('option');
+                opt2.value = index; opt2.textContent = cat.name;
+                delSel.appendChild(opt2);
+            });
+        }
+
+        function hideAllSections() {
+            document.getElementById('sendSection').classList.remove('active');
+            document.getElementById('createSection').classList.remove('active');
+            document.getElementById('deleteSection').classList.remove('active');
+        }
+
+        function openLogin() {
+            document.getElementById('loginModal').classList.add('active');
+            document.getElementById('passInput').value = '';
+            document.getElementById('passErr').style.display = 'none';
+        }
+
+        function checkLogin() {
+            if (document.getElementById('passInput').value.trim() === ADMIN_PASS) {
+                document.getElementById('loginModal').classList.remove('active');
+                document.getElementById('adminPanel').classList.add('active');
+                renderPanelLists();
+                applyAll();
+            } else {
+                document.getElementById('passErr').style.display = 'block';
+            }
+        }
+
+        function closePanel() {
+            document.getElementById('adminPanel').classList.remove('active');
+            hideAllSections();
+        }
+
+        function fileToBase64(file) {
+            return new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.readAsDataURL(file);
+            });
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            load();
+
+            document.getElementById('showSendBtn').onclick = () => {
+                hideAllSections();
+                document.getElementById('sendSection').classList.add('active');
+            };
+            document.getElementById('showCreateBtn').onclick = () => {
+                hideAllSections();
+                document.getElementById('createSection').classList.add('active');
+            };
+            document.getElementById('showDeleteBtn').onclick = () => {
+                hideAllSections();
+                document.getElementById('deleteSection').classList.add('active');
+            };
+
+            document.getElementById('openPanelBtn').onclick = openLogin;
+            document.getElementById('loginBtn').onclick = checkLogin;
+            document.getElementById('closePanelBtn').onclick = closePanel;
+            document.getElementById('backBtn').onclick = closePage;
+
+            document.getElementById('sendMsgBtn').onclick = () => {
+                const idx = parseInt(document.getElementById('targetCat').value);
+                const text = document.getElementById('msgText').value.trim();
+                if (!text) return alert('متن پیام را بنویسید!');
+                data.categories[idx].messages.push(text);
+                document.getElementById('msgText').value = '';
+                save(); renderMain();
+                showNote('sendNote');
+            };
+
+            document.getElementById('createCatBtn').onclick = () => {
+                const name = document.getElementById('newCatName').value.trim();
+                const desc = document.getElementById('newCatDesc').value.trim();
+                if (!name) return alert('نام دسته را بنویسید!');
+                data.categories.push({
+                    id: Date.now(),
+                    name: name,
+                    desc: desc || 'بدون توضیحات',
+                    messages: []
+                });
+                document.getElementById('newCatName').value = '';
+                document.getElementById('newCatDesc').value = '';
+                save(); renderMain();
+                showNote('createNote');
+            };
+
+            document.getElementById('delCatBtn').onclick = () => {
+                const idx = parseInt(document.getElementById('delCatSelect').value);
+                if (!confirm('مطمئن هستید؟ تمام پیام‌ها حذف می‌شوند!')) return;
+                data.categories.splice(idx, 1);
+                save(); renderMain();
+                showNote('delNote');
+            };
+
+            // === پس‌زمینه خودکار ===
+            document.getElementById('bgUpload').onclick = () => {
+                document.getElementById('bgInput').click();
+            };
+            // انتخاب عکس → بلافاصله اعمال و ذخیره ✅
+            document.getElementById('bgInput').onchange = async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                // تبدیل عکس
+                const base64 = await fileToBase64(file);
+                // ذخیره
+                data.bgImage = base64;
+                save();
+                // اعمال خودکار
+                applyAll();
+                alert('✅ پس‌زمینه بلافاصله اعمال شد!');
+            };
+            // حذف پس‌زمینه
+            document.getElementById('resetBgBtn').onclick = () => {
+                if (!confirm('پس‌زمینه حذف شود؟')) return;
+                data.bgImage = null;
+                save();
+                applyAll();
+                document.getElementById('bgInput').value = '';
+                alert('✅ پس‌زمینه حذف شد!');
+            };
+
+            // === لوگو خودکار ===
+            document.getElementById('logoUpload').onclick = () => {
+                document.getElementById('logoInput').click();
+            };
+            // انتخاب عکس → بلافاصله اعمال و ذخیره ✅
+            document.getElementById('logoInput').onchange = async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+                // تبدیل عکس
+                const base64 = await fileToBase64(file);
+                // ذخیره
+                data.logoImage = base64;
+                save();
+                // اعمال خودکار
+                applyAll();
+                alert('✅ لوگو بلافاصله اعمال شد!');
+            };
+            // حذف لوگو
+            document.getElementById('resetLogoBtn').onclick = () => {
+                if (!confirm('لوگو حذف شود؟')) return;
+                data.logoImage = null;
+                save();
+                applyAll();
+                document.getElementById('logoInput').value = '';
+                alert('✅ لوگو حذف شد!');
+            };
+        });
+    </script>
 </body>
 </html>
