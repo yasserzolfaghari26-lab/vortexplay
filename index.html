@@ -1,56 +1,114 @@
 import os
+import time
 import secrets
 import string
-import time
 import logging
-import sys
-import threading
-import asyncio
 from datetime import datetime
 from flask import Flask, render_template_string, request, redirect, url_for, jsonify, session
 from werkzeug.security import generate_password_hash, check_password_hash
 
-# ==========================================
-# ۱. تولید رمز عبور امن
-# ==========================================
-def generate_secure_password(length=32):
-    alphabet = string.ascii_letters + string.digits + "!@#$%^&*()"
-    return ''.join(secrets.choice(alphabet) for _ in range(length))
+# ==============================================
+# ۱. تنظیمات اولیه و امنیت
+# ==============================================
+def make_password(length=32):
+    chars = string.ascii_letters + string.digits + "!@#$%^&*()"
+    return ''.join(secrets.choice(chars) for _ in range(length))
 
-admin_username = "admin"
-admin_password = generate_secure_password(32)
+ADMIN_USER = "admin"
+ADMIN_PASS = make_password()
+ADMIN_PASS_HASH = generate_password_hash(ADMIN_PASS)
 
 print("=" * 60)
-print(f" نام کاربری پنل مدیریت: {admin_username}")
-print(f" رمز عبور ۳۲ رقمی تولید شده: {admin_password}")
-print(" (این رمز را یادداشت کنید!)")
+print(f"✅ نام کاربری: {ADMIN_USER}")
+print(f"✅ رمز عبور:   {ADMIN_PASS}")
+print("⚠️  این رمز را همین الان یادداشت کن!")
 print("=" * 60)
 
-# ==========================================
-# ۲. ساخت فایل‌های پروژه
-# ==========================================
-requirements_content = """flask==3.0.3
-gunicorn==22.0.3
-requests==2.32.3
-cryptography==42.0.5
-aiohttp==3.9.5
-Werkzeug==3.0.3
-Jinja2==3.1.4
-"""
+# ==============================================
+# ۲. مقداردهی اولیه
+# ==============================================
+logging.basicConfig(
+    level=logging.INFO,
+    format='[%(asctime)s] %(levelname)s: %(message)s'
+)
+logger = logging.getLogger("VortexPlay")
 
-with open("requirements.txt", "w", encoding="utf-8") as f:
-    f.write(requirements_content)
+app = Flask(__name__)
+app.secret_key = os.urandom(24)
 
-procfile_content = """web: gunicorn app:app
-"""
+stats = {
+    "started_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+    "messages_sent": 0,
+    "bot_status": "آماده به کار",
+    "last_broadcast": "هنوز پیامی ارسال نشده",
+    "errors": 0
+}
 
-with open("Procfile", "w", encoding="utf-8") as f:
-    f.write(procfile_content)
-
-# ==========================================
+# ==============================================
 # ۳. قالب‌های HTML
-# ==========================================
-ADMIN_PANEL_HTML = """
+# ==============================================
+LOGIN_PAGE = """
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ورود به پنل مدیریت</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        * { direction: rtl; }
+        body {
+            background: linear-gradient(135deg, #0c1929, #0f2a47);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: Tahoma, sans-serif;
+        }
+        .box {
+            background: #112236;
+            border: 1px solid #2385bb;
+            border-radius: 16px;
+            padding: 30px;
+            width: 100%;
+            max-width: 420px;
+            box-shadow: 0 0 25px rgba(30, 144, 255, 0.25);
+        }
+        h3 { color: #00ccff; }
+        .form-control {
+            background: #0a1625;
+            border: 1px solid #2385bb;
+            color: white;
+        }
+        .btn-primary {
+            background: linear-gradient(90deg, #0077ff, #00ccff);
+            border: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h3 class="text-center mb-4">🔐 ورود به پنل مدیریت</h3>
+        {% if error %}
+            <div class="alert alert-danger">{{ error }}</div>
+        {% endif %}
+        <form method="POST">
+            <div class="mb-3">
+                <label class="form-label text-light">نام کاربری</label>
+                <input type="text" name="username" class="form-control" required>
+            </div>
+            <div class="mb-4">
+                <label class="form-label text-light">رمز عبور</label>
+                <input type="password" name="password" class="form-control" required>
+            </div>
+            <button type="submit" class="btn btn-primary w-100 py-2">ورود ✅</button>
+        </form>
+    </div>
+</body>
+</html>
+"""
+
+DASHBOARD_PAGE = """
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
@@ -60,127 +118,129 @@ ADMIN_PANEL_HTML = """
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        :root {
-            --bg-dark: #090d16;
-            --sidebar-bg: #111827;
-            --card-bg: #1f2937;
-            --accent-color: #38bdf8;
-            --text-main: #f3f4f6;
-            --text-muted: #9ca3af;
-        }
+        * { direction: rtl; }
         body {
-            background-color: var(--bg-dark);
-            color: var(--text-main);
+            background: #0c1929;
+            color: #e6f0fa;
             font-family: Tahoma, sans-serif;
             min-height: 100vh;
         }
         .sidebar {
-            background-color: var(--sidebar-bg);
-            border-left: 1px solid #374151;
+            background: #112236;
+            border-left: 1px solid #2385bb;
             min-height: 100vh;
-            padding: 20px;
+            padding: 20px 15px;
+            position: fixed;
+            right: 0;
+            top: 0;
+            width: 220px;
+        }
+        .sidebar h5 { color: #00ccff; }
+        .sidebar a {
+            display: block;
+            color: #94c5eb;
+            padding: 10px 12px;
+            margin: 4px 0;
+            border-radius: 8px;
+            text-decoration: none;
+        }
+        .sidebar a:hover, .sidebar a.active {
+            background: #1a3552;
+            color: #00ccff;
+        }
+        .sidebar a.logout {
+            color: #ff6b6b;
+            margin-top: 40px;
+        }
+        .main-content {
+            margin-right: 240px;
+            padding: 25px;
         }
         .card {
-            background-color: var(--card-bg);
-            border: 1px solid #374151;
-            color: var(--text-main);
+            background: #132740;
+            border: 1px solid #2385bb;
             border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
         }
         .stat-card {
-            border-right: 4px solid var(--accent-color);
+            border-right: 3px solid #00ccff;
         }
-        .nav-link {
-            color: var(--text-muted);
-            border-radius: 8px;
-            margin-bottom: 5px;
-            transition: all 0.3s;
-        }
-        .nav-link:hover, .nav-link.active {
-            background-color: #374151;
-            color: var(--accent-color);
-        }
-        .btn-custom {
-            background-color: #0284c7;
-            color: #fff;
+        .btn-send {
+            background: linear-gradient(90deg, #0077ff, #00ccff);
             border: none;
         }
-        .btn-custom:hover {
-            background-color: #0369a1;
-            color: #fff;
+        .btn-send:hover {
+            background: linear-gradient(90deg, #0066dd, #00bbee);
+        }
+        textarea.form-control {
+            background: #0a1625;
+            border: 1px solid #2385bb;
+            color: white;
         }
         .status-badge {
-            font-size: 0.85rem;
-            padding: 6px 12px;
+            background: #00aa55;
+            color: white;
+            padding: 5px 14px;
             border-radius: 20px;
+            font-size: 0.9rem;
+        }
+        @media (max-width: 768px) {
+            .sidebar { position: static; width: 100%; min-height: auto; }
+            .main-content { margin-right: 0; }
         }
     </style>
 </head>
 <body>
-    <div class="container-fluid">
-        <div class="row">
-            <div class="col-md-3 col-lg-2 sidebar d-none d-md-block">
-                <h4 class="text-info text-center mb-4"><i class="fas fa-robot me-2"></i>VortexPlay</h4>
-                <ul class="nav flex-column">
-                    <li class="nav-item">
-                        <a class="nav-link active" href="#"><i class="fas fa-tachometer-alt me-2"></i>داشبورد</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link text-danger mt-5" href="/logout"><i class="fas fa-sign-out-alt me-2"></i>خروج</a>
-                    </li>
-                </ul>
+    <div class="sidebar">
+        <h5 class="text-center mb-4"><i class="fas fa-bolt"></i> VortexPlay</h5>
+        <a href="#" class="active"><i class="fas fa-tachometer-alt me-2"></i> داشبورد</a>
+        <a href="/logout" class="logout"><i class="fas fa-sign-out-alt me-2"></i> خروج</a>
+    </div>
+
+    <div class="main-content">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2>پنل مدیریت</h2>
+            <span class="status-badge"><i class="fas fa-circle me-1"></i> {{ stats.bot_status }}</span>
+        </div>
+
+        <div class="row g-4 mb-4">
+            <div class="col-md-4">
+                <div class="card stat-card p-3">
+                    <h6 class="text-info">زمان شروع</h6>
+                    <h5>{{ stats.started_at }}</h5>
+                </div>
             </div>
-            <div class="col-md-9 col-lg-10 ms-sm-auto px-4 py-4">
-                <div class="d-flex justify-content-between align-items-center mb-4 border-bottom pb-3">
-                    <h2>داشبورد کنترل</h2>
-                    <span class="badge bg-success status-badge"><i class="fas fa-circle me-1"></i> {{stats.active_bot_status}}</span>
+            <div class="col-md-4">
+                <div class="card stat-card p-3">
+                    <h6 class="text-info">پیام‌های ارسال شده</h6>
+                    <h5>{{ stats.messages_sent }}</h5>
                 </div>
-                <div class="row g-4 mb-4">
-                    <div class="col-md-4">
-                        <div class="card stat-card p-3">
-                            <h6 class="text-muted">پیام‌های پردازش شده</h6>
-                            <h3>{{stats.total_messages_processed}}</h3>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="card stat-card p-3 border-success">
-                            <h6 class="text-muted">وضعیت سیستم</h6>
-                            <h3>فعال ✅</h3>
-                        </div>
-                    </div>
-                    <div class="col-md-4">
-                        <div class="card stat-card p-3 border-warning">
-                            <h6 class="text-muted">تعداد خطاها</h6>
-                            <h3>{{stats.errors_count}}</h3>
-                        </div>
-                    </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card stat-card p-3">
+                    <h6 class="text-info">تعداد خطاها</h6>
+                    <h5>{{ stats.errors }}</h5>
                 </div>
-                <div class="row g-4">
-                    <div class="col-lg-6">
-                        <div class="card p-4">
-                            <h4 class="mb-3 text-info"><i class="fas fa-paper-plane me-2"></i>ارسال پیام همگانی</h4>
-                            <form method="POST" action="/broadcast">
-                                <div class="mb-3">
-                                    <label class="form-label">متن پیام:</label>
-                                    <textarea class="form-control bg-dark text-light border-secondary" name="broadcast_msg" rows="4" placeholder="متن خود را بنویسید..." required></textarea>
-                                </div>
-                                <button type="submit" class="btn btn-custom w-100">ارسال فوری ✅</button>
-                            </form>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            <div class="col-lg-6">
+                <div class="card p-4">
+                    <h5 class="mb-3 text-info"><i class="fas fa-paper-plane me-2"></i> ارسال پیام همگانی</h5>
+                    <form method="POST" action="/broadcast">
+                        <div class="mb-3">
+                            <label class="form-label">متن پیام:</label>
+                            <textarea name="message" rows="4" class="form-control" placeholder="متن خود را بنویسید..." required></textarea>
                         </div>
-                    </div>
-                    <div class="col-lg-6">
-                        <div class="card p-4">
-                            <h4 class="mb-3 text-info"><i class="fas fa-info-circle me-2"></i>اطلاعات سیستم</h4>
-                            <ul class="list-group list-group-flush bg-transparent">
-                                <li class="list-group-item bg-transparent text-light border-secondary d-flex justify-content-between">
-                                    <span>محیط اجرا:</span><strong>Render Cloud</strong>
-                                </li>
-                                <li class="list-group-item bg-transparent text-light border-secondary d-flex justify-content-between">
-                                    <span>آخرین ارسال:</span><strong>{{stats.last_broadcast}}</strong>
-                                </li>
-                            </ul>
-                        </div>
-                    </div>
+                        <button type="submit" class="btn btn-send w-100 py-2">ارسال پیام 📤</button>
+                    </form>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="card p-4">
+                    <h5 class="mb-3 text-info"><i class="fas fa-clock me-2"></i> آخرین پیام ارسال شده</h5>
+                    <p class="text-light">{{ stats.last_broadcast }}</p>
                 </div>
             </div>
         </div>
@@ -189,113 +249,43 @@ ADMIN_PANEL_HTML = """
 </html>
 """
 
-LOGIN_HTML = """
-<!DOCTYPE html>
-<html lang="fa" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <title>ورود به پنل مدیریت</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body {
-            background-color: #090d16;
-            color: #fff;
-            font-family: Tahoma, sans-serif;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-        }
-        .login-card {
-            background-color: #1f2937;
-            padding: 30px;
-            border-radius: 15px;
-            border: 1px solid #374151;
-            width: 100%;
-            max-width: 400px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-        }
-    </style>
-</head>
-<body>
-    <div class="login-card">
-        <h3 class="text-center mb-4 text-info">ورود به پنل مدیریت</h3>
-        {% if error %}
-            <div class="alert alert-danger py-2">{{error}}</div>
-        {% endif %}
-        <form method="POST">
-            <div class="mb-3">
-                <label class="form-label">نام کاربری:</label>
-                <input type="text" name="username" class="form-control bg-dark text-light border-secondary" required>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">رمز عبور:</label>
-                <input type="password" name="password" class="form-control bg-dark text-light border-secondary" required>
-            </div>
-            <button type="submit" class="btn btn-info w-100 fw-bold">ورود ✅</button>
-        </form>
-    </div>
-</body>
-</html>
-"""
-
-# ==========================================
-# ۴. ساخت اپلیکیشن اصلی
-# ==========================================
-logging.basicConfig(
-    level=logging.INFO,
-    format='[%(asctime)s] [%(levelname)s]: %(message)s',
-    handlers=[logging.StreamHandler(sys.stdout)]
-)
-logger = logging.getLogger("VortexPlay")
-
-app = Flask(__name__)
-app.secret_key = os.urandom(24)
-
-# هش کردن رمز در زمان اجرا
-ADMIN_PASSWORD_HASH = generate_password_hash(admin_password)
-
-system_stats = {
-    "start_time": time.time(),
-    "total_messages_processed": 0,
-    "active_bot_status": "در حال راه‌اندازی...",
-    "last_broadcast": "هیچ پیامی ارسال نشده",
-    "errors_count": 0
-}
-
-# ==========================================
-# ۵. مسیرهای وب
-# ==========================================
+# ==============================================
+# ۴. مسیرها
+# ==============================================
 @app.route('/', methods=['GET', 'POST'])
 def login():
+    if session.get('admin_ok'):
+        return redirect(url_for('dashboard'))
+    
     if request.method == 'POST':
-        username = request.form.get('username')
-        password = request.form.get('password')
-        if username == admin_username and check_password_hash(ADMIN_PASSWORD_HASH, password):
-            session['logged_in'] = True
+        u = request.form.get('username', '')
+        p = request.form.get('password', '')
+        if u == ADMIN_USER and check_password_hash(ADMIN_PASS_HASH, p):
+            session['admin_ok'] = True
             return redirect(url_for('dashboard'))
-        else:
-            return render_template_string(LOGIN_HTML, error="نام کاربری یا رمز عبور اشتباه!")
-    return render_template_string(LOGIN_HTML)
+        return render_template_string(LOGIN_PAGE, error="نام کاربری یا رمز عبور اشتباه!")
+    
+    return render_template_string(LOGIN_PAGE)
 
 @app.route('/dashboard')
 def dashboard():
-    if not session.get('logged_in'):
+    if not session.get('admin_ok'):
         return redirect(url_for('login'))
-    return render_template_string(ADMIN_PANEL_HTML, stats=system_stats)
+    return render_template_string(DASHBOARD_PAGE, stats=stats)
 
 @app.route('/broadcast', methods=['POST'])
 def broadcast():
-    if not session.get('logged_in'):
+    if not session.get('admin_ok'):
         return redirect(url_for('login'))
-    msg = request.form.get('broadcast_msg', '').strip()
+    
+    msg = request.form.get('message', '').strip()
     if not msg:
         return redirect(url_for('dashboard'))
     
-    now_str = datetime.now().strftime('%Y-%m-%d %H:%M')
-    system_stats["last_broadcast"] = f"{now_str} - {msg[:20]}..."
-    system_stats["total_messages_processed"] += 1
-    logger.info(f"پیام همگانی: {msg}")
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    stats['last_broadcast'] = f"[{now}] {msg}"
+    stats['messages_sent'] += 1
+    logger.info(f"پیام ارسال شد: {msg}")
     return redirect(url_for('dashboard'))
 
 @app.route('/logout')
@@ -304,42 +294,16 @@ def logout():
     return redirect(url_for('login'))
 
 @app.route('/health')
-def health_check():
+def health():
     return jsonify({
-        "status": "healthy",
-        "timestamp": time.time(),
-        "bot_status": system_stats["active_bot_status"]
-    }), 200
+        "status": "ok",
+        "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+        "status_text": stats['bot_status']
+    })
 
-# ==========================================
-# ۶. اجرای پس‌زمینه ربات
-# ==========================================
-def run_bot_background():
-    async def bot_loop():
-        try:
-            system_stats["active_bot_status"] = "آنلاین ✅"
-            logger.info("سیستم فعال شد")
-            while True:
-                await asyncio.sleep(60)
-                system_stats["total_messages_processed"] += 1
-        except Exception as e:
-            system_stats["active_bot_status"] = "خطا ⚠️"
-            system_stats["errors_count"] += 1
-            logger.error(f"خطا: {e}")
-
-    try:
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
-        loop.run_until_complete(bot_loop())
-    except Exception as ex:
-        logger.error(f"خطا در حلقه رویداد: {ex}")
-
-# ==========================================
-# ۷. اجرا
-# ==========================================
+# ==============================================
+# ۵. اجرا
+# ==============================================
 if __name__ == '__main__':
-    bot_thread = threading.Thread(target=run_bot_background, daemon=True)
-    bot_thread.start()
-    
-    port = int(os.environ.get("PORT", 5000))
+    port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
