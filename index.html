@@ -1,178 +1,323 @@
-import os, secrets, string, logging
-from datetime import datetime
-from flask import Flask, render_template_string, request, redirect, url_for, jsonify, session
-from werkzeug.security import generate_password_hash, check_password_hash
-
-# ──────────────────────────────────────
-# 🔐 رمز ۳۲ رقمی امن
-# ──────────────────────────────────────
-def pass32():
-    c = string.ascii_letters + string.digits + "!@#$%^&*()"
-    return ''.join(secrets.choice(c) for _ in range(32))
-
-ADMIN_USER = "admin"
-ADMIN_PASS = pass32()
-ADMIN_HASH = generate_password_hash(ADMIN_PASS)
-
-print("="*50)
-print(f" نام کاربری: {ADMIN_USER}")
-print(f" رمز ۳۲ رقمی: {ADMIN_PASS}")
-print(" ⚠️  همین الان یادداشت کن!")
-print("="*50)
-
-# ──────────────────────────────────────
-# ⚙️ راه‌اندازی
-# ──────────────────────────────────────
-logging.basicConfig(level=logging.INFO)
-app = Flask(__name__)
-app.secret_key = os.urandom(24)
-
-STATS = {
-    "start": datetime.now().strftime("%Y-%m-%d %H:%M"),
-    "sent": 0,
-    "status": "آنلاین ✅",
-    "last": "هنوز پیامی ارسال نشده",
-    "err": 0
-}
-
-# ──────────────────────────────────────
-# 📄 صفحه ورود
-# ──────────────────────────────────────
-LOGIN = """
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>ورود | VortexPlay</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-<style>
-body{background:linear-gradient(135deg,#0c1929,#0f2a47);min-height:100vh;display:flex;align-items:center;justify-content:center;font-family:Tahoma,sans-serif}
-.box{background:#112236;border:1px solid #0099ff;border-radius:16px;padding:30px;width:100%;max-width:420px;box-shadow:0 0 25px rgba(0,153,255,.25)}
-h3{color:#00ccff}
-.form-control{background:#0a1625;border:1px solid #0077ff;color:#fff}
-.btn-primary{background:linear-gradient(90deg,#0077ff,#00ccff);border:none}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VORTEXPLAY | پنل مدیریت</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Tahoma, 'IRANSans', sans-serif;
+        }
+
+        :root {
+            --bg-main: #0c1929;
+            --bg-card: #132740;
+            --bg-sidebar: #112236;
+            --accent: #0099ff;
+            --accent-light: #00ccff;
+            --text: #e6f0fa;
+            --text-muted: #94c5eb;
+            --success: #00aa55;
+        }
+
+        body {
+            background-color: var(--bg-main);
+            color: var(--text);
+            min-height: 100vh;
+        }
+
+        /* سایدبار */
+        .sidebar {
+            background-color: var(--bg-sidebar);
+            border-left: 1px solid var(--accent);
+            position: fixed;
+            top: 0;
+            right: 0;
+            width: 230px;
+            height: 100vh;
+            padding: 25px 15px;
+            z-index: 100;
+        }
+
+        .sidebar .logo {
+            text-align: center;
+            margin-bottom: 35px;
+        }
+
+        .sidebar .logo h4 {
+            color: var(--accent-light);
+            font-weight: bold;
+        }
+
+        .sidebar .logo i {
+            color: #ffcc00;
+            margin-left: 8px;
+        }
+
+        .sidebar nav a {
+            display: flex;
+            align-items: center;
+            color: var(--text-muted);
+            padding: 12px 15px;
+            margin: 6px 0;
+            border-radius: 10px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+
+        .sidebar nav a:hover,
+        .sidebar nav a.active {
+            background-color: #1a3552;
+            color: var(--accent-light);
+        }
+
+        .sidebar nav a.logout {
+            color: #ff6b6b;
+            margin-top: 50px;
+        }
+
+        .sidebar nav a i {
+            margin-left: 10px;
+        }
+
+        /* محتوای اصلی */
+        .main-content {
+            margin-right: 250px;
+            padding: 30px;
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 35px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid #1e3a5f;
+        }
+
+        .status-badge {
+            background-color: var(--success);
+            color: white;
+            padding: 8px 18px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+        }
+
+        .status-badge i {
+            font-size: 0.6rem;
+            margin-left: 8px;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.4; }
+        }
+
+        /* کارت‌های آمار */
+        .stat-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--accent);
+            border-radius: 14px;
+            padding: 22px;
+            border-right: 4px solid var(--accent-light);
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 20px rgba(0, 153, 255, 0.15);
+        }
+
+        .stat-card h6 {
+            color: var(--accent-light);
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+        }
+
+        .stat-card h3 {
+            font-size: 1.6rem;
+            font-weight: bold;
+        }
+
+        /* کارت فرم */
+        .content-card {
+            background-color: var(--bg-card);
+            border: 1px solid var(--accent);
+            border-radius: 14px;
+            padding: 28px;
+            height: 100%;
+        }
+
+        .content-card h5 {
+            color: var(--accent-light);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+        }
+
+        .content-card h5 i {
+            margin-left: 10px;
+        }
+
+        .form-control-custom {
+            width: 100%;
+            background-color: #0a1625;
+            border: 1px solid var(--accent);
+            color: white;
+            border-radius: 10px;
+            padding: 14px 16px;
+            font-size: 1rem;
+            outline: none;
+            transition: border 0.3s;
+        }
+
+        .form-control-custom:focus {
+            border-color: var(--accent-light);
+            box-shadow: 0 0 0 3px rgba(0, 153, 255, 0.15);
+        }
+
+        .btn-send {
+            background: linear-gradient(90deg, #0077ff, #00ccff);
+            border: none;
+            color: white;
+            padding: 13px;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: bold;
+            width: 100%;
+            transition: all 0.3s;
+        }
+
+        .btn-send:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(0, 153, 255, 0.3);
+        }
+
+        .last-msg-box {
+            background-color: #0a1625;
+            border-radius: 10px;
+            padding: 18px;
+            border-right: 3px solid #ffcc00;
+        }
+
+        /* سازگاری با موبایل */
+        @media (max-width: 768px) {
+            .sidebar {
+                position: static;
+                width: 100%;
+                height: auto;
+                border-left: none;
+                border-bottom: 1px solid var(--accent);
+            }
+
+            .main-content {
+                margin-right: 0;
+                padding: 20px;
+            }
+        }
+    </style>
 </head>
 <body>
-<div class="box">
-<h3 class="text-center mb-4">🔐 ورود به پنل</h3>
-{%if error%}<div class="alert alert-danger">{{error}}</div>{%endif%}
-<form method="POST">
-<div class="mb-3"><label class="form-label text-light">نام کاربری</label><input type="text" name="u" class="form-control" required></div>
-<div class="mb-4"><label class="form-label text-light">رمز ۳۲ رقمی</label><input type="password" name="p" class="form-control" required></div>
-<button class="btn btn-primary w-100 py-2">ورود ✅</button>
-</form>
-</div>
+
+    <!-- سایدبار -->
+    <aside class="sidebar">
+        <div class="logo">
+            <h4><i class="fas fa-bolt"></i> VORTEXPLAY</h4>
+            <small style="color: #6699cc;">پنل مدیریت</small>
+        </div>
+
+        <nav>
+            <a href="#" class="active">
+                <i class="fas fa-tachometer-alt"></i>
+                داشبورد
+            </a>
+            <a href="#">
+                <i class="fas fa-gamepad"></i>
+                مدیریت بازی‌ها
+            </a>
+            <a href="#">
+                <i class="fas fa-download"></i>
+                لینک‌های دانلود
+            </a>
+            <a href="#">
+                <i class="fas fa-chart-bar"></i>
+                آمار و گزارش
+            </a>
+            <a href="#" class="logout">
+                <i class="fas fa-sign-out-alt"></i>
+                خروج از حساب
+            </a>
+        </nav>
+    </aside>
+
+    <!-- محتوای اصلی -->
+    <main class="main-content">
+        <div class="top-bar">
+            <h2>سلام! به پنل مدیریت خوش اومدی 👋</h2>
+            <span class="status-badge">
+                <i class="fas fa-circle"></i>
+                سیستم آنلاین و فعال
+            </span>
+        </div>
+
+        <!-- کارت‌های آمار -->
+        <div class="row g-4 mb-5">
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <h6><i class="far fa-clock me-1"></i> زمان شروع</h6>
+                    <h3>۱۴۰۵/۰۷/۰۳ — ۰۵:۲۵</h3>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card">
+                    <h6><i class="far fa-paper-plane me-1"></i> پیام‌های ارسال شده</h6>
+                    <h3>۱۲ پیام</h3>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card" style="border-right-color: #ffcc00;">
+                    <h6><i class="fas fa-exclamation-triangle me-1"></i> تعداد خطاها</h6>
+                    <h3 style="color: #ffcc00;">۰</h3>
+                </div>
+            </div>
+        </div>
+
+        <!-- فرم و آخرین پیام -->
+        <div class="row g-4">
+            <div class="col-lg-6">
+                <div class="content-card">
+                    <h5><i class="fas fa-paper-plane"></i> ارسال پیام همگانی</h5>
+                    <textarea class="form-control-custom" rows="5" placeholder="متن پیام خود را اینجا بنویسید..."></textarea>
+                    <button class="btn-send mt-4">
+                        <i class="fas fa-upload me-2"></i>
+                        ارسال پیام
+                    </button>
+                </div>
+            </div>
+
+            <div class="col-lg-6">
+                <div class="content-card">
+                    <h5><i class="fas fa-history"></i> آخرین پیام ارسال شده</h5>
+                    <div class="last-msg-box">
+                        <p style="color: #ffcc00; font-size: 0.85rem; margin-bottom: 8px;">
+                            <i class="far fa-calendar-alt me-1"></i>
+                            ۱۴۰۵/۰۷/۰۳ — ۰۵:۲۰
+                        </p>
+                        <p style="font-size: 1rem; line-height: 1.7;">
+                            سلام دوستان! سایت VORTEXPLAY راه‌اندازی شد 🎮<br>
+                            به زودی بازی‌های جدید و هیجان‌انگیز اضافه می‌شود...
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
 </body>
 </html>
-"""
-
-# ──────────────────────────────────────
-# 📊 داشبورد
-# ──────────────────────────────────────
-PANEL = """
-<!DOCTYPE html>
-<html lang="fa" dir="rtl">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>پنل مدیریت | VortexPlay</title>
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<style>
-body{background:#0c1929;color:#e6f0fa;font-family:Tahoma,sans-serif;min-height:100vh}
-.sidebar{background:#112236;border-left:1px solid #0077ff;position:fixed;top:0;right:0;width:220px;height:100vh;padding:20px 15px}
-.sidebar h5{color:#00ccff}
-.sidebar a{display:block;color:#94c5eb;padding:10px 12px;margin:4px 0;border-radius:8px;text-decoration:none}
-.sidebar a:hover,.sidebar a.active{background:#1a3552;color:#00ccff}
-.sidebar a.out{color:#ff6b6b;margin-top:40px}
-.main{margin-right:240px;padding:25px}
-.card{background:#132740;border:1px solid #0077ff;border-radius:12px;margin-bottom:20px}
-.stat{border-right:3px solid #00ccff}
-.btn-send{background:linear-gradient(90deg,#0077ff,#00ccff);border:none}
-textarea.form-control{background:#0a1625;border:1px solid #0077ff;color:#fff}
-.badge{background:#00aa55;color:#fff;padding:5px 14px;border-radius:20px;font-size:.9rem}
-@media(max-width:768px){.sidebar{position:static;width:100%;height:auto}.main{margin-right:0}}
-</style>
-</head>
-<body>
-<div class="sidebar">
-<h5 class="text-center mb-4"><i class="fas fa-bolt"></i> VortexPlay</h5>
-<a href="#" class="active"><i class="fas fa-tachometer-alt me-2"></i> داشبورد</a>
-<a href="/logout" class="out"><i class="fas fa-sign-out-alt me-2"></i> خروج</a>
-</div>
-<div class="main">
-<div class="d-flex justify-content-between align-items-center mb-4">
-<h2>پنل مدیریت</h2>
-<span class="badge"><i class="fas fa-circle me-1"></i> {{s.status}}</span>
-</div>
-<div class="row g-4 mb-4">
-<div class="col-md-4"><div class="card stat p-3"><h6 class="text-info">زمان شروع</h6><h5>{{s.start}}</h5></div></div>
-<div class="col-md-4"><div class="card stat p-3"><h6 class="text-info">پیام‌های ارسال شده</h6><h5>{{s.sent}}</h5></div></div>
-<div class="col-md-4"><div class="card stat p-3"><h6 class="text-info">تعداد خطاها</h6><h5>{{s.err}}</h5></div></div>
-</div>
-<div class="row g-4">
-<div class="col-lg-6"><div class="card p-4">
-<h5 class="mb-3 text-info"><i class="fas fa-paper-plane me-2"></i> ارسال پیام</h5>
-<form method="POST" action="/do">
-<div class="mb-3"><label class="form-label">متن پیام:</label>
-<textarea name="m" rows="4" class="form-control" placeholder="بنویس..." required></textarea></div>
-<button class="btn btn-send w-100 py-2">ارسال 📤</button>
-</form>
-</div></div>
-<div class="col-lg-6"><div class="card p-4">
-<h5 class="mb-3 text-info"><i class="fas fa-clock me-2"></i> آخرین پیام</h5>
-<p class="text-light">{{s.last}}</p>
-</div></div>
-</div>
-</div>
-</body>
-</html>
-"""
-
-# ──────────────────────────────────────
-# 🛣️ مسیرها
-# ──────────────────────────────────────
-@app.route("/", methods=["GET","POST"])
-def index():
-    if session.get("ok"): return redirect(url_for("panel"))
-    if request.method == "POST":
-        u = request.form.get("u","")
-        p = request.form.get("p","")
-        if u == ADMIN_USER and check_password_hash(ADMIN_HASH, p):
-            session["ok"] = True
-            return redirect(url_for("panel"))
-        return render_template_string(LOGIN, error="نام کاربری یا رمز اشتباه!")
-    return render_template_string(LOGIN)
-
-@app.route("/panel")
-def panel():
-    if not session.get("ok"): return redirect(url_for("index"))
-    return render_template_string(PANEL, s=STATS)
-
-@app.route("/do", methods=["POST"])
-def do_send():
-    if not session.get("ok"): return redirect(url_for("index"))
-    m = request.form.get("m","").strip()
-    if not m: return redirect(url_for("panel"))
-    now = datetime.now().strftime("%Y-%m-%d %H:%M")
-    STATS["last"] = f"[{now}] {m}"
-    STATS["sent"] += 1
-    return redirect(url_for("panel"))
-
-@app.route("/logout")
-def out():
-    session.clear()
-    return redirect(url_for("index"))
-
-@app.route("/health")
-def health():
-    return jsonify({"status":"ok","time":datetime.now().strftime("%Y-%m-%d %H:%M")})
-
-# ──────────────────────────────────────
-# 🚀 اجرا
-# ──────────────────────────────────────
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port)
