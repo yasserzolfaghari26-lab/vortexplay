@@ -21,9 +21,6 @@
         }
 
         body {
-            background: radial-gradient(circle at top right, rgba(255, 46, 151, 0.12) 0%, transparent 45%),
-                        radial-gradient(circle at bottom left, rgba(0, 240, 255, 0.12) 0%, transparent 45%),
-                        linear-gradient(180deg, #050508 0%, #0F0F1A 50%, #050508 100%);
             background-color: var(--bg-dark);
             color: var(--text-white);
             min-height: 100vh;
@@ -51,9 +48,6 @@
             background: conic-gradient(from 0deg, var(--cyber-pink), var(--cyber-cyan), var(--cyber-purple), var(--cyber-pink));
             padding: 3px; animation: spin 8s linear infinite;
             box-shadow: 0 0 30px rgba(0, 240, 255, 0.4), 0 0 60px rgba(255, 46, 151, 0.25);
-            cursor: pointer;
-            position: relative;
-            overflow: hidden;
         }
         @keyframes spin { to { transform: rotate(360deg); } }
         .logo-inner {
@@ -196,36 +190,30 @@
         label { font-size: 14px; color: var(--text-dim); margin-bottom: 6px; display: block; }
         textarea { resize: vertical; min-height: 90px; }
 
-        /* === ۳ دکمه اصلی گرافیکی === */
-        .btn-row { display: flex; flex-direction: column; gap: 12px; margin-top: 15px; }
+        /* === ۳ دکمه اصلی === */
+        .btn-row { display: flex; flex-direction: column; gap: 12px; margin-bottom: 30px; }
         .action-btn {
             width: 100%; padding: 16px 20px; border: none; border-radius: 8px;
             font-weight: 800; font-size: 15px; cursor: pointer;
             display: flex; align-items: center; justify-content: center; gap: 10px;
-            transition: 0.3s; position: relative; overflow: hidden;
-        }
-        .action-btn::before {
-            content: ''; position: absolute; left: 0; top: 0; width: 4px; height: 100%;
+            transition: 0.3s;
         }
         .btn-send {
             background: linear-gradient(90deg, #0088CC, var(--cyber-cyan));
             color: #000; box-shadow: 0 0 15px rgba(0, 240, 255, 0.4);
         }
-        .btn-send::before { background: var(--cyber-cyan); }
         .btn-send:hover { box-shadow: 0 0 25px rgba(0, 240, 255, 0.7); transform: scale(1.02); }
         
         .btn-create {
             background: linear-gradient(90deg, #009944, var(--cyber-green));
             color: #000; box-shadow: 0 0 15px rgba(0, 255, 136, 0.4);
         }
-        .btn-create::before { background: var(--cyber-green); }
         .btn-create:hover { box-shadow: 0 0 25px rgba(0, 255, 136, 0.7); transform: scale(1.02); }
         
         .btn-delete {
             background: linear-gradient(90deg, #CC0044, var(--cyber-pink));
             color: #fff; box-shadow: 0 0 15px rgba(255, 46, 151, 0.4);
         }
-        .btn-delete::before { background: var(--cyber-pink); }
         .btn-delete:hover { box-shadow: 0 0 25px rgba(255, 46, 151, 0.7); transform: scale(1.02); }
 
         .note {
@@ -237,16 +225,53 @@
         .hidden-section { display: none; margin-top: 15px; padding: 15px; background: rgba(0,0,0,0.2); border-radius: 6px; border: 1px solid rgba(255,255,255,0.05); }
         .hidden-section.active { display: block; }
 
-        /* === آپلود تصویر === */
-        .upload-area {
-            border: 2px dashed rgba(0, 240, 255, 0.3);
-            border-radius: 8px; padding: 20px; text-align: center; cursor: pointer;
-            transition: 0.3s; margin-bottom: 10px;
+        /* === دو بخش مجزا: پس‌زمینه و لوگو === */
+        .two-parts {
+            display: flex; flex-direction: column; gap: 25px;
+            margin-top: 30px; padding-top: 25px;
+            border-top: 1px solid rgba(255,255,255,0.08);
         }
-        .upload-area:hover { border-color: var(--cyber-cyan); background: rgba(0, 240, 255, 0.05); }
-        .upload-area i { font-size: 24px; color: var(--cyber-cyan); margin-bottom: 8px; display: block; }
+        .part-card {
+            background: rgba(0,0,0,0.25);
+            border: 1px solid rgba(0, 240, 255, 0.2);
+            border-radius: 10px; padding: 20px;
+        }
+        .part-title {
+            font-size: 15px; font-weight: 800; color: var(--cyber-cyan);
+            margin-bottom: 12px; display: flex; align-items: center; gap: 8px;
+        }
+        .upload-box {
+            border: 2px dashed rgba(0, 240, 255, 0.4);
+            border-radius: 8px; padding: 25px; text-align: center;
+            cursor: pointer; transition: 0.3s;
+        }
+        .upload-box:hover {
+            border-color: var(--cyber-cyan);
+            background: rgba(0, 240, 255, 0.05);
+        }
+        .upload-box i {
+            font-size: 28px; color: var(--cyber-cyan);
+            margin-bottom: 10px; display: block;
+        }
+        .upload-box span {
+            color: var(--text-white); font-size: 14px;
+        }
+        .preview-area {
+            margin-top: 12px; display: none;
+        }
+        .preview-area.active { display: block; }
+        .preview-img {
+            max-width: 100%; border-radius: 6px;
+            border: 1px solid rgba(0, 240, 255, 0.3);
+        }
         input[type="file"] { display: none; }
-        .hint { font-size: 12px; color: var(--text-dim); margin-top: 4px; }
+        .reset-btn {
+            margin-top: 10px; padding: 8px 16px;
+            background: rgba(255, 46, 151, 0.15);
+            border: 1px solid rgba(255, 46, 151, 0.4);
+            color: var(--cyber-pink); border-radius: 4px;
+            cursor: pointer; font-size: 13px;
+        }
     </style>
 </head>
 <body id="bodyEl">
@@ -255,7 +280,7 @@
     <!-- صفحه اصلی -->
     <div class="container" id="mainPage">
         <div class="header">
-            <div class="logo-ring" id="logoBtn" title="برای تغییر لوگو کلیک کنید">
+            <div class="logo-ring">
                 <div class="logo-inner">
                     <img id="logoImg" class="logo-img" alt="لوگو">
                     <span id="logoText" class="logo-text">VP</span>
@@ -358,25 +383,43 @@
                 <p class="note danger" id="delNote">✅ دسته حذف شد!</p>
             </div>
 
-            <!-- بخش تنظیمات ظاهری -->
-            <div class="section" style="margin-top:35px; border-top: 1px solid rgba(255,255,255,0.08); padding-top:25px;">
-                <h3 class="sec-title"><i class="fas fa-palette"></i> تنظیمات ظاهری</h3>
-                
-                <label>تغییر پس‌زمینه سایت</label>
-                <div class="upload-area" id="bgUpload">
-                    <i class="fas fa-image"></i>
-                    <span>از گالری انتخاب کن</span>
-                    <input type="file" id="bgInput" accept="image/*">
+            <!-- === دو بخش مجزا: پس‌زمینه و لوگو === -->
+            <div class="two-parts">
+                <!-- بخش اول: پس‌زمینه -->
+                <div class="part-card">
+                    <h3 class="part-title">
+                        <i class="fas fa-images"></i>
+                        افزودن پس‌زمینه
+                    </h3>
+                    <div class="upload-box" id="bgUpload">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <span>از گالری تصویر انتخاب کن</span>
+                        <input type="file" id="bgInput" accept="image/*">
+                    </div>
+                    <div class="preview-area" id="bgPreviewArea">
+                        <p style="font-size:12px; color:var(--text-dim); margin:8px 0;">پیش‌نمایش:</p>
+                        <img id="bgPreviewImg" class="preview-img" alt="پیش‌نمایش پس‌زمینه">
+                        <button class="reset-btn" id="resetBgBtn">حذف پس‌زمینه</button>
+                    </div>
                 </div>
-                <p class="hint">تصویر پس‌زمینه از گالری گوشی انتخاب شود</p>
 
-                <label style="margin-top:15px;">تغییر لوگو</label>
-                <div class="upload-area" id="logoUpload">
-                    <i class="fas fa-camera"></i>
-                    <span>از گالری انتخاب کن</span>
-                    <input type="file" id="logoInput" accept="image/*">
+                <!-- بخش دوم: لوگو -->
+                <div class="part-card">
+                    <h3 class="part-title">
+                        <i class="fas fa-picture-o"></i>
+                        افزودن لوگو
+                    </h3>
+                    <div class="upload-box" id="logoUpload">
+                        <i class="fas fa-user-circle"></i>
+                        <span>از گالری تصویر انتخاب کن</span>
+                        <input type="file" id="logoInput" accept="image/*">
+                    </div>
+                    <div class="preview-area" id="logoPreviewArea">
+                        <p style="font-size:12px; color:var(--text-dim); margin:8px 0;">پیش‌نمایش:</p>
+                        <img id="logoPreviewImg" class="preview-img" alt="پیش‌نمایش لوگو" style="border-radius:50%; max-width:120px;">
+                        <button class="reset-btn" id="resetLogoBtn">حذف لوگو</button>
+                    </div>
                 </div>
-                <p class="hint">تصویر لوگو جایگزین VP می‌شود</p>
             </div>
         </div>
     </div>
@@ -392,30 +435,47 @@
                 { id: 2, name: 'بازی‌های PS5', desc: 'آرشیو کامل بازی‌های پلی‌استیشن ۵', messages: [] },
                 { id: 3, name: 'تصاویر و والپیپر', desc: 'گالری تصاویر رسمی بازی‌ها', messages: [] }
             ],
-            customBg: null,
-            customLogo: null
+            bgImage: null,
+            logoImage: null
         };
 
-        // === ذخیره و بارگذاری دائمی ===
-        function save() { localStorage.setItem('vortex_cyber', JSON.stringify(data)); }
+        // === ذخیره و بارگذاری ===
+        function save() {
+            localStorage.setItem('vortex_data', JSON.stringify(data));
+        }
         function load() {
-            const saved = localStorage.getItem('vortex_cyber');
+            const saved = localStorage.getItem('vortex_data');
             if (saved) {
                 const parsed = JSON.parse(saved);
                 data = { ...data, ...parsed };
             }
-            applyCustomStyles();
+            applyImages();
             renderMain();
         }
 
-        function applyCustomStyles() {
-            if (data.customBg) {
-                document.getElementById('bodyEl').style.backgroundImage = `url(${data.customBg})`;
+        // === اعمال تصاویر ===
+        function applyImages() {
+            // پس‌زمینه
+            if (data.bgImage) {
+                document.getElementById('bodyEl').style.backgroundImage = `url(${data.bgImage})`;
+                document.getElementById('bgPreviewImg').src = data.bgImage;
+                document.getElementById('bgPreviewArea').classList.add('active');
+            } else {
+                document.getElementById('bodyEl').style.backgroundImage = '';
+                document.getElementById('bgPreviewArea').classList.remove('active');
             }
-            if (data.customLogo) {
-                document.getElementById('logoImg').src = data.customLogo;
+
+            // لوگو
+            if (data.logoImage) {
+                document.getElementById('logoImg').src = data.logoImage;
                 document.getElementById('logoImg').style.display = 'block';
                 document.getElementById('logoText').style.display = 'none';
+                document.getElementById('logoPreviewImg').src = data.logoImage;
+                document.getElementById('logoPreviewArea').classList.add('active');
+            } else {
+                document.getElementById('logoImg').style.display = 'none';
+                document.getElementById('logoText').style.display = 'block';
+                document.getElementById('logoPreviewArea').classList.remove('active');
             }
         }
 
@@ -465,7 +525,7 @@
             document.getElementById('msgPage').classList.remove('active');
         }
 
-        // === لیست‌های پنل مدیریت ===
+        // === لیست‌های پنل ===
         function renderPanelLists() {
             const targetSel = document.getElementById('targetCat');
             const delSel = document.getElementById('delCatSelect');
@@ -501,6 +561,7 @@
                 document.getElementById('loginModal').classList.remove('active');
                 document.getElementById('adminPanel').classList.add('active');
                 renderPanelLists();
+                applyImages();
             } else {
                 document.getElementById('passErr').style.display = 'block';
             }
@@ -510,8 +571,8 @@
             hideAllSections();
         }
 
-        // === تبدیل تصویر به Base64 ===
-        function readFileAsDataURL(file) {
+        // === تبدیل تصویر به متن ===
+        function fileToBase64(file) {
             return new Promise((resolve) => {
                 const reader = new FileReader();
                 reader.onload = (e) => resolve(e.target.result);
@@ -523,7 +584,7 @@
         document.addEventListener('DOMContentLoaded', async () => {
             load();
 
-            // دکمه‌های نمایش بخش‌ها
+            // نمایش بخش‌ها
             document.getElementById('showSendBtn').onclick = () => {
                 hideAllSections();
                 document.getElementById('sendSection').classList.add('active');
@@ -547,14 +608,14 @@
             document.getElementById('sendMsgBtn').onclick = () => {
                 const idx = parseInt(document.getElementById('targetCat').value);
                 const text = document.getElementById('msgText').value.trim();
-                if (!text) return alert('متن پیام را وارد کنید!');
+                if (!text) return alert('متن پیام را بنویسید!');
                 data.categories[idx].messages.push(text);
                 document.getElementById('msgText').value = '';
                 save(); renderMain();
                 showNote('sendNote');
             };
 
-            // ساخت دسته جدید
+            // ساخت دسته
             document.getElementById('createCatBtn').onclick = () => {
                 const name = document.getElementById('newCatName').value.trim();
                 const desc = document.getElementById('newCatDesc').value.trim();
@@ -574,39 +635,48 @@
             // حذف دسته
             document.getElementById('delCatBtn').onclick = () => {
                 const idx = parseInt(document.getElementById('delCatSelect').value);
-                if (!confirm('آیا مطمئن هستید؟ تمام پیام‌های این دسته حذف خواهند شد!')) return;
+                if (!confirm('مطمئن هستید؟ تمام پیام‌ها حذف می‌شوند!')) return;
                 data.categories.splice(idx, 1);
                 save(); renderMain();
                 showNote('delNote');
             };
 
-            // تغییر پس‌زمینه
-            document.getElementById('bgUpload').onclick = () => document.getElementById('bgInput').click();
+            // === بخش اول: پس‌زمینه ===
+            document.getElementById('bgUpload').onclick = () => {
+                document.getElementById('bgInput').click();
+            };
             document.getElementById('bgInput').onchange = async (e) => {
                 const file = e.target.files[0];
                 if (!file) return;
-                data.customBg = await readFileAsDataURL(file);
+                data.bgImage = await fileToBase64(file);
                 save();
-                applyCustomStyles();
-                alert('✅ پس‌زمینه تغییر کرد!');
+                applyImages();
+                alert('✅ پس‌زمینه تنظیم شد!');
+            };
+            document.getElementById('resetBgBtn').onclick = () => {
+                data.bgImage = null;
+                save();
+                applyImages();
+                alert('✅ پس‌زمینه حذف شد!');
             };
 
-            // تغییر لوگو
-            document.getElementById('logoUpload').onclick = () => document.getElementById('logoInput').click();
+            // === بخش دوم: لوگو ===
+            document.getElementById('logoUpload').onclick = () => {
+                document.getElementById('logoInput').click();
+            };
             document.getElementById('logoInput').onchange = async (e) => {
                 const file = e.target.files[0];
                 if (!file) return;
-                data.customLogo = await readFileAsDataURL(file);
+                data.logoImage = await fileToBase64(file);
                 save();
-                applyCustomStyles();
-                alert('✅ لوگو تغییر کرد!');
+                applyImages();
+                alert('✅ لوگو تنظیم شد!');
             };
-
-            // کلیک روی لوگو برای تغییر
-            document.getElementById('logoBtn').onclick = () => {
-                if (confirm('برای تغییر لوگو وارد پنل مدیریت شوید؟')) {
-                    openLogin();
-                }
+            document.getElementById('resetLogoBtn').onclick = () => {
+                data.logoImage = null;
+                save();
+                applyImages();
+                alert('✅ لوگو حذف شد!');
             };
         });
     </script>
