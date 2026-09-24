@@ -1,309 +1,178 @@
-import os
-import time
-import secrets
-import string
-import logging
+import os, secrets, string, logging
 from datetime import datetime
 from flask import Flask, render_template_string, request, redirect, url_for, jsonify, session
 from werkzeug.security import generate_password_hash, check_password_hash
 
-# ==============================================
-# ۱. تنظیمات اولیه و امنیت
-# ==============================================
-def make_password(length=32):
-    chars = string.ascii_letters + string.digits + "!@#$%^&*()"
-    return ''.join(secrets.choice(chars) for _ in range(length))
+# ──────────────────────────────────────
+# 🔐 رمز ۳۲ رقمی امن
+# ──────────────────────────────────────
+def pass32():
+    c = string.ascii_letters + string.digits + "!@#$%^&*()"
+    return ''.join(secrets.choice(c) for _ in range(32))
 
 ADMIN_USER = "admin"
-ADMIN_PASS = make_password()
-ADMIN_PASS_HASH = generate_password_hash(ADMIN_PASS)
+ADMIN_PASS = pass32()
+ADMIN_HASH = generate_password_hash(ADMIN_PASS)
 
-print("=" * 60)
-print(f"✅ نام کاربری: {ADMIN_USER}")
-print(f"✅ رمز عبور:   {ADMIN_PASS}")
-print("⚠️  این رمز را همین الان یادداشت کن!")
-print("=" * 60)
+print("="*50)
+print(f" نام کاربری: {ADMIN_USER}")
+print(f" رمز ۳۲ رقمی: {ADMIN_PASS}")
+print(" ⚠️  همین الان یادداشت کن!")
+print("="*50)
 
-# ==============================================
-# ۲. مقداردهی اولیه
-# ==============================================
-logging.basicConfig(
-    level=logging.INFO,
-    format='[%(asctime)s] %(levelname)s: %(message)s'
-)
-logger = logging.getLogger("VortexPlay")
-
+# ──────────────────────────────────────
+# ⚙️ راه‌اندازی
+# ──────────────────────────────────────
+logging.basicConfig(level=logging.INFO)
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
 
-stats = {
-    "started_at": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-    "messages_sent": 0,
-    "bot_status": "آماده به کار",
-    "last_broadcast": "هنوز پیامی ارسال نشده",
-    "errors": 0
+STATS = {
+    "start": datetime.now().strftime("%Y-%m-%d %H:%M"),
+    "sent": 0,
+    "status": "آنلاین ✅",
+    "last": "هنوز پیامی ارسال نشده",
+    "err": 0
 }
 
-# ==============================================
-# ۳. قالب‌های HTML
-# ==============================================
-LOGIN_PAGE = """
+# ──────────────────────────────────────
+# 📄 صفحه ورود
+# ──────────────────────────────────────
+LOGIN = """
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ورود به پنل مدیریت</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        * { direction: rtl; }
-        body {
-            background: linear-gradient(135deg, #0c1929, #0f2a47);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-family: Tahoma, sans-serif;
-        }
-        .box {
-            background: #112236;
-            border: 1px solid #2385bb;
-            border-radius: 16px;
-            padding: 30px;
-            width: 100%;
-            max-width: 420px;
-            box-shadow: 0 0 25px rgba(30, 144, 255, 0.25);
-        }
-        h3 { color: #00ccff; }
-        .form-control {
-            background: #0a1625;
-            border: 1px solid #2385bb;
-            color: white;
-        }
-        .btn-primary {
-            background: linear-gradient(90deg, #0077ff, #00ccff);
-            border: none;
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ورود | VortexPlay</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<style>
+body{background:linear-gradient(135deg,#0c1929,#0f2a47);min-height:100vh;display:flex;align-items:center;justify-content:center;font-family:Tahoma,sans-serif}
+.box{background:#112236;border:1px solid #0099ff;border-radius:16px;padding:30px;width:100%;max-width:420px;box-shadow:0 0 25px rgba(0,153,255,.25)}
+h3{color:#00ccff}
+.form-control{background:#0a1625;border:1px solid #0077ff;color:#fff}
+.btn-primary{background:linear-gradient(90deg,#0077ff,#00ccff);border:none}
+</style>
 </head>
 <body>
-    <div class="box">
-        <h3 class="text-center mb-4">🔐 ورود به پنل مدیریت</h3>
-        {% if error %}
-            <div class="alert alert-danger">{{ error }}</div>
-        {% endif %}
-        <form method="POST">
-            <div class="mb-3">
-                <label class="form-label text-light">نام کاربری</label>
-                <input type="text" name="username" class="form-control" required>
-            </div>
-            <div class="mb-4">
-                <label class="form-label text-light">رمز عبور</label>
-                <input type="password" name="password" class="form-control" required>
-            </div>
-            <button type="submit" class="btn btn-primary w-100 py-2">ورود ✅</button>
-        </form>
-    </div>
+<div class="box">
+<h3 class="text-center mb-4">🔐 ورود به پنل</h3>
+{%if error%}<div class="alert alert-danger">{{error}}</div>{%endif%}
+<form method="POST">
+<div class="mb-3"><label class="form-label text-light">نام کاربری</label><input type="text" name="u" class="form-control" required></div>
+<div class="mb-4"><label class="form-label text-light">رمز ۳۲ رقمی</label><input type="password" name="p" class="form-control" required></div>
+<button class="btn btn-primary w-100 py-2">ورود ✅</button>
+</form>
+</div>
 </body>
 </html>
 """
 
-DASHBOARD_PAGE = """
+# ──────────────────────────────────────
+# 📊 داشبورد
+# ──────────────────────────────────────
+PANEL = """
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>پنل مدیریت VortexPlay</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <style>
-        * { direction: rtl; }
-        body {
-            background: #0c1929;
-            color: #e6f0fa;
-            font-family: Tahoma, sans-serif;
-            min-height: 100vh;
-        }
-        .sidebar {
-            background: #112236;
-            border-left: 1px solid #2385bb;
-            min-height: 100vh;
-            padding: 20px 15px;
-            position: fixed;
-            right: 0;
-            top: 0;
-            width: 220px;
-        }
-        .sidebar h5 { color: #00ccff; }
-        .sidebar a {
-            display: block;
-            color: #94c5eb;
-            padding: 10px 12px;
-            margin: 4px 0;
-            border-radius: 8px;
-            text-decoration: none;
-        }
-        .sidebar a:hover, .sidebar a.active {
-            background: #1a3552;
-            color: #00ccff;
-        }
-        .sidebar a.logout {
-            color: #ff6b6b;
-            margin-top: 40px;
-        }
-        .main-content {
-            margin-right: 240px;
-            padding: 25px;
-        }
-        .card {
-            background: #132740;
-            border: 1px solid #2385bb;
-            border-radius: 12px;
-            margin-bottom: 20px;
-        }
-        .stat-card {
-            border-right: 3px solid #00ccff;
-        }
-        .btn-send {
-            background: linear-gradient(90deg, #0077ff, #00ccff);
-            border: none;
-        }
-        .btn-send:hover {
-            background: linear-gradient(90deg, #0066dd, #00bbee);
-        }
-        textarea.form-control {
-            background: #0a1625;
-            border: 1px solid #2385bb;
-            color: white;
-        }
-        .status-badge {
-            background: #00aa55;
-            color: white;
-            padding: 5px 14px;
-            border-radius: 20px;
-            font-size: 0.9rem;
-        }
-        @media (max-width: 768px) {
-            .sidebar { position: static; width: 100%; min-height: auto; }
-            .main-content { margin-right: 0; }
-        }
-    </style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>پنل مدیریت | VortexPlay</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+body{background:#0c1929;color:#e6f0fa;font-family:Tahoma,sans-serif;min-height:100vh}
+.sidebar{background:#112236;border-left:1px solid #0077ff;position:fixed;top:0;right:0;width:220px;height:100vh;padding:20px 15px}
+.sidebar h5{color:#00ccff}
+.sidebar a{display:block;color:#94c5eb;padding:10px 12px;margin:4px 0;border-radius:8px;text-decoration:none}
+.sidebar a:hover,.sidebar a.active{background:#1a3552;color:#00ccff}
+.sidebar a.out{color:#ff6b6b;margin-top:40px}
+.main{margin-right:240px;padding:25px}
+.card{background:#132740;border:1px solid #0077ff;border-radius:12px;margin-bottom:20px}
+.stat{border-right:3px solid #00ccff}
+.btn-send{background:linear-gradient(90deg,#0077ff,#00ccff);border:none}
+textarea.form-control{background:#0a1625;border:1px solid #0077ff;color:#fff}
+.badge{background:#00aa55;color:#fff;padding:5px 14px;border-radius:20px;font-size:.9rem}
+@media(max-width:768px){.sidebar{position:static;width:100%;height:auto}.main{margin-right:0}}
+</style>
 </head>
 <body>
-    <div class="sidebar">
-        <h5 class="text-center mb-4"><i class="fas fa-bolt"></i> VortexPlay</h5>
-        <a href="#" class="active"><i class="fas fa-tachometer-alt me-2"></i> داشبورد</a>
-        <a href="/logout" class="logout"><i class="fas fa-sign-out-alt me-2"></i> خروج</a>
-    </div>
-
-    <div class="main-content">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2>پنل مدیریت</h2>
-            <span class="status-badge"><i class="fas fa-circle me-1"></i> {{ stats.bot_status }}</span>
-        </div>
-
-        <div class="row g-4 mb-4">
-            <div class="col-md-4">
-                <div class="card stat-card p-3">
-                    <h6 class="text-info">زمان شروع</h6>
-                    <h5>{{ stats.started_at }}</h5>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card stat-card p-3">
-                    <h6 class="text-info">پیام‌های ارسال شده</h6>
-                    <h5>{{ stats.messages_sent }}</h5>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="card stat-card p-3">
-                    <h6 class="text-info">تعداد خطاها</h6>
-                    <h5>{{ stats.errors }}</h5>
-                </div>
-            </div>
-        </div>
-
-        <div class="row g-4">
-            <div class="col-lg-6">
-                <div class="card p-4">
-                    <h5 class="mb-3 text-info"><i class="fas fa-paper-plane me-2"></i> ارسال پیام همگانی</h5>
-                    <form method="POST" action="/broadcast">
-                        <div class="mb-3">
-                            <label class="form-label">متن پیام:</label>
-                            <textarea name="message" rows="4" class="form-control" placeholder="متن خود را بنویسید..." required></textarea>
-                        </div>
-                        <button type="submit" class="btn btn-send w-100 py-2">ارسال پیام 📤</button>
-                    </form>
-                </div>
-            </div>
-            <div class="col-lg-6">
-                <div class="card p-4">
-                    <h5 class="mb-3 text-info"><i class="fas fa-clock me-2"></i> آخرین پیام ارسال شده</h5>
-                    <p class="text-light">{{ stats.last_broadcast }}</p>
-                </div>
-            </div>
-        </div>
-    </div>
+<div class="sidebar">
+<h5 class="text-center mb-4"><i class="fas fa-bolt"></i> VortexPlay</h5>
+<a href="#" class="active"><i class="fas fa-tachometer-alt me-2"></i> داشبورد</a>
+<a href="/logout" class="out"><i class="fas fa-sign-out-alt me-2"></i> خروج</a>
+</div>
+<div class="main">
+<div class="d-flex justify-content-between align-items-center mb-4">
+<h2>پنل مدیریت</h2>
+<span class="badge"><i class="fas fa-circle me-1"></i> {{s.status}}</span>
+</div>
+<div class="row g-4 mb-4">
+<div class="col-md-4"><div class="card stat p-3"><h6 class="text-info">زمان شروع</h6><h5>{{s.start}}</h5></div></div>
+<div class="col-md-4"><div class="card stat p-3"><h6 class="text-info">پیام‌های ارسال شده</h6><h5>{{s.sent}}</h5></div></div>
+<div class="col-md-4"><div class="card stat p-3"><h6 class="text-info">تعداد خطاها</h6><h5>{{s.err}}</h5></div></div>
+</div>
+<div class="row g-4">
+<div class="col-lg-6"><div class="card p-4">
+<h5 class="mb-3 text-info"><i class="fas fa-paper-plane me-2"></i> ارسال پیام</h5>
+<form method="POST" action="/do">
+<div class="mb-3"><label class="form-label">متن پیام:</label>
+<textarea name="m" rows="4" class="form-control" placeholder="بنویس..." required></textarea></div>
+<button class="btn btn-send w-100 py-2">ارسال 📤</button>
+</form>
+</div></div>
+<div class="col-lg-6"><div class="card p-4">
+<h5 class="mb-3 text-info"><i class="fas fa-clock me-2"></i> آخرین پیام</h5>
+<p class="text-light">{{s.last}}</p>
+</div></div>
+</div>
+</div>
 </body>
 </html>
 """
 
-# ==============================================
-# ۴. مسیرها
-# ==============================================
-@app.route('/', methods=['GET', 'POST'])
-def login():
-    if session.get('admin_ok'):
-        return redirect(url_for('dashboard'))
-    
-    if request.method == 'POST':
-        u = request.form.get('username', '')
-        p = request.form.get('password', '')
-        if u == ADMIN_USER and check_password_hash(ADMIN_PASS_HASH, p):
-            session['admin_ok'] = True
-            return redirect(url_for('dashboard'))
-        return render_template_string(LOGIN_PAGE, error="نام کاربری یا رمز عبور اشتباه!")
-    
-    return render_template_string(LOGIN_PAGE)
+# ──────────────────────────────────────
+# 🛣️ مسیرها
+# ──────────────────────────────────────
+@app.route("/", methods=["GET","POST"])
+def index():
+    if session.get("ok"): return redirect(url_for("panel"))
+    if request.method == "POST":
+        u = request.form.get("u","")
+        p = request.form.get("p","")
+        if u == ADMIN_USER and check_password_hash(ADMIN_HASH, p):
+            session["ok"] = True
+            return redirect(url_for("panel"))
+        return render_template_string(LOGIN, error="نام کاربری یا رمز اشتباه!")
+    return render_template_string(LOGIN)
 
-@app.route('/dashboard')
-def dashboard():
-    if not session.get('admin_ok'):
-        return redirect(url_for('login'))
-    return render_template_string(DASHBOARD_PAGE, stats=stats)
+@app.route("/panel")
+def panel():
+    if not session.get("ok"): return redirect(url_for("index"))
+    return render_template_string(PANEL, s=STATS)
 
-@app.route('/broadcast', methods=['POST'])
-def broadcast():
-    if not session.get('admin_ok'):
-        return redirect(url_for('login'))
-    
-    msg = request.form.get('message', '').strip()
-    if not msg:
-        return redirect(url_for('dashboard'))
-    
-    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-    stats['last_broadcast'] = f"[{now}] {msg}"
-    stats['messages_sent'] += 1
-    logger.info(f"پیام ارسال شد: {msg}")
-    return redirect(url_for('dashboard'))
+@app.route("/do", methods=["POST"])
+def do_send():
+    if not session.get("ok"): return redirect(url_for("index"))
+    m = request.form.get("m","").strip()
+    if not m: return redirect(url_for("panel"))
+    now = datetime.now().strftime("%Y-%m-%d %H:%M")
+    STATS["last"] = f"[{now}] {m}"
+    STATS["sent"] += 1
+    return redirect(url_for("panel"))
 
-@app.route('/logout')
-def logout():
+@app.route("/logout")
+def out():
     session.clear()
-    return redirect(url_for('login'))
+    return redirect(url_for("index"))
 
-@app.route('/health')
+@app.route("/health")
 def health():
-    return jsonify({
-        "status": "ok",
-        "time": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
-        "status_text": stats['bot_status']
-    })
+    return jsonify({"status":"ok","time":datetime.now().strftime("%Y-%m-%d %H:%M")})
 
-# ==============================================
-# ۵. اجرا
-# ==============================================
-if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port)
+# ──────────────────────────────────────
+# 🚀 اجرا
+# ──────────────────────────────────────
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
