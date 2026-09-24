@@ -1,50 +1,111 @@
-export default {
-  async fetch(request, env) {
-    const corsHeaders = {
-      'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type',
-      'Content-Type': 'application/json'
-    };
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VORTEXPLAY | پیام نامحدود</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:tahoma,sans-serif}
+:root{--narenji:#FF6B00;--abi:#0099FF;--siah:#0a0a0f;--sabz:#00FF88}
+body{background:var(--siah);color:#fff;min-height:100vh;padding:20px}
+.container{max-width:450px;margin:0 auto}
+.header{text-align:center;padding:30px 0}
+h1{font-size:28px;background:linear-gradient(90deg,var(--abi),var(--narenji));-webkit-background-clip:text;color:transparent}
+.status{background:rgba(0,153,255,.1);border:1px solid rgba(0,153,255,.3);border-radius:8px;padding:12px;text-align:center;margin:15px 0;display:flex;align-items:center;justify-content:center;gap:10px}
+.dot{width:10px;height:10px;border-radius:50%;background:var(--sabz);box-shadow:0 0 10px var(--sabz);animation:blink 1.5s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.2}}
+.form{margin:25px 0;display:flex;flex-direction:column;gap:10px}
+.textarea{width:100%;padding:15px;background:#111;border:1px solid #333;border-radius:8px;color:#fff;font-size:16px;min-height:100px;resize:none}
+.textarea:focus{outline:none;border-color:var(--narenji)}
+.btn{padding:14px;border:none;border-radius:8px;font-size:16px;font-weight:bold;cursor:pointer;transition:.3s}
+.btn-send{background:linear-gradient(90deg,var(--narenji),var(--abi));color:#fff}
+.msgs{margin-top:30px}
+.msg{background:rgba(0,153,255,.08);border:1px solid rgba(0,153,255,.2);border-radius:8px;padding:15px;margin-bottom:12px;line-height:1.8}
+.msg-time{font-size:11px;color:#888;margin-top:8px}
+.empty{text-align:center;color:#666;padding:40px 20px}
+.loading{text-align:center;padding:20px;color:var(--abi)}
+.note{text-align:center;margin-top:15px;padding:10px;border-radius:6px;display:none}
+.note.ok{background:rgba(0,255,136,.1);border:1px solid rgba(0,255,136,.3);color:var(--sabz)}
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="header">
+    <h1>🎮 VORTEXPLAY</h1>
+    <p style="color:#888;margin-top:8px">پیام نامحدود — فقط با گیت‌هاب ✅</p>
+  </div>
 
-    if (request.method === 'OPTIONS') {
-      return new Response(null, { headers: corsHeaders });
-    }
+  <div class="status">
+    <span class="dot"></span>
+    <span>سیستم فعال ✅</span>
+  </div>
 
-    const url = new URL(request.url);
+  <div class="form">
+    <textarea id="msgInput" class="textarea" placeholder="پیامت رو اینجا بنویس..."></textarea>
+    <button class="btn btn-send" id="sendBtn">📤 ارسال پیام</button>
+  </div>
 
-    if (url.pathname === '/get' && request.method === 'GET') {
-      try {
-        const data = await env.VORTEX_KV.get('site_data', { type: 'json' });
-        if (!data) {
-          return new Response(JSON.stringify({
-            categories: [
-              {id:1,name:'بکاپ و آموزش',desc:'فایل‌های پشتیبان و راهنما',msgs:[]},
-              {id:2,name:'بازی‌های PS5',desc:'آرشیو کامل بازی‌ها',msgs:[]},
-              {id:3,name:'تصاویر و والپیپر',desc:'گالری تصاویر',msgs:[]}
-            ],
-            bg: null,
-            logo: null,
-            updated: Date.now()
-          }), { headers: corsHeaders });
-        }
-        return new Response(JSON.stringify(data), { headers: corsHeaders });
-      } catch (e) {
-        return new Response(JSON.stringify({error:e.message}), {status:500, headers: corsHeaders});
-      }
-    }
+  <div id="note" class="note"></div>
 
-    if (url.pathname === '/save' && request.method === 'POST') {
-      try {
-        const newData = await request.json();
-        newData.updated = Date.now();
-        await env.VORTEX_KV.put('site_data', JSON.stringify(newData));
-        return new Response(JSON.stringify({ok:true,updated:newData.updated}), { headers: corsHeaders });
-      } catch (e) {
-        return new Response(JSON.stringify({error:e.message}), {status:500, headers: corsHeaders});
-      }
-    }
+  <div class="msgs">
+    <h3 style="color:var(--narenji);margin-bottom:15px">📋 پیام‌ها</h3>
+    <div id="msgsList"><p class="loading">در حال دریافت...</p></div>
+  </div>
+</div>
 
-    return new Response(JSON.stringify({error:'نامعتبر'}), {status:404, headers: corsHeaders});
+<script>
+// ذخیره پیام‌ها در حافظه مرورگر (برای نمایش تو)
+const STORAGE_KEY = 'vortexplay_msgs';
+
+const msgsList = document.getElementById('msgsList');
+const msgInput = document.getElementById('msgInput');
+const sendBtn = document.getElementById('sendBtn');
+const note = document.getElementById('note');
+
+function loadMsgs() {
+  const msgs = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+  renderMsgs(msgs);
+}
+
+function renderMsgs(msgs) {
+  if (!msgs.length) {
+    msgsList.innerHTML = '<p class="empty">هنوز پیامی نیست. اولین پیام رو تو بفرست!</p>';
+    return;
   }
-};
+  msgsList.innerHTML = msgs.map(m => `
+    <div class="msg">
+      <div>${escapeHtml(m.text)}</div>
+      <div class="msg-time">${formatTime(m.time)}</div>
+    </div>
+  `).join('');
+}
+
+function escapeHtml(t) {
+  return t.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+function formatTime(ts) {
+  return new Date(ts).toLocaleString('fa-IR');
+}
+
+sendBtn.addEventListener('click', () => {
+  const text = msgInput.value.trim();
+  if (!text) return;
+
+  let msgs = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+  msgs.unshift({ text, time: Date.now() });
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(msgs));
+
+  msgInput.value = '';
+  note.textContent = '✅ پیام ذخیره شد!';
+  note.className = 'note ok';
+  note.style.display = 'block';
+  setTimeout(() => note.style.display = 'none', 3000);
+  
+  loadMsgs();
+});
+
+loadMsgs();
+</script>
+</body>
+</html>
