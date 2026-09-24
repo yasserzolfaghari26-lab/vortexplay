@@ -1,285 +1,332 @@
 import os
-import sys
-import asyncio
-import threading
-import logging
+import json
+import secrets
+import string
+from datetime import datetime
 from flask import Flask, render_template_string, request, redirect, url_for, session
 from werkzeug.security import generate_password_hash, check_password_hash
-from rubpy import Client
 
-logging.basicConfig(level=logging.INFO, format='[%(asctime)s] [%(levelname)s]: %(message)s', stream=sys.stdout)
-logger = logging.getLogger("VortexPlayApp")
+# ═══════════════════════════════════════════════════════
+# 🔐 خزانه اسرار — کلید ۳۲ رقمی
+# ═══════════════════════════════════════════════════════
+def generate_royal_key(length=32):
+    chars = string.ascii_letters + string.digits + "!@#$%^&*()"
+    return ''.join(secrets.choice(chars) for _ in range(length))
 
+ADMIN_USER = "shah"
+ADMIN_PASS = generate_royal_key()
+ADMIN_HASH = generate_password_hash(ADMIN_PASS)
+
+print("=" * 60)
+print("  👑 کلید ورود به قلمرو VORTEXPLAY")
+print(f"  نام فرمانروا: {ADMIN_USER}")
+print(f"  کلید ۳۲ رقمی: {ADMIN_PASS}")
+print("  ⚠️  این کلید را در محلی امن نگه دار!")
+print("=" * 60)
+
+# ═══════════════════════════════════════════════════════
+# ⚙️ بنیان قلعه
+# ═══════════════════════════════════════════════════════
 app = Flask(__name__)
 app.secret_key = os.urandom(24)
+DATA_FILE = "kingdom_data.json"
 
-# نام کاربری و رمز عبور ۳۲ رقمی امن برای پنل مدیریت
-ADMIN_USERNAME = "admin"
-ADMIN_PASSWORD_HASH = generate_password_hash("p7K#m9X$vL2@zQ4!wR8*yT3&bN5%cH1-j")
+def load_data():
+    if os.path.exists(DATA_FILE):
+        with open(DATA_FILE, "r", encoding="utf-8") as f:
+            return json.load(f)
+    return {
+        "logo_text": "VORTEXPLAY",
+        "logo_subtitle": "قلمرو شاهانه گیمینگ",
+        "kingdom_title": "به درگاه VORTEXPLAY خوش آمدید",
+        "kingdom_desc": "درگاهی باشکوه برای دسترسی به بهترین بازی‌ها و سرورهای قلمرو",
+        "categories": [
+            {"id": 1, "name": "بازی‌های کنسول", "icon": "fa-gamepad"},
+            {"id": 2, "name": "بازی‌های رایانه‌ای", "icon": "fa-desktop"},
+            {"id": 3, "name": "بازی‌های موبایل", "icon": "fa-mobile-alt"}
+        ],
+        "last_message": "قلمرو با اقتدار کامل برقرار است 👑",
+        "founded": datetime.now().strftime("%Y/%m/%d")
+    }
 
-# داده‌های سایت (قابل ویرایش از پنل مدیریت)
-site_data = {
-    "logo_url": "https://via.placeholder.com/150",
-    "main_title": "سایت رسمی و ربات هوشمند VortexPlay",
-    "description": "به پلتفرم مدیریت و دانلود مستقیم خوش آمدید.",
-    "categories": ["آلارم‌ها و صداها", "موزیک‌های ویژه", "فایل‌های سیستمی", "پشتیبانی"]
-}
+def save_data(data):
+    with open(DATA_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
 
-system_stats = {
-    "bot_status": "آنلاین و فعال",
-    "messages_count": 0
-}
-
-# قالب ظاهر سایت اصلی (با دسته‌بندی‌های زرد در پایین)
-INDEX_HTML = """
+# ═══════════════════════════════════════════════════════
+# 🏛️ تالار بارعام — صفحه اصلی
+# ═══════════════════════════════════════════════════════
+HOME_PAGE = """
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{{ data.main_title }}</title>
+    <title>{{data.logo_text}} | قلمرو شاهانه</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body {
-            background-color: #0b0f19;
-            color: #ffffff;
-            font-family: Tahoma, sans-serif;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            margin: 0;
-            text-align: center;
-        }
-        .content-container {
-            padding: 50px 20px;
-        }
-        .logo-img {
-            width: 130px;
-            height: 130px;
-            object-fit: cover;
-            border-radius: 50%;
-            border: 3px solid #38bdf8;
-            margin-bottom: 20px;
-            box-shadow: 0 0 20px rgba(56, 189, 248, 0.4);
-        }
-        h1 { color: #38bdf8; font-weight: bold; margin-bottom: 15px; }
-        p { color: #9ca3af; font-size: 1.1rem; }
-        
-        .categories-footer {
-            background-color: #111827;
-            padding: 20px;
-            border-top: 1px solid #1f2937;
-            width: 100%;
-        }
-        .category-badge {
-            color: #facc15 !important;
-            border: 1px solid #facc15;
-            background-color: rgba(250, 204, 21, 0.05);
-            padding: 8px 16px;
-            border-radius: 20px;
-            margin: 5px;
-            display: inline-block;
-            font-weight: bold;
-            text-decoration: none;
-        }
-        .admin-link {
-            position: fixed;
-            top: 15px;
-            left: 15px;
-            background: #1f2937;
-            color: #9ca3af;
-            padding: 8px 15px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-size: 0.85rem;
-        }
-        .admin-link:hover { color: #fff; background: #374151; }
+        *{margin:0;padding:0;box-sizing:border-box;font-family:Tahoma,sans-serif}
+        :root{--royal-dark:#050714;--royal-card:#0f142e;--gold:#d4af37;--gold-light:#ffd700;--gold-soft:#f5e7a0;--purple:#4b0082}
+        body{background:linear-gradient(135deg,#050714 0%,#1a1042 50%,#050714 100%);min-height:100vh;color:#fff}
+        .stars{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0}
+        .star{position:absolute;width:2px;height:2px;background:#fff;border-radius:50%;animation:twinkle 3s infinite}
+        @keyframes twinkle{0%,100%{opacity:.3}50%{opacity:1}}
+        .crown{text-align:center;padding:40px 20px 30px}
+        .crown i{font-size:3rem;color:var(--gold-light);text-shadow:0 0 30px rgba(255,215,0,.6);animation:glow 2s infinite alternate}
+        @keyframes glow{from{text-shadow:0 0 15px rgba(255,215,0,.5)}to{text-shadow:0 0 35px rgba(255,215,0,.9)}}
+        .crown h1{color:var(--gold-light);margin-top:15px;font-size:2.2rem}
+        .crown p{color:var(--gold-soft);font-size:1.1rem;max-width:600px;margin:10px auto}
+        .divider{width:200px;height:3px;background:linear-gradient(90deg,transparent,var(--gold),transparent);margin:0 auto 40px}
+        .cat-container{max-width:1200px;margin:0 auto;padding:0 20px 60px}
+        .cat-card{background:linear-gradient(135deg,#0f142e,#1a1042);border:2px solid var(--gold);border-radius:16px;padding:30px;text-align:center;margin-bottom:25px;transition:all .4s;cursor:pointer}
+        .cat-card:hover{transform:translateY(-8px);box-shadow:0 15px 40px rgba(212,175,55,.25);border-color:var(--gold-light)}
+        .cat-card i{font-size:2.2rem;color:var(--gold-light);margin-bottom:15px}
+        .cat-card h4{color:var(--gold-soft)}
+        .footer{text-align:center;padding:30px;color:#8888aa;border-top:1px solid rgba(212,175,55,.3);margin-top:40px}
+        .footer span{color:var(--gold-light);font-weight:bold}
+        .msg-box{max-width:700px;margin:0 auto 40px;background:rgba(212,175,55,.1);border:1px solid var(--gold);border-radius:12px;padding:20px;text-align:center}
+        .admin-link{position:fixed;left:20px;bottom:20px;color:#666;text-decoration:none;font-size:.85rem}
+        .admin-link:hover{color:var(--gold-light)}
     </style>
 </head>
 <body>
-    <a href="/dashboard" class="admin-link">پنل مدیریت</a>
-
-    <div class="content-container">
-        <img src="{{ data.logo_url }}" alt="Logo" class="logo-img">
-        <h1>{{ data.main_title }}</h1>
-        <p>{{ data.description }}</p>
+    <div class="stars" id="stars"></div>
+    <div class="crown">
+        <i class="fas fa-crown"></i>
+        <h1>{{data.logo_text}}</h1>
+        <p>{{data.logo_subtitle}}</p>
     </div>
-
-    <div class="categories-footer">
-        <h5 class="text-light mb-3">دسته‌بندی‌های سایت</h5>
-        <div>
-            {% for cat in data.categories %}
-                <span class="category-badge">{{ cat }}</span>
-            {% endfor %}
-        </div>
-        <div class="mt-3 text-muted" style="font-size: 0.8rem;">تمامی حقوق محفوظ است | VortexPlay</div>
+    <div class="msg-box">
+        <h5 style="color:var(--gold-light)"><i class="fas fa-announcement"></i> فرمان شاهانه</h5>
+        <p style="margin:10px 0;color:#e0e0ff">{{data.last_message}}</p>
+        <small style="color:#888">تاریخ تاسیس: {{data.founded}}</small>
     </div>
-</body>
-</html>
-"""
-
-# قالب پنل مدیریت (برای تغییر لوگو، متن‌ها و مدیریت دسته‌بندی‌ها)
-ADMIN_HTML = """
-<!DOCTYPE html>
-<html lang="fa" dir="rtl">
-<head>
-    <meta charset="UTF-8">
-    <title>پنل مدیریت پیشرفته</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <style>
-        body { background: #0b0f19; color: #fff; font-family: Tahoma, sans-serif; padding: 30px; }
-        .card { background: #161e2e; border: 1px solid #1f2937; border-radius: 12px; padding: 25px; margin-bottom: 20px; }
-        .form-control { background: #0b0f19; border-color: #374151; color: #fff; }
-        .form-control:focus { background: #0b0f19; color: #fff; border-color: #38bdf8; box-shadow: none; }
-        .btn-custom { background: #0284c7; color: #fff; font-weight: bold; }
-        .btn-custom:hover { background: #0369a1; color: #fff; }
-        .cat-item { display: flex; justify-content: space-between; align-items: center; background: #0b0f19; padding: 10px 15px; border-radius: 8px; margin-bottom: 8px; border: 1px solid #1f2937; }
-    </style>
-</head>
-<body>
-    <div class="container" style="max-width: 800px;">
-        <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2>پنل مدیریت محتوا و دسته‌بندی‌ها</h2>
-            <a href="/" class="btn btn-outline-light btn-sm">مشاهده سایت</a>
-        </div>
-
-        <div class="card">
-            <h4 class="text-info mb-3">تنظیمات ظاهر و متن‌ها</h4>
-            <form method="POST" action="/update_content">
-                <div class="mb-3">
-                    <label class="form-label">لینک تصویر لوگو:</label>
-                    <input type="text" name="logo_url" class="form-control" value="{{ data.logo_url }}" required>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">عنوان اصلی سایت:</label>
-                    <input type="text" name="main_title" class="form-control" value="{{ data.main_title }}" required>
-                </div>
-                <div class="mb-3">
-                    <label class="form-label">توضیحات کوتاه:</label>
-                    <textarea name="description" class="form-control" rows="2" required>{{ data.description }}</textarea>
-                </div>
-                <button type="submit" class="btn btn-custom w-100">ذخیره تغییرات ظاهر</button>
-            </form>
-        </div>
-
-        <div class="card">
-            <h4 class="text-info mb-3">مدیریت دسته‌بندی‌ها (رنگ زرد در پایین)</h4>
-            <form method="POST" action="/add_category" class="mb-4">
-                <div class="input-group">
-                    <input type="text" name="new_category" class="form-control" placeholder="نام دسته‌بندی جدید..." required>
-                    <button type="submit" class="btn btn-success">افزودن دسته‌بندی</button>
-                </div>
-            </form>
-
-            <div class="categories-list">
-                {% for cat in data.categories %}
-                    <div class="cat-item">
-                        <span style="color: #facc15; font-weight: bold;">{{ cat }}</span>
-                        <form method="POST" action="/delete_category" style="margin: 0;">
-                            <input type="hidden" name="category_name" value="{{ cat }}">
-                            <button type="submit" class="btn btn-danger btn-sm">حذف</button>
-                        </form>
-                    </div>
-                {% endfor %}
+    <div class="divider"></div>
+    <h3 class="text-center mb-4" style="color:var(--gold-soft)">دروازه‌های قلمرو</h3>
+    <div class="cat-container row">
+        {% for cat in data.categories %}
+        <div class="col-md-4 col-sm-6">
+            <div class="cat-card">
+                <i class="fas {{cat.icon}}"></i>
+                <h4>{{cat.name}}</h4>
             </div>
         </div>
-        
-        <div class="text-center mt-3">
-            <a href="/logout" class="text-danger text-decoration-none">خروج از پنل مدیریت</a>
-        </div>
+        {% endfor %}
     </div>
+    <div class="footer">
+        <p>تحت فرمان <span>{{data.logo_text}}</span> | همه حقوق محفوظ است © {{data.founded[:4]}}</p>
+    </div>
+    <a href="/login" class="admin-link"><i class="fas fa-lock"></i> ورود فرمانروا</a>
+    <script>
+        for(let i=0;i<80;i++){
+            const s=document.createElement('div');
+            s.className='star';
+            s.style.left=Math.random()*100+'%';
+            s.style.top=Math.random()*100+'%';
+            s.style.animationDelay=Math.random()*3+'s';
+            document.getElementById('stars').appendChild(s);
+        }
+    </script>
 </body>
 </html>
 """
 
-# صفحه لاگین پنل مدیریت
-LOGIN_HTML = """
+# ═══════════════════════════════════════════════════════
+# 🔐 دروازه امنیتی
+# ═══════════════════════════════════════════════════════
+LOGIN_PAGE = """
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>ورود به پنل مدیریت</title>
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>ورود به قلمرو | VORTEXPLAY</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { background: #0b0f19; color: #fff; font-family: Tahoma, sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; }
-        .login-card { background: #161e2e; padding: 30px; border-radius: 15px; border: 1px solid #1f2937; width: 100%; max-width: 400px; }
+        *{margin:0;padding:0;box-sizing:border-box;font-family:Tahoma,sans-serif}
+        body{background:linear-gradient(135deg,#050714 0%,#1a1042 50%,#050714 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;color:#fff}
+        .box{background:linear-gradient(135deg,#0f142e,#1a1042);border:3px solid #d4af37;border-radius:20px;padding:40px;width:100%;max-width:450px;box-shadow:0 0 40px rgba(212,175,55,.3)}
+        .box h3{color:#ffd700;text-align:center;margin-bottom:30px}
+        .form-control{background:#050714;border:2px solid #b8860b;color:#fff;border-radius:10px;padding:12px 15px;width:100%;margin-bottom:15px}
+        .form-control:focus{outline:none;border-color:#ffd700;box-shadow:0 0 0 3px rgba(255,215,0,.2)}
+        .btn-royal{background:linear-gradient(90deg,#b8860b,#ffd700);border:none;color:#050714;padding:12px;border-radius:10px;width:100%;font-weight:bold;font-size:1rem;transition:all .3s}
+        .btn-royal:hover{transform:translateY(-2px);box-shadow:0 8px 25px rgba(212,175,55,.4)}
+        .hint{background:rgba(212,175,55,.1);border:1px dashed #d4af37;border-radius:8px;padding:12px;margin-top:20px;font-size:.9rem;color:#f5e7a0}
     </style>
 </head>
 <body>
-    <div class="login-card">
-        <h3 class="text-center mb-4 text-info">ورود به پنل مدیریت</h3>
+    <div class="box">
+        <h3><i class="fas fa-crown"></i> دروازه فرمانروایی</h3>
+        {%if error%}<div class="alert alert-danger py-2 mb-3">{{error}}</div>{%endif%}
         <form method="POST">
-            <div class="mb-3">
-                <label class="form-label">نام کاربری:</label>
-                <input type="text" name="username" class="form-control bg-dark text-light border-secondary" required>
-            </div>
-            <div class="mb-3">
-                <label class="form-label">رمز عبور ۳۲ رقمی:</label>
-                <input type="password" name="password" class="form-control bg-dark text-light border-secondary" required>
-            </div>
-            <button type="submit" class="btn btn-info w-100 fw-bold">ورود</button>
+            <label class="d-block mb-2" style="color:#f5e7a0">نام فرمانروا</label>
+            <input type="text" name="username" class="form-control" required>
+            <label class="d-block mb-2" style="color:#f5e7a0">کلید ۳۲ رقمی</label>
+            <input type="password" name="password" class="form-control" required>
+            <button class="btn-royal">ورود به قلمرو 👑</button>
         </form>
+        <div class="hint">
+            <i class="fas fa-info-circle"></i> نام کاربری: <strong>shah</strong><br>
+            کلید در ترمینال نمایش داده شده است
+        </div>
     </div>
 </body>
 </html>
 """
 
+# ═══════════════════════════════════════════════════════
+# 🏰 اتاق فرمان — پنل مدیریت
+# ═══════════════════════════════════════════════════════
+PANEL_PAGE = """
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>اتاق فرمان | VORTEXPLAY</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box;font-family:Tahoma,sans-serif}
+        :root{--royal-dark:#050714;--royal-card:#0f142e;--gold:#d4af37;--gold-light:#ffd700;--gold-soft:#f5e7a0}
+        body{background:var(--royal-dark);color:#fff;min-height:100vh}
+        .sidebar{background:linear-gradient(180deg,#0f142e,#050714);border-left:2px solid var(--gold);position:fixed;top:0;right:0;width:240px;height:100vh;padding:25px 20px}
+        .sidebar h4{color:var(--gold-light);text-align:center;margin-bottom:30px}
+        .sidebar a{display:block;color:#c0c0c0;padding:12px 15px;margin:6px 0;border-radius:8px;text-decoration:none}
+        .sidebar a:hover,.sidebar a.active{background:rgba(212,175,55,.15);color:var(--gold-light)}
+        .sidebar a.out{color:#ff6b6b;margin-top:40px}
+        .main{margin-right:260px;padding:30px}
+        .card{background:linear-gradient(135deg,#0f142e,#1a1042);border:2px solid var(--gold);border-radius:14px;padding:25px;margin-bottom:25px}
+        .card h5{color:var(--gold-light);margin-bottom:20px}
+        .form-control{background:#050714;border:2px solid #b8860b;color:#fff;border-radius:10px;padding:12px 15px;width:100%;margin-bottom:15px}
+        .btn-royal{background:linear-gradient(90deg,#b8860b,#ffd700);border:none;color:#050714;padding:10px 20px;border-radius:10px;font-weight:bold}
+        .btn-danger-royal{background:linear-gradient(90deg,#8b0000,#ff4444);border:none;color:#fff;padding:8px 15px;border-radius:8px}
+        .cat-item{display:flex;justify-content:space-between;align-items:center;background:rgba(212,175,55,.1);padding:12px 15px;border-radius:8px;margin-bottom:10px}
+        @media(max-width:768px){.sidebar{position:static;width:100%;height:auto}.main{margin-right:0}}
+    </style>
+</head>
+<body>
+    <div class="sidebar">
+        <h4><i class="fas fa-crown"></i> اتاق فرمان</h4>
+        <a href="#" class="active"><i class="fas fa-sliders-h"></i> تنظیمات دربار</a>
+        <a href="/logout" class="out"><i class="fas fa-sign-out-alt"></i> خروج از قلمرو</a>
+    </div>
+    <div class="main">
+        <h2 style="color:var(--gold-light);margin-bottom:30px">درگاه فرمانروایی VORTEXPLAY</h2>
+        
+        {%if saved%}<div class="alert alert-success">✅ فرمان ثبت و بر صفحه اصلی آشکار شد</div>{%endif%}
+        
+        <form method="POST" action="/save">
+            <div class="card">
+                <h5><i class="fas fa-pen-nib"></i> نشان و تاج دربار</h5>
+                <label class="d-block" style="color:var(--gold-soft)">متن اصلی لوگو</label>
+                <input type="text" name="logo_text" class="form-control" value="{{data.logo_text}}" required>
+                <label class="d-block" style="color:var(--gold-soft)">زیرنویس دربار</label>
+                <input type="text" name="logo_subtitle" class="form-control" value="{{data.logo_subtitle}}" required>
+                <label class="d-block" style="color:var(--gold-soft)">عنوان اصلی صفحه</label>
+                <input type="text" name="kingdom_title" class="form-control" value="{{data.kingdom_title}}" required>
+                <label class="d-block" style="color:var(--gold-soft)">توصیف قلمرو</label>
+                <textarea name="kingdom_desc" rows="3" class="form-control">{{data.kingdom_desc}}</textarea>
+                <label class="d-block" style="color:var(--gold-soft)">فرمان شاهانه</label>
+                <textarea name="last_message" rows="3" class="form-control">{{data.last_message}}</textarea>
+                <button class="btn-royal mt-2">اعمال فرمان 👑</button>
+            </div>
+        </form>
+
+        <div class="card">
+            <h5><i class="fas fa-gem"></i> دروازه‌های قلمرو</h5>
+            {%for cat in data.categories%}
+            <div class="cat-item">
+                <span><i class="fas {{cat.icon}}" style="color:var(--gold-light)"></i> {{cat.name}}</span>
+                <form method="POST" action="/del/{{cat.id}}" style="margin:0" onsubmit="return confirm('حذف شود؟')">
+                    <button class="btn-danger-royal">حذف</button>
+                </form>
+            </div>
+            {%endfor%}
+            <hr style="border-color:rgba(212,175,55,.2);margin:20px 0">
+            <h6 style="color:var(--gold-soft)">افزودن دروازه نوین</h6>
+            <form method="POST" action="/add">
+                <input type="text" name="name" class="form-control" placeholder="نام دسته‌بندی" required>
+                <input type="text" name="icon" class="form-control" placeholder="مثال: fa-gamepad" required>
+                <button class="btn-royal">افزودن</button>
+            </form>
+        </div>
+    </div>
+</body>
+</html>
+"""
+
+# ═══════════════════════════════════════════════════════
+# 🛣️ مسیرهای قلمرو
+# ═══════════════════════════════════════════════════════
 @app.route('/')
-def index():
-    return render_template_string(INDEX_HTML, data=site_data)
+def home():
+    return render_template_string(HOME_PAGE, data=load_data())
 
-@app.route('/dashboard', methods=['GET', 'POST'])
-def dashboard():
-    if not session.get('logged_in'):
-        if request.method == 'POST':
-            username = request.form.get('username')
-            password = request.form.get('password')
-            if username == ADMIN_USERNAME and check_password_hash(ADMIN_PASSWORD_HASH, password):
-                session['logged_in'] = True
-                return redirect(url_for('dashboard'))
-        return render_template_string(LOGIN_HTML)
-    return render_template_string(ADMIN_HTML, data=site_data)
+@app.route('/login', methods=['GET','POST'])
+def login():
+    if session.get('royal_ok'):
+        return redirect(url_for('panel'))
+    if request.method == 'POST':
+        u = request.form.get('username','')
+        p = request.form.get('password','')
+        if u == ADMIN_USER and check_password_hash(ADMIN_HASH, p):
+            session['royal_ok'] = True
+            return redirect(url_for('panel'))
+        return render_template_string(LOGIN_PAGE, error="نام یا کلید نادرست است!")
+    return render_template_string(LOGIN_PAGE)
 
-@app.route('/update_content', methods=['POST'])
-def update_content():
-    if not session.get('logged_in'): return redirect(url_for('dashboard'))
-    site_data["logo_url"] = request.form.get('logo_url')
-    site_data["main_title"] = request.form.get('main_title')
-    site_data["description"] = request.form.get('description')
-    return redirect(url_for('dashboard'))
+@app.route('/panel')
+def panel():
+    if not session.get('royal_ok'):
+        return redirect(url_for('login'))
+    return render_template_string(PANEL_PAGE, data=load_data(), saved=request.args.get('saved'))
 
-@app.route('/add_category', methods=['POST'])
-def add_category():
-    if not session.get('logged_in'): return redirect(url_for('dashboard'))
-    new_cat = request.form.get('new_category')
-    if new_cat and new_cat not in site_data["categories"]:
-        site_data["categories"].append(new_cat)
-    return redirect(url_for('dashboard'))
+@app.route('/save', methods=['POST'])
+def save():
+    if not session.get('royal_ok'):
+        return redirect(url_for('login'))
+    d = load_data()
+    d['logo_text'] = request.form.get('logo_text','')
+    d['logo_subtitle'] = request.form.get('logo_subtitle','')
+    d['kingdom_title'] = request.form.get('kingdom_title','')
+    d['kingdom_desc'] = request.form.get('kingdom_desc','')
+    d['last_message'] = request.form.get('last_message','')
+    save_data(d)
+    return redirect(url_for('panel', saved=1))
 
-@app.route('/delete_category', methods=['POST'])
-def delete_category():
-    if not session.get('logged_in'): return redirect(url_for('dashboard'))
-    cat_to_delete = request.form.get('category_name')
-    if cat_to_delete in site_data["categories"]:
-        site_data["categories"].remove(cat_to_delete)
-    return redirect(url_for('dashboard'))
+@app.route('/add', methods=['POST'])
+def add_cat():
+    if not session.get('royal_ok'):
+        return redirect(url_for('login'))
+    d = load_data()
+    d['categories'].append({
+        "id": int(datetime.now().timestamp()),
+        "name": request.form.get('name',''),
+        "icon": request.form.get('icon','fa-folder')
+    })
+    save_data(d)
+    return redirect(url_for('panel'))
+
+@app.route('/del/<id>')
+def del_cat(id):
+    if not session.get('royal_ok'):
+        return redirect(url_for('login'))
+    d = load_data()
+    d['categories'] = [c for c in d['categories'] if str(c['id']) != str(id)]
+    save_data(d)
+    return redirect(url_for('panel'))
 
 @app.route('/logout')
 def logout():
     session.clear()
-    return redirect(url_for('index'))
+    return redirect(url_for('home'))
 
-def run_bot():
-    async def main():
-        while True:
-            await asyncio.sleep(60)
-            system_stats["messages_count"] += 1
-    loop = asyncio.new_event_loop()
-    asyncio.set_event_loop(loop)
-    loop.run_until_complete(main())
-
+# ═══════════════════════════════════════════════════════
+# 🚀 تاج‌گذاری و آغاز فرمانروایی
+# ═══════════════════════════════════════════════════════
 if __name__ == '__main__':
-    threading.Thread(target=run_bot, daemon=True).start()
-    port = int(os.environ.get("PORT", 5000))
+    port = int(os.environ.get('PORT', 5000))
     app.run(host='0.0.0.0', port=port)
