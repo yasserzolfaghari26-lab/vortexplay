@@ -1,623 +1,536 @@
 <!DOCTYPE html>
-<html lang="fa" dir="ltr">
+<html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VORTEXPLAY</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', 'Roboto', sans-serif;
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
+        :root {
+            --bg-grad-1: rgba(255,120,0,0.45); --bg-grad-2: rgba(0,120,255,0.45);
+            --gold: #ffd700; --orange: #ff8c00; --cyan: #00d9ff; --purple: #8b5cf6;
+            --bg-dark: #05051a; --card-bg: rgba(15,23,42,0.75);
         }
-
         body {
-            min-height: 100vh;
+            min-height: 100vh; position: relative; overflow-x: hidden; color: #fff;
             background: 
-                radial-gradient(ellipse at top left, rgba(255, 120, 0, 0.45) 0%, transparent 55%),
-                radial-gradient(ellipse at top right, rgba(255, 180, 0, 0.35) 0%, transparent 55%),
-                radial-gradient(ellipse at bottom left, rgba(0, 120, 255, 0.45) 0%, transparent 55%),
-                radial-gradient(ellipse at bottom right, rgba(80, 40, 200, 0.35) 0%, transparent 55%),
-                linear-gradient(180deg, #05051a 0%, #0f172a 50%, #05051a 100%);
-            color: #fff;
-            overflow-x: hidden;
-            position: relative;
+                radial-gradient(ellipse at top left, var(--bg-grad-1) 0%, transparent 55%),
+                radial-gradient(ellipse at bottom left, var(--bg-grad-2) 0%, transparent 55%),
+                linear-gradient(180deg, #05051a, #0f172a, #05051a);
+            transition: background 0.5s ease;
         }
+        .custom-bg { position: fixed; inset: 0; z-index: 0; background-size: cover; background-position: center; opacity: 0.35; pointer-events: none; }
 
-        /* ذرات نور */
-        .star {
-            position: absolute;
-            width: 2px;
-            height: 2px;
-            background: rgba(255,255,255,0.45);
-            border-radius: 50%;
-            animation: twinkle 3s ease-in-out infinite;
-        }
-        @keyframes twinkle {
-            0%,100% { opacity: 0.2; }
-            50% { opacity: 1; }
-        }
-
-        /* اشکال هندسی */
-        .shape {
-            position: absolute;
-            color: rgba(255,255,255,0.12);
-            font-size: 1.3rem;
-            animation: float 6s ease-in-out infinite;
-            pointer-events: none;
-        }
-        @keyframes float {
-            0%,100% { transform: translateY(0) rotate(0deg); }
-            50% { transform: translateY(-12px) rotate(8deg); }
-        }
-
-        /* کانتینر مرکزی */
-        .container {
-            position: relative;
-            z-index: 10;
-            max-width: 480px;
-            margin: 0 auto;
-            padding: 25px 20px 50px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-
-        /* لوگو */
-        .logo-wrapper {
-            position: relative;
-            margin-bottom: 18px;
-        }
-
+        /* === صفحه اصلی === */
+        .container { position: relative; z-index: 10; max-width: 480px; margin: 0 auto; padding: 30px 20px 50px; display: flex; flex-direction: column; align-items: center; }
+        
+        .logo-wrapper { position: relative; margin-bottom: 15px; }
         .logo-ring {
-            width: 130px;
-            height: 130px;
-            border-radius: 50%;
+            width: 130px; height: 130px; border-radius: 50%; padding: 4px;
             background: linear-gradient(45deg, #ff9500, #00d9ff, #8b5cf6, #ff9500);
-            background-size: 300% 300%;
-            animation: logoGlow 4s linear infinite;
-            padding: 4px;
-            box-shadow: 0 0 25px rgba(0, 217, 255, 0.35);
+            background-size: 300% 300%; animation: logoGlow 4s linear infinite;
+            box-shadow: 0 0 25px rgba(0,217,255,0.35);
         }
-        @keyframes logoGlow {
-            0% { background-position: 0% 50%; }
-            100% { background-position: 300% 50%; }
-        }
-
+        @keyframes logoGlow { 0%{background-position:0% 50%} 100%{background-position:300% 50%} }
         .logo-inner {
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            background: #05051a;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+            width: 100%; height: 100%; border-radius: 50%; background: #05051a;
+            display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden;
         }
+        .logo-inner img { width: 100%; height: 100%; object-fit: cover; display: none; }
+        .logo-inner.show-img span { display: none; }
+        .logo-inner.show-img img { display: block; }
+        .logo-vp { font-size: 2.6rem; font-weight: 900; background: linear-gradient(90deg,#ffd700,#ff8c00); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .logo-text-below { font-size: 0.65rem; letter-spacing: 2px; color: #00d9ff; margin-top: 2px; }
 
-        .logo-vp {
-            font-size: 2.6rem;
-            font-weight: 900;
-            background: linear-gradient(90deg, #ffd700, #ff8c00);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            line-height: 1;
-        }
+        .site-title { font-size: 2rem; font-weight: 900; letter-spacing: 2px; margin-bottom: 5px; text-shadow: 0 0 15px rgba(0,217,255,0.45); }
+        .site-subtitle { font-size: 0.85rem; color: #60a5fa; margin-bottom: 20px; display: flex; gap: 8px; align-items: center; }
+        .site-subtitle::before, .site-subtitle::after { content:'◆'; color: #00d9ff; }
 
-        .logo-text-below {
-            font-size: 0.65rem;
-            letter-spacing: 2px;
-            color: #00d9ff;
-            margin-top: 2px;
-        }
-
-        /* عنوان سایت */
-        .site-title {
-            font-size: 2rem;
-            font-weight: 900;
-            letter-spacing: 3px;
-            color: #fff;
-            text-shadow: 0 0 15px rgba(0, 217, 255, 0.45);
-            margin-bottom: 8px;
-        }
-
-        .site-subtitle {
-            font-size: 0.85rem;
-            letter-spacing: 4px;
-            color: #60a5fa;
-            margin-bottom: 22px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .site-subtitle::before, .site-subtitle::after {
-            content: '◆';
-            font-size: 0.6rem;
-            color: #00d9ff;
-        }
-
-        /* نوار وضعیت */
         .status-bar {
-            width: 100%;
-            padding: 12px 25px;
-            background: rgba(0, 50, 80, 0.4);
-            border: 2px solid rgba(0, 217, 255, 0.6);
-            border-radius: 50px;
-            text-align: center;
-            font-weight: 700;
-            color: #00ffff;
-            letter-spacing: 2px;
-            margin-bottom: 22px;
-            box-shadow: 0 0 15px rgba(0, 217, 255, 0.25), inset 0 0 10px rgba(0, 217, 255, 0.1);
+            width: 100%; padding: 12px; border-radius: 50px; text-align: center; font-weight: 700;
+            border: 2px solid rgba(0,217,255,0.6); background: rgba(0,50,80,0.4); color: #00ffff;
+            margin-bottom: 20px; display: flex; align-items: center; justify-content: center; gap: 8px;
         }
+        .status-dot { width:10px; height:10px; border-radius:50%; background:#00ff88; box-shadow:0 0 8px #00ff88; animation: pulse 2s infinite; }
+        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
 
-        .status-dot {
-            display: inline-block;
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background: #00ff88;
-            margin-right: 8px;
-            box-shadow: 0 0 8px #00ff88;
-            animation: pulse 2s infinite;
-        }
-        @keyframes pulse {
-            0%,100% { opacity: 1; }
-            50% { opacity: 0.3; }
-        }
-
-        /* کاور بنر */
         .banner-card {
-            width: 100%;
-            height: 110px;
-            border-radius: 14px;
-            background: linear-gradient(90deg, rgba(30, 60, 120, 0.65), rgba(120, 60, 30, 0.65));
-            border: 2px solid rgba(0, 217, 255, 0.5);
-            margin-bottom: 18px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 2.7rem;
-            color: #ffd700;
-            box-shadow: 0 0 20px rgba(0, 217, 255, 0.2);
-            overflow: hidden;
-            position: relative;
+            width: 100%; height: 110px; border-radius: 14px; border: 2px solid rgba(0,217,255,0.5);
+            background: linear-gradient(90deg, rgba(30,60,120,0.65), rgba(120,60,30,0.65));
+            margin-bottom: 18px; display: flex; align-items: center; justify-content: center;
+            font-size: 2.5rem; color: #ffd700; overflow: hidden; position: relative;
         }
-        .banner-card span {
-            position: relative;
-            z-index: 2;
-        }
+        .banner-card img { width: 100%; height: 100%; object-fit: cover; display: none; }
+        .banner-card.show-img span { display: none; }
+        .banner-card.show-img img { display: block; }
 
-        /* کارت‌ها */
-        .card {
-            width: 100%;
-            padding: 18px 22px;
-            border-radius: 14px;
-            margin-bottom: 14px;
-            border: 2px solid transparent;
-            transition: all 0.3s;
-            cursor: pointer;
+        .cards-container { width: 100%; }
+        .cat-card {
+            width: 100%; padding: 18px 22px; border-radius: 14px; margin-bottom: 14px;
+            border: 2px solid transparent; background: var(--card-bg); cursor: pointer; transition: 0.3s;
         }
+        .cat-card:nth-child(1) { border-color: rgba(0,200,255,0.5); background: linear-gradient(90deg, rgba(0,80,150,0.5), rgba(0,100,180,0.3)); }
+        .cat-card:nth-child(2) { border-color: rgba(255,200,0,0.5); background: linear-gradient(90deg, rgba(255,200,0,0.15), rgba(255,150,0,0.1)); }
+        .cat-card:nth-child(3) { border-color: rgba(139,92,246,0.5); background: linear-gradient(90deg, rgba(100,40,200,0.3), rgba(80,60,180,0.2)); }
+        .cat-card:hover { transform: translateY(-2px); }
+        .cat-card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+        .cat-card-title { font-size: 1.15rem; font-weight: 800; }
+        .cat-card-desc { font-size: 0.85rem; color: #94a3b8; margin-bottom: 10px; }
+        .messages-list { margin-top: 8px; }
+        .msg-item {
+            background: rgba(255,255,255,0.05); padding: 10px 12px; border-radius: 8px; margin-bottom: 6px;
+            font-size: 0.9rem; display: flex; justify-content: space-between; align-items: center;
+        }
+        .msg-text { flex: 1; }
+        .msg-del { background: rgba(220,38,38,0.6); border: none; color: #fff; padding: 4px 10px; border-radius: 6px; font-size: 0.75rem; cursor: pointer; }
 
-        .card-1 {
-            background: linear-gradient(90deg, rgba(0, 80, 150, 0.5), rgba(0, 100, 180, 0.3));
-            border-color: rgba(0, 200, 255, 0.5);
+        .admin-open-btn {
+            margin-top: 25px; padding: 12px 30px; background: rgba(80,60,180,0.3);
+            border: 1px solid rgba(139,92,246,0.5); border-radius: 50px; color: #a78bfa;
+            cursor: pointer; display: flex; align-items: center; gap: 8px;
         }
-        .card-1:hover {
-            border-color: #00d9ff;
-            box-shadow: 0 0 20px rgba(0, 217, 255, 0.3);
-            transform: translateY(-2px);
-        }
+        .admin-open-btn:hover { background: rgba(139,92,246,0.35); color: #e9d5ff; }
 
-        .card-2 {
-            background: linear-gradient(90deg, rgba(255, 200, 0, 0.15), rgba(255, 150, 0, 0.1));
-            border-color: rgba(255, 200, 0, 0.5);
+        /* === مودال ورود رمز === */
+        .modal-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 999;
+            display: flex; align-items: center; justify-content: center; padding: 20px;
+            opacity: 0; visibility: hidden; transition: 0.3s;
         }
-        .card-2:hover {
-            border-color: #ffd700;
-            box-shadow: 0 0 20px rgba(255, 215, 0, 0.25);
-            transform: translateY(-2px);
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+        .modal-box {
+            width: 100%; max-width: 420px; background: linear-gradient(180deg, #0f172a, #020617);
+            border: 2px solid rgba(139,92,246,0.4); border-radius: 20px; padding: 25px;
+            transform: translateY(30px); transition: 0.3s;
         }
-
-        .card-3 {
-            background: linear-gradient(90deg, rgba(100, 40, 200, 0.3), rgba(80, 60, 180, 0.2));
-            border-color: rgba(139, 92, 246, 0.5);
-        }
-        .card-3:hover {
-            border-color: #a78bfa;
-            box-shadow: 0 0 20px rgba(139, 92, 246, 0.25);
-            transform: translateY(-2px);
-        }
-
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 4px;
-        }
-
-        .card-title {
-            font-size: 1.15rem;
-            font-weight: 800;
-            letter-spacing: 1px;
-        }
-
-        .card-icon {
-            font-size: 1.4rem;
-        }
-
-        .card-desc {
-            font-size: 0.85rem;
-            color: #94a3b8;
-        }
-
-        /* دکمه مدیریت */
-        .admin-btn {
-            margin-top: 22px;
-            padding: 12px 30px;
-            background: rgba(80, 60, 180, 0.3);
-            border: 1px solid rgba(139, 92, 246, 0.5);
-            border-radius: 50px;
-            color: #a78bfa;
-            font-size: 0.85rem;
-            cursor: pointer;
-            transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .admin-btn:hover {
-            background: rgba(139, 92, 246, 0.35);
-            border-color: #a78bfa;
-            color: #e9d5ff;
-        }
-
-        /* ورود به مدیریت */
-        .login-modal {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.85);
-            z-index: 999;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s;
-        }
-        .login-modal.show {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .login-box {
-            width: 100%;
-            max-width: 420px;
-            background: linear-gradient(180deg, #0f172a, #020617);
-            border: 1px solid rgba(139, 92, 246, 0.4);
-            border-radius: 20px;
-            padding: 25px;
-            transform: translateY(30px);
-            transition: transform 0.3s;
-        }
-        .login-modal.show .login-box {
-            transform: translateY(0);
-        }
-
-        .login-title {
-            font-size: 1.25rem;
-            font-weight: 800;
-            color: #ffd700;
-            text-align: center;
-            margin-bottom: 20px;
-        }
-
-        .login-input {
-            width: 100%;
-            padding: 12px 15px;
-            background: rgba(15, 23, 42, 0.8);
-            border: 1px solid rgba(96, 165, 250, 0.3);
-            border-radius: 10px;
-            color: #fff;
-            font-size: 0.9rem;
-            margin-bottom: 12px;
-        }
-        .login-input:focus {
-            outline: none;
-            border-color: #00d9ff;
-            box-shadow: 0 0 10px rgba(0, 217, 255, 0.2);
-        }
-
-        .login-btn {
-            width: 100%;
-            padding: 13px;
-            background: linear-gradient(90deg, #0099ff, #8b5cf6);
-            border: none;
-            border-radius: 10px;
-            color: #fff;
-            font-weight: 700;
-            font-size: 0.95rem;
-            cursor: pointer;
-        }
-        .login-btn:hover {
-            box-shadow: 0 0 15px rgba(0, 153, 255, 0.4);
-        }
-
-        .login-error {
-            margin-top: 10px;
-            padding: 10px;
-            background: rgba(220, 38, 38, 0.1);
-            border: 1px solid rgba(220, 38, 38, 0.4);
-            border-radius: 8px;
-            color: #d35400;
-            text-align: center;
-            display: none;
-        }
-
-        /* پنل مدیریت */
-        .panel-overlay {
-            position: fixed;
-            inset: 0;
-            background: rgba(0, 0, 0, 0.75);
-            z-index: 999;
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.3s;
-        }
-        .panel-overlay.show {
-            opacity: 1;
-            visibility: visible;
-        }
-
-        .admin-panel {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            right: 0;
-            max-height: 85vh;
-            background: linear-gradient(180deg, #0f172a, #020617);
-            border-radius: 24px 24px 0 0;
-            border: 1px solid rgba(139, 92, 246, 0.4);
-            z-index: 1000;
-            transform: translateY(100%);
-            transition: transform 0.35s ease;
-            padding: 25px 20px 40px;
-            overflow-y: auto;
-        }
-        .admin-panel.open {
-            transform: translateY(0);
-        }
-
-        .panel-head {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-        }
-        .panel-title {
-            25px 20px 40px;
-            overflow-y: auto;
-        }
-
-        .panel-head {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 25px;
-        }
-        .panel-title {
-            font-size: 1.3rem;
-            font-weight: 800;
-            color: #ffd700;
-        }
-        .panel-close {
-            width: 36px;
-            height: 36px;
-            border-radius: 50%;
-            background: rgba(255,255,255,0.05);
-            border: none;
-            color: #fff;
-            cursor: pointer;
-            font-size: 1rem;
-        }
-
-        .form-group {
-            margin-bottom: 16px;
-        }
-        .form-label {
-            font-size: 0.85rem;
-            color: #94a3b8;
-            margin-bottom: 6px;
-            display: block;
-        }
+        .modal-overlay.active .modal-box { transform: translateY(0); }
+        .modal-title { font-size: 1.3rem; font-weight: 800; color: #ffd700; text-align: center; margin-bottom: 20px; }
         .form-input {
-            width: 100%;
-            padding: 12px 15px;
-            background: rgba(15, 23, 42, 0.8);
-            border: 1px solid rgba(96, 165, 250, 0.3);
-            border-radius: 10px;
-            color: #fff;
-            font-size: 0.9rem;
+            width: 100%; padding: 12px 15px; margin-bottom: 12px;
+            background: rgba(15,23,42,0.8); border: 1px solid rgba(96,165,250,0.3);
+            border-radius: 10px; color: #fff; font-size: 0.9rem;
         }
-        .form-input:focus {
-            outline: none;
-            border-color: #00d9ff;
-            box-shadow: 0 0 10px rgba(0, 217, 255, 0.2);
+        .form-input:focus { outline: none; border-color: #00d9ff; box-shadow: 0 0 10px rgba(0,217,255,0.2); }
+        .btn {
+            width: 100%; padding: 13px; border: none; border-radius: 10px;
+            font-weight: 700; font-size: 0.95rem; cursor: pointer; transition: 0.3s;
         }
+        .btn-primary { background: linear-gradient(90deg, #0099ff, #8b5cf6); color: #fff; }
+        .btn-primary:hover { box-shadow: 0 0 15px rgba(0,153,255,0.4); }
+        .error-msg { color: #ff6b6b; text-align: center; margin-top: 10px; display: none; }
 
-        .btn-primary {
-            width: 100%;
-            padding: 13px;
-            background: linear-gradient(90deg, #0099ff, #8b5cf6);
-            border: none;
-            border-radius: 10px;
-            color: #fff;
-            font-weight: 700;
-            font-size: 0.95rem;
-            cursor: pointer;
-            margin-top: 8px;
+        /* === پنل مدیریت === */
+        .admin-panel {
+            position: fixed; inset: 0; z-index: 1000; background: rgba(0,0,0,0.92);
+            opacity: 0; visibility: hidden; transition: 0.3s; overflow-y: auto;
         }
-        .btn-primary:hover {
-            box-shadow: 0 0 15px rgba(0, 153, 255, 0.4);
+        .admin-panel.active { opacity: 1; visibility: visible; }
+        .panel-inner {
+            max-width: 480px; margin: 0 auto; padding: 25px 20px 40px;
+            background: linear-gradient(180deg, #0f172a, #020617); min-height: 100vh;
         }
-
-        .category-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: rgba(30, 64, 175, 0.15);
-            padding: 12px 15px;
-            border-radius: 10px;
-            margin-bottom: 8px;
+        .panel-header {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid rgba(139,92,246,0.3);
         }
-        .btn-delete {
-            background: rgba(220, 38, 38, 0.6);
-            border: none;
-            color: #fff;
-            padding: 6px 12px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 0.8rem;
+        .panel-title { font-size: 1.4rem; font-weight: 900; color: #ffd700; }
+        .panel-close {
+            width: 38px; height: 38px; border-radius: 50%; background: rgba(255,255,255,0.05);
+            border: none; color: #fff; font-size: 1.1rem; cursor: pointer;
         }
-
-        .save-msg {
-            margin-top: 15px;
-            padding: 10px;
-            background: rgba(0, 255, 136, 0.1);
-            border: 1px solid rgba(0, 255, 136, 0.4);
-            border-radius: 8px;
-            color: #00ff88;
-            text-align: center;
-            display: none;
+        .panel-section { margin-bottom: 30px; }
+        .section-title {
+            font-size: 1.05rem; font-weight: 700; color: #00d9ff; margin-bottom: 15px;
+            display: flex; align-items: center; gap: 8px;
         }
-
-        .footer-note {
-            margin-top: 30px;
-            font-size: 0.7rem;
-            color: #475569;
+        .file-input { display: none; }
+        .upload-btn {
+            display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px;
+            background: rgba(139,92,246,0.2); border: 1px solid rgba(139,92,246,0.4);
+            border-radius: 10px; color: #a78bfa; cursor: pointer; font-size: 0.85rem; margin-bottom: 12px;
         }
+        .upload-btn:hover { background: rgba(139,92,246,0.3); }
+        .row { margin-bottom: 12px; }
+        label { font-size: 0.85rem; color: #94a3b8; margin-bottom: 6px; display: block; }
+        .btn-danger { background: linear-gradient(90deg, #b91c1c, #dc2626); color: #fff; margin-top: 8px; }
+        .btn-success { background: linear-gradient(90deg, #059669, #10b981); color: #fff; margin-top: 8px; }
+        .cat-item {
+            background: rgba(30,64,175,0.15); padding: 14px; border-radius: 10px; margin-bottom: 10px;
+        }
+        .cat-item-actions { display: flex; gap: 8px; margin-top: 10px; }
+        .cat-item-actions button { flex: 1; padding: 8px; border: none; border-radius: 8px; cursor: pointer; font-size: 0.85rem; }
+        .add-msg-row { display: flex; gap: 8px; margin-top: 8px; }
+        .add-msg-row input { flex: 1; }
+        .save-all-note {
+            margin-top: 20px; padding: 12px; background: rgba(0,255,136,0.08);
+            border: 1px solid rgba(0,255,136,0.3); border-radius: 10px; color: #00ff88; text-align: center; display: none;
+        }
+        select.form-input { height: 44px; }
     </style>
 </head>
 <body>
-    <!-- ذرات نور -->
-    <script>
-        const starCount = 35;
-        for (let i = 0; i < starCount; i++) {
-            const s = document.createElement('div');
-            s.className = 'star';
-            s.style.left = Math.random() * 100 + '%';
-            s.style.top = Math.random() * 100 + '%';
-            s.style.animationDelay = Math.random() * 3 + 's';
-            document.body.appendChild(s);
-        }
-    </script>
-
-    <!-- اشکال تزئینی -->
-    <div class="shape" style="top: 8%; left: 8%;">◀</div>
-    <div class="shape" style="top: 12%; right: 10%;">◇</div>
-    <div class="shape" style="bottom: 15%; left: 12%;">△</div>
-    <div class="shape" style="bottom: 10%; right: 8%;">□</div>
+    <div class="custom-bg" id="customBg"></div>
 
     <div class="container">
         <!-- لوگو -->
         <div class="logo-wrapper">
             <div class="logo-ring">
-                <div class="logo-inner">
+                <div class="logo-inner" id="logoDisplay">
                     <span class="logo-vp">VP</span>
                     <span class="logo-text-below">VORTEX PLAY</span>
+                    <img id="logoImg" src="" alt="لوگو">
                 </div>
             </div>
         </div>
 
-        <h1 class="site-title">VORTEXPLAY</h1>
-        <p class="site-subtitle">GAMING EMPIRE</p>
+        <h1 class="site-title" id="siteNameDisplay">VORTEXPLAY</h1>
+        <p class="site-subtitle" id="siteSubDisplay">GAMING EMPIRE</p>
 
-        <!-- وضعیت -->
         <div class="status-bar">
             <span class="status-dot"></span>
-            SYSTEM STATUS: ONLINE
+            <span id="statusDisplay">SYSTEM STATUS: ONLINE</span>
         </div>
 
         <!-- کاور بنر -->
-        <div class="banner-card">
+        <div class="banner-card" id="bannerDisplay">
             <span>VP</span>
+            <img id="bannerImg" src="" alt="کاور">
         </div>
 
-        <!-- کارت‌ها -->
-        <div class="card card-1">
-            <div class="card-header">
-                <h3 class="card-title">BACKUP & TUTORIALS</h3>
-                <i class="fas fa-book card-icon" style="color: #00d9ff;"></i>
-            </div>
-            <p class="card-desc">Guides & System Files</p>
+        <!-- لیست دسته‌بندی‌ها -->
+        <div class="cards-container" id="cardsContainer">
+            <!-- کارت‌ها از JS اضافه می‌شوند -->
         </div>
 
-        <div class="card card-2">
-            <div class="card-header">
-                <h3 class="card-title">PS5 GAME</h3>
-                <i class="fas fa-gamepad card-icon" style="color: #ffd700;"></i>
-            </div>
-            <p class="card-desc">PlayStation 5 Games & PKGs</p>
-        </div>
-
-        <div class="card card-3">
-            <div class="card-header">
-                <h3 class="card-title">GAME PHOTOS</h3>
-                <i class="fas fa-images card-icon" style="color: #a78bfa;"></i>
-            </div>
-            <p class="card-desc">Wallpapers & Screenshots</p>
-        </div>
-
-        <!-- دکمه مدیریت -->
-        <button class="admin-btn" onclick="openLogin()">
+        <button class="admin-open-btn" onclick="openLogin()">
             <i class="fas fa-cog"></i> ورود به پنل مدیریت
         </button>
-
-        <p class="footer-note">VORTEXPLAY © 2026 — All Rights Reserved</p>
     </div>
 
-    <!-- مودال ورود به مدیریت -->
-    <div class="login-modal" id="loginModal">
-        <div class="login-box">
-            <h2 class="login-title">ورود به پنل مدیریت</h2>
-            <input type="password" class="login-input" id="adminPass" placeholder="رمز ۳۲ رقمی را وارد کنید" maxlength="32">
-            <div class="login-error" id="loginError">رمز اشتباه است!</div>
-            <button class="login-btn" onclick="checkPass()">ورود</button>
+    <!-- مودال ورود رمز -->
+    <div class="modal-overlay" id="loginOverlay">
+        <div class="modal-box">
+            <h2 class="modal-title">ورود به پنل مدیریت</h2>
+            <input type="password" class="form-input" id="passInput" placeholder="رمز ۳۲ رقمی" maxlength="32">
+            <div class="error-msg" id="passError">رمز نادرست است!</div>
+            <button class="btn btn-primary" onclick="checkPassword()">ورود</button>
         </div>
     </div>
 
-    <!-- سرپوش پنل -->
-    <div class="panel-overlay" id="overlay" onclick="closePanel()"></div>
-
-    <!-- پنل مدیریت -->
+    <!-- پنل مدیریت کامل -->
     <div class="admin-panel" id="adminPanel">
-        <div class="panel-head">
-            <h2 class="panel-title">پنل مدیریت</h2>
-            <button class="panel-close" onclick="closePanel()">
-                <i class="fas fa-times"></i>
-            </button>
-        </div>
+        <div class="panel-inner">
+            <div class="panel-header">
+                <h2 class="panel-title">پنل مدیریت</h2>
+                <button class="panel-close" onclick="closeAdminPanel()"><i class="fas fa-times"></i></button>
+            </div>
 
-        <!-- تنظیمات کلی -->
-        <div class="form-group">
-            <label class="form-label">نام سایت</label>
-            <input type="text" class="form-input" id="siteName" value="VORTEXPLAY">
-        </div>
-        <div class="form-group">
-            <label class="form-label">زرنویس سایت</td>
-            <input type="text" class="form-input" id="siteSub" value="GAMING EMPIRE">
-        </div>
-        <div class="form-group">
-            <label class="form-label">متن وضعیت</label>
-            <input type="text" class="form-input" id="statusText" value="SYSTEM STATUS: ONLINE">
-        </div>
+            <!-- بخش ۱: تنظیمات ظاهری -->
+            <div class="panel-section">
+                <h3 class="section-title"><i class="fas fa-palette"></i> تنظیمات ظاهری</h3>
 
-        <button class="btn-primary" onclick="saveSettings()">ذخیره تغییرات</button>
-        <div class="save-msg" id="saveMsg">✅ تغییرات ذخیره شد!</point>
+                <div class="row">
+                    <label>تصویر پس‌زمینه</label>
+                    <label class="upload-btn">
+                        <input type="file" class="file-input" accept="image/*" onchange="uploadBg(this)">
+                        <i class="fas fa-upload"></i> انتخاب از گالری
+                    </label>
+                </div>
+
+                <div class="row">
+                    <label>لوگو سایت</label>
+                    <label class="upload-btn">
+                        <input type="file" class="file-input" accept="image/*" onchange="uploadLogo(this)">
+                        <i class="fas fa-image"></i> انتخاب از گالری
+                    </label>
+                </div>
+
+                <div class="row">
+                    <label>کاور بنر</label>
+                    <label class="upload-btn">
+                        <input type="file" class="file-input" accept="image/*" onchange="uploadBanner(this)">
+                        <i class="fas fa-file-image"></i> انتخاب از گالری
+                    </label>
+                </div>
+
+                <div class="row">
+                    <label>نام سایت</label>
+                    <input type="text" class="form-input" id="siteNameInput" value="VORTEXPLAY">
+                </div>
+                <div class="row">
+                    <label>زیرنویس سایت</label>
+                    <input type="text" class="form-input" id="siteSubInput" value="GAMING EMPIRE">
+                </div>
+                <div class="row">
+                    <label>متن وضعیت</label>
+                    <input type="text" class="form-input" id="statusInput" value="SYSTEM STATUS: ONLINE">
+                </div>
+
+                <button class="btn btn-primary" onclick="saveAppearance()">ذخیره ظاهر</button>
+            </div>
+
+            <!-- بخش ۲: افزودن/حذف دسته‌بندی -->
+            <div class="panel-section">
+                <h3 class="section-title"><i class="fas fa-th-large"></i> مدیریت دسته‌بندی‌ها</h3>
+
+                <div id="adminCatList">
+                    <!-- از JS پر می‌شود -->
+                </div>
+
+                <hr style="border-color:rgba(96,165,250,0.2); margin:15px 0;">
+
+                <h5 style="color:#ffd700; margin-bottom:10px;">افزودن دسته جدید</h5>
+                <div class="row">
+                    <label>عنوان</label>
+                    <input type="text" class="form-input" id="newCatTitle" placeholder="مثال: MOVIES">
+                </div>
+                <div class="row">
+                    <label>توضیح</label>
+                    <input type="text" class="form-input" id="newCatDesc" placeholder="توضیح کوتاه">
+                </div>
+                <button class="btn btn-success" onclick="addCategory()">افزودن دسته</button>
+            </div>
+
+            <!-- بخش ۳: ارسال پیام به دسته‌بندی -->
+            <div class="panel-section">
+                <h3 class="section-title"><i class="fas fa-paper-plane"></i> ارسال پیام به دسته</h3>
+
+                <div class="row">
+                    <label>انتخاب دسته</label>
+                    <select class="form-input" id="targetCatSelect">
+                        <!-- از JS پر می‌شود -->
+                    </select>
+                </div>
+                <div class="row">
+                    <label>متن پیام</label>
+                    <textarea class="form-input" id="newMessageText" rows="3" placeholder="متن پیام خود را بنویسید..."></textarea>
+                </div>
+                <button class="btn btn-primary" onclick="sendMessage()">ارسال پیام</button>
+            </div>
+
+            <div class="save-all-note" id="globalSaveNote">✅ همه تغییرات ذخیره شد!</div>
         </div>
     </div>
+
+    <script>
+        // === رمز ۳۲ رقمی ===
+        const ADMIN_PASSWORD = 'a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6';
+
+        // === داده‌های سایت ===
+        let siteData = {
+            siteName: 'VORTEXPLAY',
+            siteSub: 'GAMING EMPIRE',
+            statusText: 'SYSTEM STATUS: ONLINE',
+            bgImage: null,
+            logoImage: null,
+            bannerImage: null,
+            categories: [
+                { id: 1, title: 'BACKUP & TUTORIALS', desc: 'Guides & System Files', messages: [] },
+                { id: 2, title: 'PS5 GAME', desc: 'PlayStation 5 Games & PKGs', messages: [] },
+                { id: 3, title: 'GAME PHOTOS', desc: 'Wallpapers & Screenshots', messages: [] }
+            ]
+        };
+
+        // بارگذاری از حافظه محلی
+        function loadData() {
+            const saved = localStorage.getItem('vortexData');
+            if (saved) siteData = JSON.parse(saved);
+            renderAll();
+        }
+        function saveData() {
+            localStorage.setItem('vortexData', JSON.stringify(siteData));
+            showGlobalNote();
+        }
+        function showGlobalNote() {
+            const note = document.getElementById('globalSaveNote');
+            note.style.display = 'block';
+            setTimeout(() => note.style.display = 'none', 3000);
+        }
+
+        // === رندر صفحه اصلی ===
+        function renderAll() {
+            document.getElementById('siteNameDisplay').textContent = siteData.siteName;
+            document.getElementById('siteSubDisplay').textContent = siteData.siteSub;
+            document.getElementById('statusDisplay').textContent = siteData.statusText;
+
+            // پس‌زمینه
+            if (siteData.bgImage) {
+                document.getElementById('customBg').style.backgroundImage = `url(${siteData.bgImage})`;
+            }
+            // لوگو
+            const logoDisplay = document.getElementById('logoDisplay');
+            const logoImg = document.getElementById('logoImg');
+            if (siteData.logoImage) {
+                logoImg.src = siteData.logoImage;
+                logoDisplay.classList.add('show-img');
+            } else {
+                logoDisplay.classList.remove('show-img');
+            }
+            // بنر
+            const bannerDisplay = document.getElementById('bannerDisplay');
+            const bannerImg = document.getElementById('bannerImg');
+            if (siteData.bannerImage) {
+                bannerImg.src = siteData.bannerImage;
+                bannerDisplay.classList.add('show-img');
+            } else {
+                bannerDisplay.classList.remove('show-img');
+            }
+
+            // کارت‌ها
+            const container = document.getElementById('cardsContainer');
+            container.innerHTML = '';
+            siteData.categories.forEach(cat => {
+                const card = document.createElement('div');
+                card.className = 'cat-card';
+                card.innerHTML = `
+                    <div class="cat-card-header">
+                        <h3 class="cat-card-title">${cat.title}</h3>
+                        <i class="fas fa-folder-open" style="color:var(--cyan)"></i>
+                    </div>
+                    <p class="cat-card-desc">${cat.desc}</p>
+                    <div class="messages-list">
+                        ${cat.messages.map((msg, idx) => `
+                            <div class="msg-item">
+                                <span class="msg-text">${msg}</span>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+
+            // رندر لیست در پنل مدیریت
+            renderAdminPanelLists();
+        }
+
+        function renderAdminPanelLists() {
+            // لیست دسته‌ها برای ویرایش/حذف
+            const list = document.getElementById('adminCatList');
+            const select = document.getElementById('targetCatSelect');
+            list.innerHTML = '';
+            select.innerHTML = '';
+
+            siteData.categories.forEach((cat, index) => {
+                const item = document.createElement('div');
+                item.className = 'cat-item';
+                item.innerHTML = `
+                    <div style="font-weight:700; margin-bottom:5px;">${cat.title}</div>
+                    <div style="font-size:0.8rem; color:#94a3b8; margin-bottom:8px;">${cat.desc}</div>
+                    <div style="font-size:0.75rem; color:#6b7280;">تعداد پیام: ${cat.messages.length}</div>
+                    <div class="cat-item-actions">
+                        <button class="btn-danger" onclick="deleteCategory(${index})">حذف</button>
+                    </div>
+                `;
+                list.appendChild(item);
+
+                const opt = document.createElement('option');
+                opt.value = index;
+                opt.textContent = cat.title;
+                select.appendChild(opt);
+            });
+        }
+
+        // === ورود رمز ===
+        function openLogin() {
+            document.getElementById('loginOverlay').classList.add('active');
+            document.getElementById('passInput').value = '';
+            document.getElementById('passError').style.display = 'none';
+        }
+        function checkPassword() {
+            const pass = document.getElementById('passInput').value.trim();
+            if (pass === ADMIN_PASSWORD) {
+                document.getElementById('loginOverlay').classList.remove('active');
+                openAdminPanel();
+            } else {
+                document.getElementById('passError').style.display = 'block';
+            }
+        }
+        function openAdminPanel() {
+            // پر کردن مقادیر در پنل
+            document.getElementById('siteNameInput').value = siteData.siteName;
+            document.getElementById('siteSubInput').value = siteData.siteSub;
+            document.getElementById('statusInput').value = siteData.statusText;
+            renderAdminPanelLists();
+            document.getElementById('adminPanel').classList.add('active');
+        }
+        function closeAdminPanel() {
+            document.getElementById('adminPanel').classList.remove('active');
+        }
+
+        // === آپلود تصاویر ===
+        function uploadBg(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    siteData.bgImage = e.target.result;
+                    saveData(); renderAll();
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+        function uploadLogo(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    siteData.logoImage = e.target.result;
+                    saveData(); renderAll();
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+        function uploadBanner(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = e => {
+                    siteData.bannerImage = e.target.result;
+                    saveData(); renderAll();
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        // === ذخیره ظاهر ===
+        function saveAppearance() {
+            siteData.siteName = document.getElementById('siteNameInput').value.trim();
+            siteData.siteSub = document.getElementById('siteSubInput').value.trim();
+            siteData.statusText = document.getElementById('statusInput').value.trim();
+            saveData(); renderAll();
+        }
+
+        // === مدیریت دسته‌بندی‌ها ===
+        function addCategory() {
+            const title = document.getElementById('newCatTitle').value.trim();
+            const desc = document.getElementById('newCatDesc').value.trim();
+            if (!title) return alert('عنوان را وارد کن!');
+            siteData.categories.push({
+                id: Date.now(),
+                title,
+                desc: desc || 'بدون توضیح',
+                messages: []
+            });
+            document.getElementById('newCatTitle').value = '';
+            document.getElementById('newCatDesc').value = '';
+            saveData(); renderAll();
+        }
+        function deleteCategory(index) {
+            if (!confirm('مطمئنی؟ این دسته و تمام پیام‌هایش حذف می‌شود!')) return;
+            siteData.categories.splice(index, 1);
+            saveData(); renderAll();
+        }
+
+        // === ارسال پیام ===
+        function sendMessage() {
+            const catIndex = parseInt(document.getElementById('targetCatSelect').value);
+            const text = document.getElementById('newMessageText').value.trim();
+            if (!text) return alert('متن پیام را بنویس!');
+            siteData.categories[catIndex].messages.push(text);
+            document.getElementById('newMessageText').value = '';
+            saveData(); renderAll();
+        }
+
+        // شروع
+        loadData();
+    </script>
 </body>
 </html>
