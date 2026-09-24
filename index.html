@@ -1,10 +1,9 @@
-
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VORTEXPLAY | تم سلطنتی</title>
+    <title>VORTEXPLAY | خفن‌ترین</title>
     <style>
         * {margin: 0; padding: 0; box-sizing: border-box; font-family: Tahoma, sans-serif;}
 
@@ -14,7 +13,7 @@
             --royal: #4B0082;
             --royal-light: #8A2BE2;
             --bg-main: #1A0E2B;
-            --bg-card: #2B1447;
+            --bg-card: rgba(43, 20, 71, 0.85);
             --text-light: #FFFFFF;
         }
 
@@ -22,132 +21,183 @@
             background: var(--bg-main);
             color: var(--text-light);
             min-height: 100vh;
-            background-image: 
-                radial-gradient(circle at 20% 20%, rgba(212,175,55,0.1) 0%, transparent 40%),
-                radial-gradient(circle at 80% 80%, rgba(75,0,130,0.15) 0%, transparent 40%);
+            background-size: cover;
+            background-position: center;
+            background-attachment: fixed;
+            transition: background 0.5s ease;
+        }
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(circle at 20% 20%, rgba(212,175,55,0.15) 0%, transparent 50%),
+                        radial-gradient(circle at 80% 80%, rgba(75,0,130,0.2) 0%, transparent 50%);
+            pointer-events: none;
+            z-index: 0;
         }
 
-        .container {max-width: 900px; margin: 0 auto; padding: 30px 20px;}
+        .container {max-width: 900px; margin: 0 auto; padding: 30px 20px; position: relative; z-index: 1;}
 
-        /* کاور */
+        /* === کاور خفن === */
         .cover {
-            width: 100%; height: 200px; border-radius: 16px; overflow: hidden;
-            margin-bottom: -60px; position: relative; z-index: 1;
-            box-shadow: 0 0 25px rgba(212,175,55,0.3);
+            width: 100%; height: 220px; border-radius: 20px; overflow: hidden;
+            margin-bottom: -70px; position: relative; z-index: 2;
+            box-shadow: 0 0 30px rgba(212,175,55,0.4), inset 0 0 40px rgba(0,0,0,0.4);
+            border: 2px solid rgba(212,175,55,0.3);
         }
         .cover img {width: 100%; height: 100%; object-fit: cover;}
 
-        /* دایره نئونی لوگو */
+        /* === لوگو با نورپردازی === */
         .logo-wrap {
-            width: 140px; height: 140px; margin: 0 auto; border-radius: 50%;
+            width: 150px; height: 150px; margin: 0 auto; border-radius: 50%;
             background: var(--bg-main); display: flex; align-items: center; justify-content: center;
-            position: relative; z-index: 2;
+            position: relative; z-index: 3;
             box-shadow: 
                 0 0 0 4px var(--gold),
-                0 0 25px rgba(255,215,0,0.5),
-                0 0 40px rgba(138,43,226,0.3);
-            animation: pulse 3s ease-in-out infinite alternate;
+                0 0 30px rgba(255,215,0,0.6),
+                0 0 50px rgba(138,43,226,0.4),
+                inset 0 0 25px rgba(255,215,0,0.25);
+            animation: royalGlow 3s ease-in-out infinite alternate;
         }
-        @keyframes pulse {
-            from {box-shadow: 0 0 0 4px var(--gold), 0 0 25px rgba(255,215,0,0.5);}
-            to   {box-shadow: 0 0 0 4px var(--royal-light), 0 0 30px rgba(138,43,226,0.6);}
+        @keyframes royalGlow {
+            from {
+                box-shadow: 0 0 0 4px var(--gold), 0 0 30px rgba(255,215,0,0.6), 0 0 50px rgba(138,43,226,0.4);
+            }
+            to {
+                box-shadow: 0 0 0 4px var(--royal-light), 0 0 40px rgba(138,43,226,0.7), 0 0 60px rgba(255,215,0,0.5);
+            }
         }
-        .logo-wrap img {width: 115px; height: 115px; border-radius: 50%; object-fit: cover; border: 3px solid var(--gold);}
+        .logo-wrap img {width: 125px; height: 125px; border-radius: 50%; object-fit: cover; border: 3px solid var(--gold);}
 
-        header {text-align: center; padding: 20px 0 30px;}
-        h1 {font-size: 2.4rem; color: var(--gold-light); text-shadow: 0 0 15px rgba(255,215,0,0.5); margin: 10px 0 5px;}
-        .desc {color: #D0B8F0; font-size: 1rem;}
+        header {text-align: center; padding: 20px 0 35px;}
+        h1 {font-size: 2.6rem; color: var(--gold-light); text-shadow: 0 0 20px rgba(255,215,0,0.6); margin: 15px 0 8px;}
+        .desc {color: #E0D0F5; font-size: 1.1rem; text-shadow: 0 0 10px rgba(138,43,226,0.4);}
 
         .divider {
-            height: 2px; border: none;
+            height: 3px; border: none;
             background: linear-gradient(90deg, transparent, var(--gold), var(--royal-light), var(--gold), transparent);
-            margin: 25px 0; box-shadow: 0 0 10px rgba(255,215,0,0.4);
+            margin: 30px 0; box-shadow: 0 0 15px rgba(255,215,0,0.5); border-radius: 2px;
         }
 
-        /* دسته‌بندی */
-        .cats {display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 25px;}
+        /* === دسته‌بندی === */
+        .cats {display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 30px;}
         .cat {
-            padding: 10px 20px; background: var(--bg-card); border-radius: 30px; cursor: pointer;
-            color: #D0B8F0; border: 2px solid transparent; transition: 0.3s;
+            padding: 12px 24px; background: var(--bg-card); border-radius: 50px; cursor: pointer;
+            color: #E0D0F5; border: 2px solid transparent; transition: 0.3s;
+            backdrop-filter: blur(10px);
         }
-        .cat:hover, .cat.active {border-color: var(--gold); color: var(--gold-light); box-shadow: 0 0 12px rgba(255,215,0,0.3);}
+        .cat:hover, .cat.active {
+            border-color: var(--gold); color: var(--gold-light);
+            box-shadow: 0 0 20px rgba(255,215,0,0.4); transform: translateY(-2px);
+            background: rgba(212,175,55,0.15);
+        }
 
-        /* کارت محتوا */
+        /* === دکمه‌های سفارشی با عکس === */
+        .custom-buttons {display: flex; flex-wrap: wrap; gap: 15px; margin: 20px 0 30px;}
+        .btn-card {
+            display: flex; align-items: center; gap: 12px; padding: 14px 22px;
+            background: var(--bg-card); border-radius: 14px; text-decoration: none;
+            border: 2px solid rgba(212,175,55,0.25); transition: 0.3s;
+            min-width: 160px; backdrop-filter: blur(10px);
+        }
+        .btn-card:hover {
+            border-color: var(--gold); box-shadow: 0 0 25px rgba(255,215,0,0.35);
+            transform: translateY(-3px) scale(1.02);
+        }
+        .btn-card.purple:hover {box-shadow: 0 0 25px rgba(138,43,226,0.4); border-color: var(--royal-light);}
+        .btn-icon {width: 40px; height: 40px; border-radius: 10px; object-fit: cover; background: linear-gradient(135deg, var(--gold), var(--royal));}
+        .btn-text {color: white; font-weight: bold; font-size: 1rem;}
+
+        /* === کارت محتوا === */
         .card {
-            background: var(--bg-card); border-radius: 16px; padding: 20px; margin-bottom: 15px;
-            border: 1px solid rgba(212,175,55,0.2); transition: 0.3s;
+            background: var(--bg-card); border-radius: 18px; padding: 22px; margin-bottom: 18px;
+            border: 2px solid rgba(212,175,55,0.2); transition: 0.3s;
+            backdrop-filter: blur(10px);
         }
-        .card:hover {border-color: var(--gold); box-shadow: 0 0 20px rgba(255,215,0,0.2); transform: translateY(-3px);}
-        .card-img {width: 100%; height: 160px; border-radius: 10px; object-fit: cover; margin-bottom: 12px; background: linear-gradient(135deg, var(--royal), var(--gold));}
-        .card h3 {color: var(--gold-light); margin-bottom: 6px;}
-        .card p {color: #C0B0D0; margin-bottom: 12px; line-height: 1.7;}
-        .btn-gold {
-            display: inline-block; padding: 10px 20px; background: linear-gradient(135deg, #B8860B, #FFD700);
-            color: white; border-radius: 8px; text-decoration: none; font-weight: bold; transition: 0.3s;
-            box-shadow: 0 0 10px rgba(255,215,0,0.3);
+        .card:hover {
+            border-color: var(--gold); box-shadow: 0 0 30px rgba(255,215,0,0.25);
+            transform: translateY(-4px);
         }
-        .btn-gold:hover {transform: scale(1.03); box-shadow: 0 0 20px rgba(255,215,0,0.6);}
+        .card-img {width: 100%; height: 180px; border-radius: 12px; object-fit: cover; margin-bottom: 15px; background: linear-gradient(135deg, var(--royal), var(--gold));}
+        .card h3 {color: var(--gold-light); margin-bottom: 8px; font-size: 1.3rem;}
+        .card p {color: #D5C5E8; margin-bottom: 15px; line-height: 1.8;}
+        .download-btn {
+            display: inline-flex; align-items: center; gap: 8px; padding: 12px 28px;
+            background: linear-gradient(135deg, #B8860B, #FFD700, #FFA500);
+            color: white; border-radius: 10px; text-decoration: none; font-weight: bold;
+            transition: 0.3s; box-shadow: 0 0 15px rgba(255,215,0,0.4);
+        }
+        .download-btn:hover {transform: scale(1.05); box-shadow: 0 0 30px rgba(255,215,0,0.7);}
 
         /* === پنل مدیریت === */
-        .admin-link {text-align: center; margin-top: 40px;}
-        .admin-btn {
-            padding: 12px 30px; background: transparent; border: 2px solid var(--gold);
-            color: var(--gold-light); border-radius: 10px; font-weight: bold; cursor: pointer;
-            transition: 0.3s; font-size: 1rem;
+        .admin-link {text-align: center; margin-top: 50px;}
+        .admin-main-btn {
+            padding: 14px 40px; background: transparent; border: 2px solid var(--gold);
+            color: var(--gold-light); border-radius: 12px; font-weight: bold; cursor: pointer;
+            transition: 0.3s; font-size: 1.05rem; backdrop-filter: blur(10px);
         }
-        .admin-btn:hover {background: var(--gold); color: var(--bg-main); box-shadow: 0 0 20px rgba(255,215,0,0.5);}
+        .admin-main-btn:hover {
+            background: linear-gradient(135deg, var(--gold-dark), var(--gold));
+            color: white; box-shadow: 0 0 25px rgba(255,215,0,0.5); transform: scale(1.03);
+        }
 
-        .panel {background: var(--bg-card); border-radius: 20px; padding: 25px; border: 1px solid rgba(212,175,55,0.3); margin-top: 20px;}
-        .back {color: var(--gold-light); text-decoration: none; display: inline-block; margin-bottom: 20px;}
+        .panel {background: var(--bg-card); border-radius: 24px; padding: 28px; border: 2px solid rgba(212,175,55,0.3); margin-top: 25px; backdrop-filter: blur(15px);}
+        .back-link {color: var(--gold-light); text-decoration: none; display: inline-flex; align-items: center; gap: 6px; margin-bottom: 20px; font-weight: bold;}
+        .back-link:hover {text-shadow: 0 0 10px rgba(255,215,0,0.5);}
         
-        /* دو دکمه اصلی پنل */
-        .panel-tabs {display: flex; gap: 10px; margin-bottom: 25px;}
+        .panel-tabs {display: flex; gap: 12px; margin-bottom: 30px;}
         .panel-tab {
-            flex: 1; padding: 12px; background: transparent; border: 2px solid var(--royal-light);
-            color: var(--royal-light); border-radius: 10px; font-weight: bold; cursor: pointer; transition: 0.3s;
+            flex: 1; padding: 14px; background: transparent; border: 2px solid var(--royal-light);
+            color: #B090E0; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.3s;
         }
-        .panel-tab.active {background: var(--royal-light); color: white; box-shadow: 0 0 15px rgba(138,43,226,0.4);}
+        .panel-tab.active {
+            background: linear-gradient(135deg, var(--royal), var(--royal-light));
+            color: white; box-shadow: 0 0 20px rgba(138,43,226,0.4); border-color: transparent;
+        }
         
         input, textarea, select {
-            width: 100%; padding: 12px; margin: 8px 0; border: 2px solid rgba(212,175,55,0.3);
-            border-radius: 8px; background: rgba(0,0,0,0.2); color: white; font-size: 0.95rem;
+            width: 100%; padding: 14px; margin: 10px 0; border: 2px solid rgba(212,175,55,0.3);
+            border-radius: 10px; background: rgba(0,0,0,0.3); color: white; font-size: 0.98rem;
         }
-        input:focus, textarea:focus {outline: none; border-color: var(--gold); box-shadow: 0 0 10px rgba(255,215,0,0.3);}
-        textarea {min-height: 90px; resize: vertical;}
+        input:focus, textarea:focus {outline: none; border-color: var(--gold); box-shadow: 0 0 15px rgba(255,215,0,0.3);}
+        textarea {min-height: 100px; resize: vertical;}
         
-        .file-label {
-            display: block; padding: 12px; background: rgba(212,175,55,0.1); border: 2px dashed var(--gold);
-            border-radius: 8px; text-align: center; cursor: pointer; margin: 10px 0;
+        .file-upload {
+            display: block; padding: 16px; background: rgba(212,175,55,0.1); border: 2px dashed var(--gold);
+            border-radius: 12px; text-align: center; cursor: pointer; margin: 12px 0; transition: 0.3s;
         }
+        .file-upload:hover {background: rgba(212,175,55,0.2); border-style: solid;}
         
-        .act-btn {padding: 12px 25px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin: 5px; transition: 0.3s;}
-        .gold-btn {background: linear-gradient(135deg, #B8860B, #FFD700); color: white;}
-        .gold-btn:hover {box-shadow: 0 0 15px rgba(255,215,0,0.5);}
-        .purple-btn {background: linear-gradient(135deg, #4B0082, #8A2BE2); color: white;}
-        .purple-btn:hover {box-shadow: 0 0 15px rgba(138,43,226,0.5);}
-        .del-btn {background: #aa2233; color: white;}
+        .act-btn {padding: 14px 28px; border: none; border-radius: 10px; font-weight: bold; cursor: pointer; margin: 6px; transition: 0.3s; font-size: 0.98rem;}
+        .gold-btn {background: linear-gradient(135deg, #B8860B, #FFD700); color: white; box-shadow: 0 0 12px rgba(255,215,0,0.3);}
+        .gold-btn:hover {box-shadow: 0 0 25px rgba(255,215,0,0.6); transform: scale(1.03);}
+        .purple-btn {background: linear-gradient(135deg, #4B0082, #8A2BE2); color: white; box-shadow: 0 0 12px rgba(138,43,226,0.3);}
+        .purple-btn:hover {box-shadow: 0 0 25px rgba(138,43,226,0.6); transform: scale(1.03);}
+        .del-btn {background: linear-gradient(135deg, #992233, #CC3344); color: white;}
         
-        .ok {color: #00FF88; margin-top: 8px;}
-        .err {color: #FF5566; margin-top: 8px;}
+        .success {color: #00FF99; margin-top: 10px;}
+        .error {color: #FF6677; margin-top: 10px;}
         .hidden {display: none !important;}
         
-        .cat-item {display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: rgba(255,255,255,0.05); border-radius: 8px; margin: 5px 0;}
-        footer {text-align: center; margin-top: 50px; padding: 20px; color: #776699; font-size: 0.9rem; border-top: 1px solid rgba(212,175,55,0.15);}
+        .item-row {display: flex; justify-content: space-between; align-items: center; padding: 12px 16px; background: rgba(255,255,255,0.05); border-radius: 10px; margin: 8px 0;}
+        .btn-preview-icon {width: 32px; height: 32px; border-radius: 6px; object-fit: cover; margin-left: 10px;}
+        
+        footer {text-align: center; margin-top: 60px; padding: 25px; color: #8877AA; font-size: 0.95rem; border-top: 1px solid rgba(212,175,55,0.15);}
     </style>
 </head>
 <body>
     <div class="container" id="main-page">
-        <!-- کاور -->
+        <!-- کاور خفن -->
         <div class="cover">
-            <img id="cover-img" src="" alt="کاور" onerror="this.src='https://via.placeholder.com/900x200/4B0082/FFD700?text=VORTEXPLAY'">
+            <img id="cover-img" src="" alt="کاور" onerror="this.src='https://via.placeholder.com/900x220/4B0082/FFD700?text=VORTEXPLAY+%7C+V'">
         </div>
 
         <header>
             <div class="logo-wrap">
-                <img id="logo-img" src="" alt="لوگو" onerror="this.src='https://via.placeholder.com/115/D4AF37/FFFFFF?text=V'">
+                <img id="logo-img" src="" alt="لوگو" onerror="this.src='https://via.placeholder.com/125/D4AF37/FFFFFF?text=VP'">
             </div>
             <h1 id="site-title">VORTEXPLAY</h1>
-            <p class="desc" id="site-desc">درگاه سلطنتی محتوا و بازی‌ها</p>
+            <p class="desc" id="site-desc">پایگاه سلطنتی بازی‌ها و سرگرمی</p>
         </header>
 
         <hr class="divider">
@@ -155,384 +205,384 @@
         <!-- دسته‌بندی‌ها -->
         <div class="cats" id="cats-bar"></div>
 
+        <!-- دکمه‌های سفارشی با عکس -->
+        <div class="custom-buttons" id="btns-bar"></div>
+
         <!-- لیست محتوا -->
-        <div id="content-list" style="margin-top:25px;"></div>
+        <div id="content-list"></div>
 
         <div class="admin-link">
-            <button class="admin-btn" onclick="showAdmin()">🔐 پنل مدیریت</button>
+            <button class="admin-main-btn" onclick="openAdmin()">🔐 پنل مدیریت خفن</button>
         </div>
 
         <footer>
-            <p>© ۱۴۰۵ VORTEXPLAY | تم سلطنتی طلایی 👑</p>
+            <p>👑 VORTEXPLAY | تم سلطنتی طلایی 🔥</p>
         </footer>
     </div>
 
     <!-- صفحه مدیریت -->
     <div class="container hidden" id="admin-page">
-        <a href="javascript:hideAdmin()" class="back">← بازگشت به سایت</a>
+        <a href="javascript:closeAdmin()" class="back-link">← بازگشت به سایت</a>
 
         <!-- ورود -->
         <div id="login-box" class="panel">
-            <h2>🔐 ورود به پنل مدیریت</h2>
-            <input type="password" id="pass-input" placeholder="رمز ۳۲ رقمی را وارد کنید...">
-            <button class="act-btn gold-btn" onclick="checkPass()">ورود</button>
-            <p id="login-msg" class="err"></p>
+            <h2>🔐 ورود به پنل</h2>
+            <input type="password" id="pass-input" placeholder="رمز ۳۲ رقمی">
+            <button class="act-btn gold-btn" onclick="checkPassword()">ورود ✅</button>
+            <p id="login-msg" class="error"></p>
         </div>
 
-        <!-- پنل اصلی با دو بخش -->
-        <div id="admin-panel" class="panel hidden">
+        <!-- پنل اصلی -->
+        <div id="admin-main-panel" class="panel hidden">
             <h2>👑 کنترل کامل سایت</h2>
             <hr style="border:none; border-top:1px solid rgba(212,175,55,0.2); margin:20px 0;">
 
-            <!-- دو دکمه جابجایی بین بخش‌ها -->
+            <!-- دو تب اصلی -->
             <div class="panel-tabs">
-                <button class="panel-tab active" onclick="switchTab('design')">🎨 ظاهر سایت</button>
-                <button class="panel-tab" onclick="switchTab('content')">📦 مدیریت محتوا</button>
+                <button class="panel-tab active" onclick="switchTab('look')">🎨 ظاهر و پس‌زمینه</button>
+                <button class="panel-tab" onclick="switchTab('content')">📦 محتوا و دکمه‌ها</button>
             </div>
 
-            <!-- === بخش اول: ظاهر سایت === -->
-            <div id="tab-design">
-                <h3>🎨 تنظیمات ظاهری</h3>
-                
-                <label class="file-label">
-                    📷 انتخاب لوگو از گالری
+            <!-- === تب اول: ظاهر سایت === -->
+            <div id="tab-look">
+                <h3>🖼️ پس‌زمینه سایت</h3>
+                <label class="file-upload">
+                    📷 انتخاب عکس پس‌زمینه از گالری
+                    <input type="file" id="bg-file" accept="image/*" style="display:none" onchange="previewBg(event)">
+                </label>
+                <p id="bg-status" class="success"></p>
+                <button class="act-btn purple-btn" onclick="clearBg()">حذف پس‌زمینه</button>
+
+                <hr style="border:none; border-top:1px solid rgba(212,175,55,0.2); margin:25px 0;">
+
+                <h3>🎨 لوگو و کاور</h3>
+                <label class="file-upload">
+                    📷 انتخاب لوگو
                     <input type="file" id="logo-file" accept="image/*" style="display:none" onchange="previewLogo(event)">
                 </label>
-                <p id="logo-status" class="ok"></p>
+                <p id="logo-status" class="success"></p>
 
-                <label class="file-label">
+                <label class="file-upload">
                     🖼️ انتخاب کاور بالای صفحه
                     <input type="file" id="cover-file" accept="image/*" style="display:none" onchange="previewCover(event)">
                 </label>
-                <p id="cover-status" class="ok"></p>
+                <p id="cover-status" class="success"></p>
 
-                <label>🎨 رنگ پس‌زمینه:</label>
-                <input type="color" id="bg-color-picker" value="#1A0E2B">
-                <button class="act-btn purple-btn" onclick="applyBgColor()">اعمال پس‌زمینه</button>
+                <input type="text" id="edit-title" placeholder="نام سایت">
+                <input type="text" id="edit-desc" placeholder="توضیح سایت">
 
-                <input type="text" id="input-title" placeholder="نام سایت">
-                <input type="text" id="input-desc" placeholder="توضیح کوتاه سایت">
-                
-                <button class="act-btn gold-btn" onclick="saveDesignSettings()">✅ ذخیره تغییرات ظاهری</button>
-                <p id="design-msg" class="ok"></p>
+                <button class="act-btn gold-btn" onclick="saveLook()">✅ ذخیره همه تغییرات</button>
+                <p id="look-msg" class="success"></p>
             </div>
 
-            <!-- === بخش دوم: مدیریت محتوا === -->
+            <!-- === تب دوم: محتوا و دکمه‌ها === -->
             <div id="tab-content" class="hidden">
+                <!-- دکمه‌های سفارشی با عکس -->
+                <h3>🔘 دکمه‌های بالای سایت (با عکس)</h3>
+                <input type="text" id="btn-name" placeholder="متن دکمه">
+                <input type="url" id="btn-link" placeholder="لینک مقصد">
+                <label class="file-upload">
+                    📷 آیکون دکمه
+                    <input type="file" id="btn-icon-file" accept="image/*" style="display:none" onchange="previewBtnIcon(event)">
+                </label>
+                <p id="btn-icon-status" class="success"></p>
+                <select id="btn-style">
+                    <option value="gold">طلایی</option>
+                    <option value="purple">بنفش</option>
+                </select>
+                <button class="act-btn purple-btn" onclick="addButton()">➕ اضافه کردن دکمه</button>
+                <div id="btn-list" style="margin-top:15px;"></div>
+
+                <hr style="border:none; border-top:1px solid rgba(212,175,55,0.2); margin:25px 0;">
+
                 <!-- دسته‌بندی‌ها -->
                 <h3>📂 دسته‌بندی‌ها</h3>
-                <input type="text" id="new-cat-name" placeholder="نام دسته‌بندی جدید">
+                <input type="text" id="cat-name" placeholder="نام دسته‌بندی جدید">
                 <button class="act-btn purple-btn" onclick="addCategory()">➕ ساخت دسته‌بندی</button>
                 <div id="cat-list" style="margin-top:15px;"></div>
 
                 <hr style="border:none; border-top:1px solid rgba(212,175,55,0.2); margin:25px 0;">
 
                 <!-- محتوای جدید -->
-                <h3>➕ انتشار محتوای جدید</h3>
-                <select id="content-category">
-                    <!-- دسته‌ها اینجا نمایش داده میشن -->
-                </select>
-                <input type="text" id="content-title" placeholder="عنوان / نام بازی">
-                <textarea id="content-text" placeholder="توضیحات و معرفی..."></textarea>
-                
-                <label class="file-label">
-                    📷 انتخاب عکس از گالری
-                    <input type="file" id="content-image-file" accept="image/*" style="display:none" onchange="previewContentImage(event)">
+                <h3>➕ انتشار محتوا</h3>
+                <select id="content-cat"></select>
+                <input type="text" id="cont-title" placeholder="عنوان">
+                <textarea id="cont-desc" placeholder="توضیحات"></textarea>
+                <label class="file-upload">
+                    📷 عکس کاور محتوا
+                    <input type="file" id="cont-img-file" accept="image/*" style="display:none" onchange="previewContImg(event)">
                 </label>
-                <p id="content-img-status" class="ok"></p>
-                
-                <input type="url" id="content-download-link" placeholder="لینک دانلود یا ورود">
-                
-                <button class="act-btn gold-btn" onclick="publishContent()">✅ انتشار محتوا</button>
-                <p id="content-msg" class="ok"></p>
+                <p id="cont-img-status" class="success"></p>
+                <input type="url" id="cont-link" placeholder="لینک دانلود">
+                <button class="act-btn gold-btn" onclick="publishContent()">✅ انتشار</button>
+                <p id="cont-msg" class="success"></p>
             </div>
         </div>
     </div>
 
     <script>
-        // === تنظیمات اصلی ===
-        let ADMIN_PASSWORD = "VORTEX9X7K2P4R8M3N5L6J1H9G8F7D6S5A4D3B";
-        let activeTab = 'design';
-        let selectedLogo = null, selectedCover = null, selectedContentImage = null;
-        let activeCategoryFilter = 'همه';
+        // === تنظیمات ===
+        let PASSWORD = "VORTEX9X7K2P4R8M3N5L6J1H9G8F7D6S5A4D3B";
+        let activeTab = 'look';
+        let bgImage = null, logoImage = null, coverImage = null, btnIcon = null, contentImage = null;
+        let activeCatFilter = 'همه';
 
-        // === بارگذاری همه داده‌ها از حافظه ===
-        function loadAllData() {
-            // رمز
-            const savedPass = localStorage.getItem('admin_password');
-            if(savedPass) ADMIN_PASSWORD = savedPass;
+        // === بارگذاری همه داده‌ها ===
+        function loadAll() {
+            if(localStorage.getItem('admin_pass')) PASSWORD = localStorage.getItem('admin_pass');
 
-            // تنظیمات ظاهری
-            const siteTitle = localStorage.getItem('site_title') || 'VORTEXPLAY';
-            const siteDesc = localStorage.getItem('site_description') || 'درگاه سلطنتی محتوا و بازی‌ها';
-            const logo = localStorage.getItem('site_logo');
-            const cover = localStorage.getItem('site_cover');
-            const bgColor = localStorage.getItem('site_background');
+            // پس‌زمینه
+            const savedBg = localStorage.getItem('bg_image');
+            if(savedBg) document.body.style.backgroundImage = `url(${savedBg})`;
 
-            document.getElementById('site-title').textContent = siteTitle;
-            document.getElementById('site-desc').textContent = siteDesc;
-            if(logo) document.getElementById('logo-img').src = logo;
-            if(cover) document.getElementById('cover-img').src = cover;
-            if(bgColor) document.body.style.background = bgColor;
+            // لوگو و کاور
+            const savedLogo = localStorage.getItem('logo_image');
+            const savedCover = localStorage.getItem('cover_image');
+            const savedTitle = localStorage.getItem('site_title') || 'VORTEXPLAY';
+            const savedDesc = localStorage.getItem('site_desc') || 'پایگاه سلطنتی بازی‌ها و سرگرمی';
+            
+            if(savedLogo) document.getElementById('logo-img').src = savedLogo;
+            if(savedCover) document.getElementById('cover-img').src = savedCover;
+            document.getElementById('site-title').textContent = savedTitle;
+            document.getElementById('site-desc').textContent = savedDesc;
 
-            // پر کردن فرم‌ها با مقادیر فعلی
-            document.getElementById('input-title').value = siteTitle;
-            document.getElementById('input-desc').value = siteDesc;
-            if(bgColor) document.getElementById('bg-color-picker').value = bgColor;
+            // پر کردن فرم
+            document.getElementById('edit-title').value = savedTitle;
+            document.getElementById('edit-desc').value = savedDesc;
 
-            // نمایش محتوا
+            renderButtons();
             renderCategories();
-            renderContentList();
+            renderContent();
         }
 
-        // === جابجایی بین دو تب پنل ===
-        function switchTab(tabName) {
-            activeTab = tabName;
-            // تغییر حالت دکمه‌ها
-            document.querySelectorAll('.panel-tab').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
-            // نمایش/پنهان کردن بخش‌ها
-            document.getElementById('tab-design').classList.toggle('hidden', tabName !== 'design');
-            document.getElementById('tab-content').classList.toggle('hidden', tabName !== 'content');
-            // به‌روزرسانی لیست دسته‌بندی‌ها
-            if(tabName === 'content') renderCategoriesInPanel();
+        // === تب‌ها ===
+        function switchTab(tab) {
+            activeTab = tab;
+            document.querySelectorAll('.panel-tab').forEach((b, i) => b.classList.toggle('active', 
+                (tab === 'look' && i === 0) || (tab === 'content' && i === 1)));
+            document.getElementById('tab-look').classList.toggle('hidden', tab !== 'look');
+            document.getElementById('tab-content').classList.toggle('hidden', tab !== 'content');
+            if(tab === 'content') { renderButtonsInPanel(); renderCatsInPanel(); }
         }
 
-        // === دسته‌بندی‌ها ===
-        function getCategories() {
-            return JSON.parse(localStorage.getItem('categories_list') || '["همه"]');
+        // === پس‌زمینه ===
+        function previewBg(e) {
+            const r = new FileReader();
+            r.onload = ev => { bgImage = ev.target.result; document.getElementById('bg-status').textContent = '✅ عکس آماده ذخیره'; };
+            r.readAsDataURL(e.target.files[0]);
         }
-        function saveCategories(categories) {
-            localStorage.setItem('categories_list', JSON.stringify(categories));
+        function clearBg() {
+            localStorage.removeItem('bg_image');
+            document.body.style.backgroundImage = '';
+            bgImage = null;
+            alert('✅ پس‌زمینه حذف شد!');
         }
-        function renderCategories() {
-            const cats = getCategories();
-            const bar = document.getElementById('cats-bar');
-            bar.innerHTML = '';
+
+        // === لوگو و کاور ===
+        function previewLogo(e) {
+            const r = new FileReader();
+            r.onload = ev => { logoImage = ev.target.result; document.getElementById('logo-status').textContent = '✅ لوگو آماده'; };
+            r.readAsDataURL(e.target.files[0]);
+        }
+        function previewCover(e) {
+            const r = new FileReader();
+            r.onload = ev => { coverImage = ev.target.result; document.getElementById('cover-status').textContent = '✅ کاور آماده'; };
+            r.readAsDataURL(e.target.files[0]);
+        }
+        function saveLook() {
+            const t = document.getElementById('edit-title').value.trim();
+            const d = document.getElementById('edit-desc').value.trim();
             
-            cats.forEach(cat => {
-                const tab = document.createElement('span');
-                tab.className = 'cat' + (cat === activeCategoryFilter ? ' active' : '');
-                tab.textContent = cat;
-                tab.onclick = () => {
-                    activeCategoryFilter = cat;
-                    renderCategories();
-                    renderContentList();
-                };
-                bar.appendChild(tab);
-            });
-        }
-        function renderCategoriesInPanel() {
-            const cats = getCategories();
-            const list = document.getElementById('cat-list');
-            const select = document.getElementById('content-category');
+            if(bgImage) { localStorage.setItem('bg_image', bgImage); document.body.style.backgroundImage = `url(${bgImage})`; bgImage = null; }
+            if(logoImage) { localStorage.setItem('logo_image', logoImage); document.getElementById('logo-img').src = logoImage; logoImage = null; }
+            if(coverImage) { localStorage.setItem('cover_image', coverImage); document.getElementById('cover-img').src = coverImage; coverImage = null; }
+            if(t) { localStorage.setItem('site_title', t); document.getElementById('site-title').textContent = t; }
+            if(d) { localStorage.setItem('site_desc', d); document.getElementById('site-desc').textContent = d; }
             
-            // لیست قابل حذف
-            list.innerHTML = '';
-            cats.filter(c => c !== 'همه').forEach(cat => {
-                const item = document.createElement('div');
-                item.className = 'cat-item';
-                item.innerHTML = `
-                    <span>${cat}</span>
-                    <button class="act-btn del-btn" style="padding:6px 12px; font-size:0.85rem;" onclick="deleteCategory('${cat}')">حذف</button>
+            document.getElementById('look-msg').textContent = '✅ همه تغییرات ذخیره شد!';
+            setTimeout(() => document.getElementById('look-msg').textContent = '', 3000);
+        }
+
+        // === دکمه‌های سفارشی با عکس ===
+        function getButtons() { return JSON.parse(localStorage.getItem('buttons_list') || '[]'); }
+        function saveButtons(arr) { localStorage.setItem('buttons_list', JSON.stringify(arr)); }
+        function renderButtons() {
+            const w = document.getElementById('btns-bar'); w.innerHTML = '';
+            getButtons().forEach(b => {
+                const a = document.createElement('a');
+                a.href = b.link; a.target = '_blank';
+                a.className = 'btn-card' + (b.style === 'purple' ? ' purple' : '');
+                a.innerHTML = `
+                    <img src="${b.icon || 'https://via.placeholder.com/40/D4AF37/FFFFFF?text=>>'}" class="btn-icon" alt="">
+                    <span class="btn-text">${b.name}</span>
                 `;
-                list.appendChild(item);
+                w.appendChild(a);
             });
+        }
+        function renderButtonsInPanel() {
+            const w = document.getElementById('btn-list'); w.innerHTML = '';
+            getButtons().forEach((b, i) => {
+                const d = document.createElement('div');
+                d.className = 'item-row';
+                d.innerHTML = `
+                    <span style="display:flex; align-items:center; gap:10px;">
+                        <img src="${b.icon || 'https://via.placeholder.com/32/D4AF37/FFFFFF?text=>>'}" class="btn-preview-icon" alt="">
+                        ${b.name}
+                    </span>
+                    <button class="act-btn del-btn" style="padding:6px 12px; font-size:0.85rem;" onclick="delBtn(${i})">حذف</button>
+                `;
+                w.appendChild(d);
+            });
+        }
+        function previewBtnIcon(e) {
+            const r = new FileReader();
+            r.onload = ev => { btnIcon = ev.target.result; document.getElementById('btn-icon-status').textContent = '✅ آیکون انتخاب شد'; };
+            r.readAsDataURL(e.target.files[0]);
+        }
+        function addButton() {
+            const n = document.getElementById('btn-name').value.trim();
+            const l = document.getElementById('btn-link').value.trim();
+            const s = document.getElementById('btn-style').value;
+            if(!n || !l) return alert('⚠️ نام و لینک را پر کن!');
+            
+            const arr = getButtons();
+            arr.push({name: n, link: l, style: s, icon: btnIcon});
+            saveButtons(arr);
+            
+            document.getElementById('btn-name').value = '';
+            document.getElementById('btn-link').value = '';
+            btnIcon = null;
+            document.getElementById('btn-icon-status').textContent = '';
+            
+            renderButtons();
+            renderButtonsInPanel();
+            alert('✅ دکمه اضافه شد!');
+        }
+        function delBtn(i) {
+            if(!confirm('حذف کنم؟')) return;
+            const arr = getButtons(); arr.splice(i, 1); saveButtons(arr);
+            renderButtons(); renderButtonsInPanel();
+        }
 
-            // منوی انتخاب
-            select.innerHTML = '';
-            cats.filter(c => c !== 'همه').forEach(cat => {
-                const opt = document.createElement('option');
-                opt.value = cat;
-                opt.textContent = cat;
-                select.appendChild(opt);
+        // === دسته‌بندی ===
+        function getCats() { return JSON.parse(localStorage.getItem('categories_list') || '["همه"]'); }
+        function saveCats(arr) { localStorage.setItem('categories_list', JSON.stringify(arr)); }
+        function renderCategories() {
+            const arr = getCats();
+            const w = document.getElementById('cats-bar'); w.innerHTML = '';
+            arr.forEach(c => {
+                const s = document.createElement('span');
+                s.className = 'cat' + (c === activeCatFilter ? ' active' : '');
+                s.textContent = c;
+                s.onclick = () => { activeCatFilter = c; renderCategories(); renderContent(); };
+                w.appendChild(s);
+            });
+        }
+        function renderCatsInPanel() {
+            const arr = getCats();
+            const list = document.getElementById('cat-list');
+            const sel = document.getElementById('content-cat');
+            list.innerHTML = ''; sel.innerHTML = '';
+            arr.filter(c => c !== 'همه').forEach(c => {
+                const d = document.createElement('div');
+                d.className = 'item-row';
+                d.innerHTML = `<span>${c}</span><button class="act-btn del-btn" style="padding:6px 12px; font-size:0.85rem;" onclick="delCat('${c}')">حذف</button>`;
+                list.appendChild(d);
+                const o = document.createElement('option'); o.value = c; o.textContent = c; sel.appendChild(o);
             });
         }
         function addCategory() {
-            const name = document.getElementById('new-cat-name').value.trim();
-            if(!name) return alert('⚠️ نام دسته‌بندی را بنویس!');
-            
-            const cats = getCategories();
-            if(cats.includes(name)) return alert('⚠️ این دسته‌بندی قبلاً وجود دارد!');
-            
-            cats.push(name);
-            saveCategories(cats);
-            document.getElementById('new-cat-name').value = '';
-            
-            renderCategories();
-            renderCategoriesInPanel();
+            const n = document.getElementById('cat-name').value.trim();
+            if(!n) return alert('⚠️ نام بنویس!');
+            const arr = getCats();
+            if(arr.includes(n)) return alert('قبلاً هست!');
+            arr.push(n); saveCats(arr);
+            document.getElementById('cat-name').value = '';
+            renderCategories(); renderCatsInPanel();
             alert('✅ دسته‌بندی ساخته شد!');
         }
-        function deleteCategory(name) {
-            if(!confirm(`آیا از حذف "${name}" اطمینان داری؟`)) return;
-            let cats = getCategories().filter(c => c !== name);
-            saveCategories(cats);
-            renderCategories();
-            renderCategoriesInPanel();
+        function delCat(n) {
+            if(!confirm(`حذف "${n}"؟`)) return;
+            let arr = getCats().filter(c => c !== n); saveCats(arr);
+            renderCategories(); renderCatsInPanel();
         }
 
-        // === محتواها ===
-        function getAllContent() {
-            return JSON.parse(localStorage.getItem('contents_list') || '[]');
+        // === محتوا ===
+        function getContents() { return JSON.parse(localStorage.getItem('contents_list') || '[]'); }
+        function saveContents(arr) { localStorage.setItem('contents_list', JSON.stringify(arr)); }
+        function previewContImg(e) {
+            const r = new FileReader();
+            r.onload = ev => { contentImage = ev.target.result; document.getElementById('cont-img-status').textContent = '✅ عکس انتخاب شد'; };
+            r.readAsDataURL(e.target.files[0]);
         }
-        function saveAllContent(items) {
-            localStorage.setItem('contents_list', JSON.stringify(items));
-        }
-        function renderContentList() {
-            let items = getAllContent();
-            if(activeCategoryFilter !== 'همه') {
-                items = items.filter(i => i.category === activeCategoryFilter);
-            }
-            
-            const list = document.getElementById('content-list');
-            list.innerHTML = '';
-            
-            if(items.length === 0) {
-                list.innerHTML = '<p style="text-align:center; color:#776699; padding:30px;">هنوز محتوایی منتشر نشده</p>';
+        function renderContent() {
+            let arr = getContents();
+            if(activeCatFilter !== 'همه') arr = arr.filter(x => x.cat === activeCatFilter);
+            const w = document.getElementById('content-list'); w.innerHTML = '';
+            if(!arr.length) {
+                w.innerHTML = '<p style="text-align:center; color:#8877AA; padding:40px;">هنوز محتوایی نیست</p>';
                 return;
             }
-            
-            items.forEach(item => {
-                const card = document.createElement('div');
-                card.className = 'card';
-                card.innerHTML = `
-                    ${item.image ? `<img src="${item.image}" class="card-img" alt="">` : ''}
-                    <h3>${item.title}</h3>
-                    <p>${item.description}</p>
-                    <a href="${item.link}" target="_blank" class="btn-gold">دانلود / ورود 📥</a>
+            arr.forEach(x => {
+                const d = document.createElement('div');
+                d.className = 'card';
+                d.innerHTML = `
+                    ${x.img ? `<img src="${x.img}" class="card-img" alt="">` : ''}
+                    <h3>${x.title}</h3>
+                    <p>${x.desc}</p>
+                    <a href="${x.link}" target="_blank" class="download-btn">دانلود 📥</a>
                 `;
-                list.appendChild(card);
+                w.appendChild(d);
             });
         }
         function publishContent() {
-            const category = document.getElementById('content-category').value;
-            const title = document.getElementById('content-title').value.trim();
-            const desc = document.getElementById('content-text').value.trim();
-            const link = document.getElementById('content-download-link').value.trim();
+            const c = document.getElementById('content-cat').value;
+            const t = document.getElementById('cont-title').value.trim();
+            const d = document.getElementById('cont-desc').value.trim();
+            const l = document.getElementById('cont-link').value.trim();
+            if(!c || !t || !l) return alert('⚠️ همه قسمت‌ها را پر کن!');
             
-            if(!category || !title || !link) {
-                return alert('⚠️ عنوان، دسته‌بندی و لینک را پر کن!');
-            }
+            const arr = getContents();
+            arr.unshift({cat: c, title: t, desc: d, link: l, img: contentImage});
+            saveContents(arr);
             
-            const items = getAllContent();
-            items.unshift({
-                category,
-                title,
-                description: desc,
-                link,
-                image: selectedContentImage
-            });
-            saveAllContent(items);
+            document.getElementById('cont-title').value = '';
+            document.getElementById('cont-desc').value = '';
+            document.getElementById('cont-link').value = '';
+            contentImage = null;
+            document.getElementById('cont-img-status').textContent = '';
             
-            // پاک کردن فرم
-            document.getElementById('content-title').value = '';
-            document.getElementById('content-text').value = '';
-            document.getElementById('content-download-link').value = '';
-            selectedContentImage = null;
-            document.getElementById('content-img-status').textContent = '';
-            
-            renderContentList();
-            document.getElementById('content-msg').textContent = '✅ محتوا منتشر شد!';
-            setTimeout(() => document.getElementById('content-msg').textContent = '', 3000);
+            renderContent();
+            document.getElementById('cont-msg').textContent = '✅ منتشر شد!';
+            setTimeout(() => document.getElementById('cont-msg').textContent = '', 3000);
         }
 
-        // === پیش‌نمایش عکس‌ها از گالری ===
-        function previewLogo(event) {
-            const file = event.target.files[0];
-            if(!file) return;
-            const reader = new FileReader();
-            reader.onload = e => {
-                selectedLogo = e.target.result;
-                document.getElementById('logo-status').textContent = '✅ لوگو آماده ذخیره است';
-            };
-            reader.readAsDataURL(file);
-        }
-        function previewCover(event) {
-            const file = event.target.files[0];
-            if(!file) return;
-            const reader = new FileReader();
-            reader.onload = e => {
-                selectedCover = e.target.result;
-                document.getElementById('cover-status').textContent = '✅ کاور آماده ذخیره است';
-            };
-            reader.readAsDataURL(file);
-        }
-        function previewContentImage(event) {
-            const file = event.target.files[0];
-            if(!file) return;
-            const reader = new FileReader();
-            reader.onload = e => {
-                selectedContentImage = e.target.result;
-                document.getElementById('content-img-status').textContent = '✅ عکس انتخاب شد';
-            };
-            reader.readAsDataURL(file);
-        }
-
-        // === ذخیره تنظیمات ظاهری ===
-        function saveDesignSettings() {
-            const title = document.getElementById('input-title').value.trim();
-            const desc = document.getElementById('input-desc').value.trim();
-            
-            if(title) {
-                localStorage.setItem('site_title', title);
-                document.getElementById('site-title').textContent = title;
-            }
-            if(desc) {
-                localStorage.setItem('site_description', desc);
-                document.getElementById('site-desc').textContent = desc;
-            }
-            if(selectedLogo) {
-                localStorage.setItem('site_logo', selectedLogo);
-                document.getElementById('logo-img').src = selectedLogo;
-                selectedLogo = null;
-            }
-            if(selectedCover) {
-                localStorage.setItem('site_cover', selectedCover);
-                document.getElementById('cover-img').src = selectedCover;
-                selectedCover = null;
-            }
-            
-            document.getElementById('design-msg').textContent = '✅ همه تغییرات ذخیره شد!';
-            setTimeout(() => document.getElementById('design-msg').textContent = '', 3000);
-        }
-        function applyBgColor() {
-            const color = document.getElementById('bg-color-picker').value;
-            document.body.style.background = color;
-            localStorage.setItem('site_background', color);
-            alert('✅ پس‌زمینه تغییر کرد!');
-        }
-
-        // === ورود و مدیریت ===
-        function showAdmin() {
+        // === ورود و خروج ===
+        function openAdmin() {
             document.getElementById('main-page').classList.add('hidden');
             document.getElementById('admin-page').classList.remove('hidden');
-            document.getElementById('admin-panel').classList.add('hidden');
-            document.getElementById('login-box').classList.remove('hidden');
+            document.getElementById('admin-main-panel').classList.add('hidden');
         }
-        function hideAdmin() {
+        function closeAdmin() {
             document.getElementById('admin-page').classList.add('hidden');
             document.getElementById('main-page').classList.remove('hidden');
             document.getElementById('pass-input').value = '';
         }
-        function checkPass() {
-            const input = document.getElementById('pass-input').value.trim();
-            if(input === ADMIN_PASSWORD) {
+        function checkPassword() {
+            const inp = document.getElementById('pass-input').value.trim();
+            if(inp === PASSWORD) {
                 document.getElementById('login-box').classList.add('hidden');
-                document.getElementById('admin-panel').classList.remove('hidden');
-                // بازنشانی تب اول
-                activeTab = 'design';
-                document.querySelectorAll('.panel-tab').forEach((btn, idx) => {
-                    btn.classList.toggle('active', idx === 0);
-                });
-                document.getElementById('tab-design').classList.remove('hidden');
-                document.getElementById('tab-content').classList.add('hidden');
+                document.getElementById('admin-main-panel').classList.remove('hidden');
+                document.getElementById('edit-title').value = localStorage.getItem('site_title') || 'VORTEXPLAY';
+                document.getElementById('edit-desc').value = localStorage.getItem('site_desc') || 'پایگاه سلطنتی بازی‌ها و سرگرمی';
+                switchTab('look');
             } else {
-                document.getElementById('login-msg').textContent = '❌ رمز اشتباه است!';
+                document.getElementById('login-msg').textContent = '❌ رمز اشتباه!';
             }
         }
 
-        // === شروع برنامه ===
-        loadAllData();
+        // === اجرا ===
+        loadAll();
     </script>
 </body>
 </html>
