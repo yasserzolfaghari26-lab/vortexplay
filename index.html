@@ -11,251 +11,360 @@
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', sans-serif;
+            font-family: 'Segoe UI', 'Roboto', sans-serif;
         }
 
         body {
-            background: linear-gradient(180deg, #0b061a 0%, #1a1040 50%, #050520 100%);
             min-height: 100vh;
-            color: #fff;
-            overflow-x: hidden;
-        }
-
-        /* پس‌زمینه آتشین */
-        .bg-orange {
-            position: fixed;
-            top: -20%;
-            right: -20%;
-            width: 80%;
-            height: 60%;
-            background: radial-gradient(ellipse at center, rgba(255,140,0,0.3) 0%, transparent 70%);
-            filter: blur(50px);
-            pointer-events: none;
-        }
-
-        .bg-blue {
-            position: fixed;
-            bottom: -20%;
-            left: -20%;
-            width: 80%;
-            height: 60%;
-            background: radial-gradient(ellipse at center, rgba(30,144,255,0.3) 0%, transparent 70%);
-            filter: blur(50px);
-            pointer-events: none;
-        }
-
-        .bg-purple {
-            position: fixed;
-            top: 40%;
-            left: 10%;
-            width: 80%;
-            height: 30%;
-            background: linear-gradient(90deg, transparent, rgba(138,43,226,0.2), transparent);
-            filter: blur(40px);
-            pointer-events: none;
-        }
-
-        /* اشکال هندسی */
-        .shape {
-            position: absolute;
-            opacity: 0.2;
-            pointer-events: none;
-        }
-        .tri1 { top: 12%; left: 8%; font-size: 2rem; color: #ff8c00; }
-        .x1 { top: 18%; right: 12%; font-size: 1.5rem; color: #1e90ff; }
-        .dot1 { bottom: 28%; left: 15%; width: 8px; height: 8px; background: #ffd700; border-radius: 50%; }
-        .sq1 { bottom: 22%; right: 10%; width: 12px; height: 12px; border: 2px solid #9932cc; }
-
-        /* کانتینر اصلی */
-        .container {
+            overflow: hidden;
             position: relative;
-            z-index: 1;
-            padding: 40px 20px;
-            max-width: 480px;
-            margin: 0 auto;
+            background: linear-gradient(135deg, #020617 0%, #111827 50%, #0f172a 100%);
         }
 
-        /* لوگو */
-        .logo-wrap {
-            text-align: center;
+        /* === پس‌زمینه‌های متحرک === */
+        .bg-layer-1 {
+            position: absolute;
+            top: -30%;
+            right: -10%;
+            width: 70%;
+            height: 80%;
+            background: radial-gradient(ellipse at center, rgba(255, 120, 0, 0.25) 0%, transparent 60%);
+            filter: blur(60px);
+            animation: float1 8s ease-in-out infinite alternate;
+            pointer-events: none;
+        }
+
+        .bg-layer-2 {
+            position: absolute;
+            bottom: -30%;
+            left: -10%;
+            width: 70%;
+            height: 80%;
+            background: radial-gradient(ellipse at center, rgba(0, 150, 255, 0.25) 0%, transparent 60%);
+            filter: blur(60px);
+            animation: float2 10s ease-in-out infinite alternate;
+            pointer-events: none;
+        }
+
+        .bg-layer-3 {
+            position: absolute;
+            top: 20%;
+            left: 15%;
+            width: 70%;
+            height: 50%;
+            background: radial-gradient(ellipse at center, rgba(139, 92, 246, 0.15) 0%, transparent 60%);
+            filter: blur(50px);
+            animation: float3 12s ease-in-out infinite alternate;
+            pointer-events: none;
+        }
+
+        @keyframes float1 {
+            from { transform: translate(0, 0) scale(1); }
+            to { transform: translate(-40px, 30px) scale(1.1); }
+        }
+        @keyframes float2 {
+            from { transform: translate(0, 0) scale(1); }
+            to { transform: translate(40px, -30px) scale(1.15); }
+        }
+        @keyframes float3 {
+            from { transform: translate(0, 0); }
+            to { transform: translate(20px, 20px); }
+        }
+
+        /* === ذرات نور === */
+        .particle {
+            position: absolute;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.6);
+            animation: twinkle 3s ease-in-out infinite;
+            pointer-events: none;
+        }
+        @keyframes twinkle {
+            0%, 100% { opacity: 0.2; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.3); }
+        }
+
+        /* === کانتینر اصلی === */
+        .main-container {
+            position: relative;
+            z-index: 10;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+
+        /* === لوگو مرکزی === */
+        .logo-wrapper {
+            position: relative;
             margin-bottom: 30px;
         }
 
-        .logo-circle {
-            width: 130px;
-            height: 130px;
+        .logo-glow-ring {
+            position: absolute;
+            top: -15px;
+            left: -15px;
+            right: -15px;
+            bottom: -15px;
             border-radius: 50%;
-            background: linear-gradient(135deg, #1e90ff, #9932cc);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 20px;
-            box-shadow: 0 0 35px rgba(30,144,255,0.5);
+            background: linear-gradient(45deg, #ff9500, #0099ff, #8b5cf6, #ff9500);
+            background-size: 400% 400%;
+            animation: rotateGlow 6s linear infinite;
+            z-index: 1;
+            filter: blur(8px);
+            opacity: 0.7;
+        }
+        @keyframes rotateGlow {
+            0% { background-position: 0% 50%; }
+            100% { background-position: 400% 50%; }
         }
 
-        .logo-inner {
-            width: 114px;
-            height: 114px;
+        .logo-circle {
+            width: 140px;
+            height: 140px;
             border-radius: 50%;
-            background: #0b061a;
+            background: #020617;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2.8rem;
+            position: relative;
+            z-index: 2;
+            border: 3px solid transparent;
+            background-clip: padding-box;
+        }
+
+        .logo-text {
+            font-size: 3rem;
             font-weight: 900;
-            background: linear-gradient(90deg, #ffd700, #ff8c00);
+            background: linear-gradient(135deg, #ffd700, #ff8c00, #00d9ff);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            letter-spacing: -2px;
         }
 
-        .logo-title {
-            font-size: 2.4rem;
-            font-weight: 800;
-            letter-spacing: 2px;
-            color: #fff;
-            text-shadow: 0 0 15px rgba(255,255,255,0.3);
-        }
-
-        .logo-sub {
-            color: #6ab7ff;
+        /* === عنوان === */
+        .site-title {
+            font-size: 3rem;
+            font-weight: 900;
             letter-spacing: 4px;
-            font-size: 0.9rem;
-            margin-top: 8px;
+            color: #fff;
+            text-shadow: 0 0 30px rgba(0, 217, 255, 0.5);
+            margin-bottom: 8px;
+            text-align: center;
         }
 
-        /* نوار وضعیت */
-        .status-bar {
-            background: rgba(0,0,0,0.5);
-            border: 2px solid #1e90ff;
+        .site-subtitle {
+            font-size: 1rem;
+            letter-spacing: 6px;
+            color: #60a5fa;
+            text-transform: uppercase;
+            margin-bottom: 35px;
+        }
+
+        /* === نوار وضعیت === */
+        .status-badge {
+            padding: 12px 35px;
+            background: rgba(0, 255, 136, 0.08);
+            border: 1px solid rgba(0, 255, 136, 0.4);
             border-radius: 50px;
-            padding: 12px 25px;
-            text-align: center;
-            margin: 25px 0;
-            font-weight: bold;
-            letter-spacing: 1px;
-            box-shadow: 0 0 20px rgba(30,144,255,0.25);
+            color: #00ff88;
+            font-weight: 700;
+            letter-spacing: 2px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 45px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.15);
         }
 
         .status-dot {
-            display: inline-block;
-            width: 10px;
-            height: 10px;
+            width: 12px;
+            height: 12px;
             border-radius: 50%;
             background: #00ff88;
-            margin-right: 10px;
             box-shadow: 0 0 10px #00ff88;
             animation: pulse 2s infinite;
         }
-
         @keyframes pulse {
-            0%,100% { opacity: 1; }
-            50% { opacity: 0.4; }
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.4; transform: scale(1.4); }
         }
 
-        /* بلوک‌ها */
-        .block {
-            background: rgba(20,20,50,0.6);
-            border-radius: 14px;
-            padding: 20px 22px;
-            margin-bottom: 15px;
-            border-left: 4px solid;
-            backdrop-filter: blur(5px);
-            transition: all 0.3s;
+        /* === کارت‌های دسته‌بندی === */
+        .cards-grid {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            width: 100%;
+            max-width: 420px;
         }
 
-        .block:hover {
-            transform: scale(1.02);
-            box-shadow: 0 0 20px rgba(30,144,255,0.2);
+        .cat-card {
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid rgba(96, 165, 250, 0.2);
+            border-radius: 16px;
+            padding: 22px 25px;
+            display: flex;
+            align-items: center;
+            gap: 18px;
+            transition: all 0.35s ease;
+            backdrop-filter: blur(12px);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
         }
 
-        .block h3 {
-            font-size: 1.2rem;
-            font-weight: bold;
-            margin-bottom: 4px;
+        .cat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: linear-gradient(180deg, #ff9500, #ffd700);
+            border-radius: 4px 0 0 4px;
         }
 
-        .block p {
-            color: #9ab8d6;
-            font-size: 0.85rem;
+        .cat-card:hover {
+            transform: translateY(-5px) scale(1.02);
+            border-color: rgba(0, 217, 255, 0.5);
+            box-shadow: 0 15px 40px rgba(0, 150, 255, 0.15);
+            background: rgba(1, 21, 45, 0.85);
+        }
+
+        .cat-icon-box {
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, rgba(0, 150, 255, 0.2), rgba(139, 92, 246, 0.2));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            color: #00d9ff;
+            flex-shrink: 0;
+        }
+
+        .cat-info h3 {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: #fff;
+            margin-bottom: 3px;
+        }
+
+        .cat-info p {
+            font-size: 0.8rem;
+            color: #94a3b8;
             margin: 0;
         }
 
-        .block-icon {
-            font-size: 1.8rem;
+        /* === دکمه مدیریت === */
+        .admin-link {
+            margin-top: 40px;
+            padding: 12px 30px;
+            background: rgba(139, 92, 246, 0.1);
+            border: 1px solid rgba(139, 92, 246, 0.35);
+            border-radius: 50px;
+            color: #a78bfa;
+            text-decoration: none;
+            font-size: 0.85rem;
+            transition: all 0.3s;
+            backdrop-filter: blur(8px);
         }
 
-        /* پایین صفحه */
-        .footer {
-            text-align: center;
-            margin-top: 40px;
-            color: #5566aa;
-            font-size: 0.8rem;
+        .admin-link:hover {
+            background: rgba(139, 92, 246, 0.2);
+            border-color: #a78bfa;
+            color: #e9d5ff;
+        }
+
+        /* === پایین صفحه === */
+        .footer-note {
+            margin-top: 30px;
+            font-size: 0.75rem;
+            color: #475569;
         }
     </style>
 </head>
 <body>
-    <div class="bg-orange"></div>
-    <div class="bg-blue"></div>
-    <div class="bg-purple"></div>
+    <!-- لایه‌های پس‌زمینه -->
+    <div class="bg-layer-1"></div>
+    <div class="bg-layer-2"></div>
+    <div class="bg-layer-3"></div>
 
-    <div class="shape tri1"><i class="fas fa-play"></i></div>
-    <div class="shape x1"><i class="fas fa-times"></i></div>
-    <div class="shape dot1"></div>
-    <div class="shape sq1"></div>
+    <!-- ذرات نور -->
+    <script>
+        // ساخت ذرات متحرک
+        const particleCount = 25;
+        for (let i = 0; i < particleCount; i++) {
+            const p = document.createElement('div');
+            p.className = 'particle';
+            const size = Math.random() * 3 + 1;
+            p.style.width = p.style.height = size + 'px';
+            p.style.left = Math.random() * 100 + '%';
+            p.style.top = Math.random() * 100 + '%';
+            p.style.animationDelay = Math.random() * 3 + 's';
+            document.body.appendChild(p);
+        }
+    </script>
 
-    <div class="container">
-        <!-- لوگو -->
-        <div class="logo-wrap">
+    <!-- محتوای اصلی -->
+    <div class="main-container">
+        <div class="logo-wrapper">
+            <div class="logo-glow-ring"></div>
             <div class="logo-circle">
-                <div class="logo-inner">VP</div>
+                <span class="logo-text">VP</span>
             </div>
-            <h1 class="logo-title">VORTEXPLAY</h1>
-            <p class="logo-sub">◆ GAMING EMPIRE ◆</p>
         </div>
 
-        <!-- وضعیت سیستم -->
-        <div class="status-bar">
+        <h1 class="site-title">VORTEXPLAY</h1>
+        <p class="site-subtitle">◆ GAMING EMPIRE ◆</p>
+
+        <div class="status-badge">
             <span class="status-dot"></span>
             SYSTEM STATUS: ONLINE
         </div>
 
-        <!-- بلوک ۱ -->
-        <div class="block" style="border-color: #4169e1;">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
+        <div class="cards-grid">
+            <div class="cat-card">
+                <div class="cat-icon-box">
+                    <i class="fas fa-book"></i>
+                </div>
+                <div class="cat-info">
                     <h3>BACKUP & TUTORIALS</h3>
                     <p>Guides & System Files</p>
                 </div>
-                <i class="fas fa-book block-icon" style="color: #4169e1;"></i>
             </div>
-        </div>
 
-        <!-- بلوک ۲ -->
-        <div class="block" style="border-color: #1e90ff;">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
+            <div class="cat-card">
+                <div class="cat-icon-box">
+                    <i class="fas fa-gamepad"></i>
+                </div>
+                <div class="cat-info">
                     <h3>PS5 GAME</h3>
                     <p>PlayStation 5 Games & PKGs</p>
                 </div>
-                <i class="fas fa-gamepad block-icon" style="color: #1e90ff;"></i>
             </div>
-        </div>
 
-        <!-- بلوک ۳ -->
-        <div class="block" style="border-color: #9932cc;">
-            <div class="d-flex justify-content-between align-items-center">
-                <div>
+            <div class="cat-card">
+                <div class="cat-icon-box">
+                    <i class="fas fa-images"></i>
+                </div>
+                <div class="cat-info">
                     <h3>GAME PHOTOS</h3>
                     <p>Wallpapers & Screenshots</p>
                 </div>
-                <i class="fas fa-images block-icon" style="color: #9932cc;"></i>
             </div>
         </div>
 
-        <!-- پایین صفحه -->
-        <div class="footer">
-            VORTEXPLAY © 2026 — All Rights Reserved
-        </div>
+        <a href="#" class="admin-link">
+            <i class="fas fa-cog me-2"></i>ورود به پنل مدیریت
+        </a>
+
+        <p class="footer-note">VORTEXPLAY © 2026 — All Rights Reserved</p>
     </div>
 </body>
 </html>
