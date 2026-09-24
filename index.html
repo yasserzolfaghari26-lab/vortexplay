@@ -1,410 +1,693 @@
-cd ~ && rm -rf vortexplay && mkdir -p vortexplay/templates vortexplay/uploads vortexplay/static && cd vortexplay
-
-# ========================================
-# کپی عکس‌ها
-# ========================================
-for src in ~/storage/shared/Alarms ~/storage/shared/DCIM; do
-  [ -f "$src/IMG_20260921_091732_735.jpg" ] && cp "$src/IMG_20260921_091732_735.jpg" static/logo.jpg
-  [ -f "$src/png.1790020881185" ] && cp "$src/png.1790020881185" static/gameover.jpg
-done
-echo "📸 عکس‌ها:"; ls static/
-
-# ========================================
-# دیتابیس
-# ========================================
-cat > database.py << 'PYEOF'
-import sqlite3
-DB='vortex.db'
-def get_db():
-    c=sqlite3.connect(DB); c.row_factory=sqlite3.Row; return c
-def init_db():
-    c=get_db()
-    c.execute('''CREATE TABLE IF NOT EXISTS settings(id INTEGER PRIMARY KEY,
-        site_title TEXT, subtitle TEXT, bg_type TEXT, bg_color TEXT, bg_image TEXT,
-        b1_icon TEXT,b1_title TEXT,b1_link TEXT, b2_icon TEXT,b2_title TEXT,b2_link TEXT,
-        b3_icon TEXT,b3_title TEXT,b3_link TEXT, b4_icon TEXT,b4_title TEXT,b4_link TEXT)''')
-    c.execute('''CREATE TABLE IF NOT EXISTS games(id INTEGER PRIMARY KEY AUTOINCREMENT,
-        category TEXT, title TEXT, description TEXT, cover_image TEXT, download_link TEXT,
-        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP)''')
-    c.execute('''CREATE TABLE IF NOT EXISTS categories(id INTEGER PRIMARY KEY AUTOINCREMENT,
-        name TEXT UNIQUE, display_name TEXT, icon TEXT, sort_order INTEGER DEFAULT 0)''')
-    if not c.execute('SELECT id FROM settings WHERE id=1').fetchone():
-        c.execute('''INSERT INTO settings(id,site_title,subtitle,bg_type,bg_color,bg_image,
-            b1_icon,b1_title,b1_link,b2_icon,b2_title,b2_link,b3_icon,b3_title,b3_link,b4_icon,b4_title,b4_link)
-            VALUES(1,'VORTEXPLAY','NEON GAMING EMPIRE','neon','#ffffff','',
-            '⚡','PAYLOAD','/payload','💾','BACKUP & آموزش','/backup','🎮','GAME','/game','🖼️','عکس‌های بازی','/gallery')''')
-    for cat in [('payload','Payload','⚡',1),('backup','Backup & آموزش','💾',2),('game','Game','🎮',3),('gallery','عکس‌های بازی','🖼️',4)]:
-        c.execute('INSERT OR IGNORE INTO categories(name,display_name,icon,sort_order) VALUES(?,?,?,?)',cat)
-    c.commit(); c.close(); print("✅ Database ready!")
-if __name__=='__main__': init_db()
-PYEOF
-python database.py
-
-# ========================================
-# سرور Flask
-# ========================================
-cat > app.py << 'PYEOF'
-from flask import Flask,render_template,request,redirect,url_for,send_from_directory
-from werkzeug.utils import secure_filename
-from database import get_db,init_db
-import os,json
-from datetime import datetime
-app=Flask(__name__)
-app.config['UPLOAD_FOLDER']='uploads'
-app.config['MAX_CONTENT_LENGTH']=100*1024*1024
-def ok(f): return '.' in f and f.rsplit('.',1)[1].lower() in {'png','jpg','jpeg','webp','gif'}
-
-@app.route('/')
-def index():
-    db=get_db()
-    s=db.execute('SELECT * FROM settings WHERE id=1').fetchone()
-    cats=db.execute('SELECT * FROM categories ORDER BY sort_order').fetchall()
-    db.close()
-    return render_template('index.html',s=s,cats=cats)
-
-@app.route('/<cat>')
-def category(cat):
-    db=get_db()
-    s=db.execute('SELECT * FROM settings WHERE id=1').fetchone()
-    cat_info=db.execute('SELECT * FROM categories WHERE name=?',(cat,)).fetchone()
-    items=db.execute('SELECT * FROM games WHERE category=? ORDER BY id DESC',(cat,)).fetchall()
-    db.close()
-    if not cat_info: return "Not found",404
-    return render_template('category.html',s=s,items=items,cat=cat,cat_info=cat_info)
-
-@app.route('/admin')
-def admin():
-    db=get_db()
-    s=db.execute('SELECT * FROM settings WHERE id=1').fetchone()
-    items=db.execute('SELECT * FROM games ORDER BY id DESC').fetchall()
-    cats=db.execute('SELECT * FROM categories ORDER BY sort_order').fetchall()
-    db.close()
-    return render_template('admin.html',s=s,items=items,cats=cats)
-
-@app.route('/admin/save',methods=['POST'])
-def save():
-    f=request.form
-    db=get_db()
-    db.execute('''UPDATE settings SET site_title=?,subtitle=?,bg_type=?,bg_color=?,
-        b1_icon=?,b1_title=?,b1_link=?,b2_icon=?,b2_title=?,b2_link=?,
-        b3_icon=?,b3_title=?,b3_link=?,b4_icon=?,b4_title=?,b4_link=? WHERE id=1''',
-        (f['site_title'],f['subtitle'],f['bg_type'],f['bg_color'],
-         f['b1_icon'],f['b1_title'],f['b1_link'],f['b2_icon'],f['b2_title'],f['b2_link'],
-         f['b3_icon'],f['b3_title'],f['b3_link'],f['b4_icon'],f['b4_title'],f['b4_link']))
-    db.commit(); db.close()
-    return redirect(url_for('admin'))
-
-@app.route('/admin/upload-bg',methods=['POST'])
-def upload_bg():
-    file=request.files.get('bg_file')
-    if file and ok(file.filename):
-        name='bg_'+datetime.now().strftime('%H%M%S_')+secure_filename(file.filename)
-        file.save(os.path.join(app.config['UPLOAD_FOLDER'],name))
-        db=get_db(); db.execute('UPDATE settings SET bg_type="image",bg_image=? WHERE id=1',(name,)); db.commit(); db.close()
-    return redirect(url_for('admin'))
-
-@app.route('/admin/add-cat',methods=['POST'])
-def add_cat():
-    f=request.form
-    db=get_db()
-    try:
-        db.execute('INSERT INTO categories(name,display_name,icon,sort_order) VALUES(?,?,?,?)',
-            (f['cat_name'],f['cat_display'],f['cat_icon'],int(f['cat_sort'])))
-        db.commit()
-    except: pass
-    db.close()
-    return redirect(url_for('admin'))
-
-@app.route('/admin/delete-cat/<int:i>')
-def delete_cat(i):
-    db=get_db()
-    db.execute('DELETE FROM categories WHERE id=?',(i,))
-    db.commit(); db.close()
-    return redirect(url_for('admin'))
-
-@app.route('/admin/add',methods=['POST'])
-def add():
-    f=request.form; cover=None
-    file=request.files.get('cover')
-    if file and ok(file.filename):
-        cover=datetime.now().strftime('%H%M%S_')+secure_filename(file.filename)
-        file.save(os.path.join(app.config['UPLOAD_FOLDER'],cover))
-    db=get_db()
-    db.execute('INSERT INTO games(category,title,description,cover_image,download_link) VALUES(?,?,?,?,?)',
-        (f['category'],f['title'],f['description'],cover,f['download_link']))
-    db.commit(); db.close()
-    return redirect(url_for('admin'))
-
-@app.route('/admin/delete/<int:i>')
-def delete(i):
-    db=get_db()
-    it=db.execute('SELECT cover_image FROM games WHERE id=?',(i,)).fetchone()
-    if it and it['cover_image']:
-        try: os.remove(os.path.join(app.config['UPLOAD_FOLDER'],it['cover_image']))
-        except: pass
-    db.execute('DELETE FROM games WHERE id=?',(i,)); db.commit(); db.close()
-    return redirect(url_for('admin'))
-
-@app.route('/uploads/<f>')
-def up(f): return send_from_directory('uploads',f)
-@app.route('/static/<path:f>')
-def st(f): return send_from_directory('static',f)
-
-if __name__=='__main__':
-    init_db(); app.run(host='0.0.0.0',port=5000,debug=False)
-PYEOF
-
-# ========================================
-# صفحه اصلی (تم روشن + دایره نئون دور لوگو)
-# ========================================
-cat > templates/index.html << 'HTMLEOF'
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>{{ s.site_title }}</title>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@600;700&display=swap');
-*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{font-family:'Rajdhani',sans-serif;min-height:100vh;color:#1a1a2e;overflow-x:hidden;
-{% if s.bg_type=='image' and s.bg_image %}background:url('/uploads/{{ s.bg_image }}') center/cover fixed;
-{% elif s.bg_type=='color' %}background:{{ s.bg_color }};
-{% else %}background:linear-gradient(135deg,#e0f7ff 0%,#fff5e6 50%,#f0e6ff 100%);{% endif %}}
-header{position:relative;z-index:10;padding:40px 20px 20px;text-align:center}
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>VORTEXPLAY | سلطنتی</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Tahoma, sans-serif;
+        }
 
-/* دایره نئون دور لوگو */
-.logo-ring{position:relative;display:inline-block;margin-bottom:20px}
-.logo-ring::before{content:'';position:absolute;inset:-8px;border-radius:50%;
-    background:conic-gradient(from 0deg,#ff0066,#ff7700,#ffcc00,#00ff88,#00ccff,#aa00ff,#ff0066);
-    animation:spin 4s linear infinite;z-index:0}
-@keyframes spin{to{transform:rotate(360deg)}}
-.logo-ring::after{content:'';position:absolute;inset:-8px;border-radius:50%;
-    background:conic-gradient(from 0deg,#ff0066,#ff7700,#ffcc00,#00ff88,#00ccff,#aa00ff,#ff0066);
-    animation:spin 4s linear infinite;filter:blur(15px);opacity:.7;z-index:0}
-.logo{position:relative;z-index:1;width:160px;height:160px;border-radius:50%;object-fit:cover;
-    border:4px solid #fff;box-shadow:0 0 30px rgba(0,0,0,.2)}
+        :root {
+            --gold: #D4AF37;
+            --gold-light: #FFD700;
+            --gold-dark: #B8860B;
+            --royal: #4B0082;
+            --royal-light: #8A2BE2;
+            --bg-main: #1A0E2B;
+            --bg-card: #2B1447;
+            --text-light: #FFFFFF;
+            --text-gold: #FFE55C;
+        }
 
-h1{font-family:'Orbitron';font-size:clamp(30px,8vw,45px);letter-spacing:3px;font-weight:900;
-    color:#1a1a2e;text-shadow:0 2px 10px rgba(0,0,0,.1)}
-.sub{font-size:14px;letter-spacing:2px;margin:8px 0 25px;color:#444}
-.hero{width:95%;max-width:440px;border-radius:20px;margin:0 auto 35px;display:block;
-    border:4px solid #fff;box-shadow:0 10px 40px rgba(0,0,0,.15)}
+        body {
+            background: var(--bg-main);
+            color: var(--text-light);
+            min-height: 100vh;
+            background-image: 
+                radial-gradient(circle at 20% 20%, rgba(212,175,55,0.1) 0%, transparent 40%),
+                radial-gradient(circle at 80% 80%, rgba(75,0,130,0.15) 0%, transparent 40%);
+            transition: background 0.5s ease;
+        }
 
-.menu{max-width:550px;margin:0 auto;padding:0 20px 50px;display:grid;
-    grid-template-columns:repeat(2,1fr);gap:20px;position:relative;z-index:10}
-.bw{border-radius:18px;padding:3px;
-    background:conic-gradient(from 0deg,#ff0066,#ff7700,#ffcc00,#00ff88,#00ccff,#aa00ff,#ff0066);
-    animation:rot 4s linear infinite;box-shadow:0 5px 25px rgba(0,0,0,.15)}
-@keyframes rot{to{filter:hue-rotate(360deg)}}
-.btn{display:flex;flex-direction:column;align-items:center;justify-content:center;
-    padding:30px 15px;border-radius:16px;text-decoration:none;color:#1a1a2e;
-    background:rgba(255,255,255,.85);backdrop-filter:blur(10px);
-    border:2px solid rgba(255,255,255,.9);transition:.3s}
-.btn:active{transform:scale(.95)}
-.btn .ic{font-size:42px;margin-bottom:8px}
-.btn .nm{font-family:'Orbitron';font-size:14px;font-weight:700;letter-spacing:1px}
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 30px 20px;
+        }
 
-.adm{display:block;text-align:center;margin-top:25px;color:#666;text-decoration:none;font-size:12px;letter-spacing:2px}
-.fx{position:fixed;width:40px;height:40px;border:3px solid #ff0044;background:rgba(255,255,255,.95);
-    border-radius:50%;pointer-events:none;z-index:9999;transform:translate(-50%,-50%) scale(0);
-    animation:rip .6s ease-out forwards;box-shadow:0 0 20px rgba(255,0,68,.8)}
-@keyframes rip{0%{transform:translate(-50%,-50%) scale(0);opacity:1}100%{transform:translate(-50%,-50%) scale(3);opacity:0}}
-@media(max-width:450px){.menu{grid-template-columns:1fr}.logo{width:130px;height:130px}}
-</style>
+        /* === کاور بالای صفحه === */
+        .cover-container {
+            width: 100%;
+            height: 220px;
+            border-radius: 16px;
+            overflow: hidden;
+            margin-bottom: -60px;
+            position: relative;
+            box-shadow: 0 0 25px rgba(212,175,55,0.3);
+        }
+
+        .cover-img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            background: linear-gradient(135deg, var(--royal), var(--gold));
+        }
+
+        /* === دایره نئونی سلطنتی دور لوگو === */
+        .logo-circle {
+            width: 140px;
+            height: 140px;
+            margin: 0 auto;
+            border-radius: 50%;
+            background: var(--bg-main);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            z-index: 10;
+            box-shadow: 
+                0 0 0 4px var(--gold),
+                0 0 25px rgba(255,215,0,0.5),
+                0 0 40px rgba(138,43,226,0.3),
+                inset 0 0 20px rgba(255,215,0,0.2);
+            animation: royalGlow 3s ease-in-out infinite alternate;
+        }
+
+        @keyframes royalGlow {
+            from {
+                box-shadow: 
+                    0 0 0 4px var(--gold),
+                    0 0 25px rgba(255,215,0,0.5),
+                    0 0 40px rgba(138,43,226,0.3),
+                    inset 0 0 20px rgba(255,215,0,0.2);
+            }
+            to {
+                box-shadow: 
+                    0 0 0 4px var(--royal-light),
+                    0 0 30px rgba(138,43,226,0.6),
+                    0 0 50px rgba(255,215,0,0.4),
+                    inset 0 0 25px rgba(138,43,226,0.2);
+            }
+        }
+
+        .logo-img {
+            width: 115px;
+            height: 115px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid var(--gold);
+        }
+
+        header {
+            text-align: center;
+            padding: 20px 0 30px;
+        }
+
+        .site-title {
+            font-size: 2.5rem;
+            font-weight: 900;
+            color: var(--gold-light);
+            text-shadow: 0 0 15px rgba(255,215,0,0.5);
+            margin: 10px 0 5px;
+        }
+
+        .site-desc {
+            color: #D0B8F0;
+            font-size: 1.05rem;
+        }
+
+        .divider {
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--gold), var(--royal-light), var(--gold), transparent);
+            margin: 25px 0;
+            box-shadow: 0 0 10px rgba(255,215,0,0.4);
+        }
+
+        /* === دسته‌بندی‌ها === */
+        .categories {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 25px;
+        }
+
+        .category-tab {
+            padding: 10px 20px;
+            background: var(--bg-card);
+            border: 2px solid transparent;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            color: #D0B8F0;
+            transition: all 0.3s;
+        }
+
+        .category-tab:hover, .category-tab.active {
+            border-color: var(--gold);
+            color: var(--gold-light);
+            box-shadow: 0 0 12px rgba(255,215,0,0.3);
+        }
+
+        /* === کارت محتوا === */
+        .content-card {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 15px;
+            border: 1px solid rgba(212,175,55,0.2);
+            transition: all 0.3s;
+        }
+
+        .content-card:hover {
+            border-color: var(--gold);
+            box-shadow: 0 0 20px rgba(255,215,0,0.2);
+            transform: translateY(-3px);
+        }
+
+        .content-img {
+            width: 100%;
+            height: 160px;
+            border-radius: 10px;
+            object-fit: cover;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, var(--royal), var(--gold));
+        }
+
+        .content-title {
+            font-size: 1.15rem;
+            color: var(--gold-light);
+            margin-bottom: 6px;
+        }
+
+        .content-text {
+            color: #C0B0D0;
+            font-size: 0.95rem;
+            margin-bottom: 12px;
+            line-height: 1.7;
+        }
+
+        .custom-buttons {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin: 12px 0;
+        }
+
+        .custom-btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: all 0.3s;
+            display: inline-block;
+            border: 2px solid transparent;
+        }
+
+        .btn-gold {
+            background: linear-gradient(135deg, var(--gold-dark), var(--gold));
+            color: white;
+            border-color: var(--gold);
+            box-shadow: 0 0 10px rgba(255,215,0,0.3);
+        }
+
+        .btn-gold:hover {
+            box-shadow: 0 0 20px rgba(255,215,0,0.6);
+            transform: scale(1.03);
+        }
+
+        .btn-royal {
+            background: linear-gradient(135deg, var(--royal), var(--royal-light));
+            color: white;
+            border-color: var(--royal-light);
+            box-shadow: 0 0 10px rgba(138,43,226,0.3);
+        }
+
+        .btn-royal:hover {
+            box-shadow: 0 0 20px rgba(138,43,226,0.6);
+            transform: scale(1.03);
+        }
+
+        /* === پنل مدیریت === */
+        .admin-section {
+            text-align: center;
+            margin-top: 40px;
+        }
+
+        .admin-btn-main {
+            padding: 14px 35px;
+            background: transparent;
+            border: 2px solid var(--gold);
+            color: var(--gold-light);
+            border-radius: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-size: 1rem;
+        }
+
+        .admin-btn-main:hover {
+            background: var(--gold);
+            color: var(--bg-main);
+            box-shadow: 0 0 20px rgba(255,215,0,0.5);
+        }
+
+        .panel-box {
+            background: var(--bg-card);
+            border-radius: 20px;
+            padding: 25px;
+            margin-top: 20px;
+            border: 1px solid rgba(212,175,55,0.3);
+        }
+
+        .back-link {
+            color: var(--gold-light);
+            text-decoration: none;
+            display: inline-block;
+            margin-bottom: 20px;
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 12px 15px;
+            margin: 8px 0;
+            border: 2px solid rgba(212,175,55,0.3);
+            border-radius: 8px;
+            font-size: 0.95rem;
+            background: rgba(0,0,0,0.2);
+            color: white;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: var(--gold);
+            box-shadow: 0 0 10px rgba(255,215,0,0.3);
+        }
+
+        textarea {
+            min-height: 90px;
+            resize: vertical;
+        }
+
+        .file-label {
+            display: block;
+            padding: 12px;
+            background: rgba(212,175,55,0.1);
+            border: 2px dashed var(--gold);
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+
+        .action-btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 5px;
+            transition: all 0.3s;
+        }
+
+        .btn-save {
+            background: linear-gradient(135deg, var(--gold-dark), var(--gold));
+            color: white;
+        }
+
+        .btn-save:hover {
+            box-shadow: 0 0 15px rgba(255,215,0,0.5);
+        }
+
+        .btn-add {
+            background: linear-gradient(135deg, var(--royal), var(--royal-light));
+            color: white;
+        }
+
+        .btn-add:hover {
+            box-shadow: 0 0 15px rgba(138,43,226,0.5);
+        }
+
+        .btn-del {
+            background: #aa2233;
+            color: white;
+        }
+
+        .status-ok { color: #00FF88; margin-top: 8px; }
+        .status-err { color: #FF5566; margin-top: 8px; }
+
+        .hidden { display: none !important; }
+
+        footer {
+            text-align: center;
+            margin-top: 50px;
+            padding: 20px;
+            color: #776699;
+            font-size: 0.9rem;
+            border-top: 1px solid rgba(212,175,55,0.15);
+        }
+    </style>
 </head>
 <body>
-<header>
-<div class="logo-ring">
-<img src="/static/logo.jpg" class="logo" onerror="this.style.display='none'">
-</div>
-<h1>{{ s.site_title }}</h1>
-<div class="sub">✦ {{ s.subtitle }} ✦</div>
-<img src="/static/gameover.jpg" class="hero" onerror="this.style.display='none'">
-</header>
-<main class="menu">
-<div class="bw"><a href="{{ s.b1_link }}" class="btn"><div class="ic">{{ s.b1_icon }}</div><div class="nm">{{ s.b1_title }}</div></a></div>
-<div class="bw"><a href="{{ s.b2_link }}" class="btn"><div class="ic">{{ s.b2_icon }}</div><div class="nm">{{ s.b2_title }}</div></a></div>
-<div class="bw"><a href="{{ s.b3_link }}" class="btn"><div class="ic">{{ s.b3_icon }}</div><div class="nm">{{ s.b3_title }}</div></a></div>
-<div class="bw"><a href="{{ s.b4_link }}" class="btn"><div class="ic">{{ s.b4_icon }}</div><div class="nm">{{ s.b4_title }}</div></a></div>
-</main>
-<a href="/admin" class="adm">⚙️ پنل مدیریت</a>
-<script>
-document.addEventListener('click',e=>{const r=document.createElement('div');r.className='fx';r.style.left=e.clientX+'px';r.style.top=e.clientY+'px';document.body.appendChild(r);setTimeout(()=>r.remove(),600);});
-</script>
+    <div class="container" id="main-page">
+        <!-- کاور -->
+        <div class="cover-container">
+            <img id="site-cover" src="" alt="کاور" class="cover-img"
+                 onerror="this.src='https://via.placeholder.com/900x220/4B0082/FFD700?text=VORTEXPLAY'">
+        </div>
+
+        <header>
+            <div class="logo-circle">
+                <img id="site-logo" src="" alt="لوگو" class="logo-img"
+                     onerror="this.src='https://via.placeholder.com/115/D4AF37/FFFFFF?text=V'">
+            </div>
+            <h1 class="site-title" id="title-text">VORTEXPLAY</h1>
+            <p class="site-desc" id="desc-text">درگاه سلطنتی محتوا و بازی‌ها</p>
+        </header>
+
+        <div class="divider"></div>
+
+        <!-- دسته‌بندی‌ها -->
+        <div class="categories" id="categories-bar"></div>
+
+        <!-- دکمه‌های سفارشی بالای سایت -->
+        <div class="custom-buttons" id="top-buttons"></div>
+
+        <!-- لیست محتوا -->
+        <div id="content-list" style="margin-top:25px;"></div>
+
+        <div class="admin-section">
+            <button class="admin-btn-main" onclick="showAdmin()">🔐 پنل مدیریت سلطنتی</button>
+        </div>
+
+        <footer>
+            <p>© ۱۴۰۵ VORTEXPLAY | تم سلطنتی طلایی 💜👑</p>
+        </footer>
+    </div>
+
+    <!-- صفحه مدیریت -->
+    <div class="container hidden" id="admin-page">
+        <a href="javascript:hideAdmin()" class="back-link">← بازگشت به سایت</a>
+
+        <!-- ورود -->
+        <div id="login-box" class="panel-box">
+            <h2>🔐 ورود به پنل سلطنتی</h2>
+            <input type="password" id="pass-input" placeholder="رمز ۳۲ رقمی را وارد کنید...">
+            <button class="action-btn btn-save" onclick="checkPass()">ورود</button>
+            <p id="login-msg" class="status-err"></p>
+        </div>
+
+        <!-- پنل اصلی -->
+        <div id="admin-panel" class="panel-box hidden">
+            <h2>👑 کنترل کامل سایت</h2>
+            <hr style="border:none; border-top:1px solid rgba(212,175,55,0.2); margin:20px 0;">
+
+            <!-- ۱. تغییر لوگو و کاور و پس‌زمینه -->
+            <h3>🎨 ظاهر سایت</h3>
+            
+            <label class="file-label">
+                📷 انتخاب لوگو از گالری
+                <input type="file" id="logo-file" accept="image/*" style="display:none" onchange="previewLogo(event)">
+            </label>
+            <p id="logo-status" class="status-ok"></p>
+
+            <label class="file-label">
+                🖼️ انتخاب کاور بالای صفحه
+                <input type="file" id="cover-file" accept="image/*" style="display:none" onchange="previewCover(event)">
+            </label>
+            <p id="cover-status" class="status-ok"></p>
+
+            <label>کد رنگ پس‌زمینه:</label>
+            <input type="color" id="bg-color-picker" value="#1A0E2B">
+            <button class="action-btn btn-save" onclick="changeBgColor()">اعمال پس‌زمینه</button>
+
+            <input type="text" id="edit-title" placeholder="نام سایت">
+            <input type="text" id="edit-desc" placeholder="توضیح کوتاه سایت">
+            <button class="action-btn btn-save" onclick="saveSiteSettings()">ذخیره تنظیمات</button>
+            <p id="site-msg" class="status-ok"></p>
+
+            <hr style="border:none; border-top:1px solid rgba(212,175,55,0.2); margin:25px 0;">
+
+            <!-- ۲. دکمه‌های سفارشی -->
+            <h3>🔘 دکمه‌های سفارشی بالای سایت</h3>
+            <input type="text" id="btn-name" placeholder="متن دکمه">
+            <input type="url" id="btn-link" placeholder="لینک مقصد">
+            <select id="btn-style">
+                <option value="gold">طلایی</option>
+                <option value="royal">بنفش سلطنتی</option>
+            </select>
+            <button class="action-btn btn-add" onclick="addCustomButton()">اضافه کردن دکمه</button>
+            <div id="btn-list" style="margin-top:10px;"></div>
+
+            <hr style="border:none; border-top:1px solid rgba(212,175,55,0.2); margin:25px 0;">
+
+            <!-- ۳. دسته‌بندی‌ها -->
+            <h3>📂 دسته‌بندی‌ها</h3>
+            <input type="text" id="new-cat" placeholder="نام دسته‌بندی">
+            <button class="action-btn btn-add" onclick="addCategory()">اضافه کردن</button>
+            <div id="cat-list" style="margin-top:10px;"></div>
+
+            <hr style="border:none; border-top:1px solid rgba(212,175,55,0.2); margin:25px 0;">
+
+            <!-- ۴. محتوای جدید -->
+            <h3>➕ محتوای جدید</h3>
+            <select id="content-cat"></select>
+            <input type="text" id="content-name" placeholder="عنوان / نام">
+            <textarea id="content-desc" placeholder="توضیحات..."></textarea>
+            
+            <label class="file-label">
+                📷 انتخاب عکس محتوا
+                <input type="file" id="content-img-file" accept="image/*" style="display:none" onchange="previewContentImg(event)">
+            </label>
+            <p id="content-img-status" class="status-ok"></p>
+            
+            <input type="url" id="content-link" placeholder="لینک دانلود / ورود">
+            <button class="action-btn btn-save" onclick="addContent()">انتشار محتوا</button>
+            <p id="content-msg" class="status-ok"></p>
+
+            <hr style="border:none; border-top:1px solid rgba(212,175,55,0.2); margin:25px 0;">
+
+            <!-- ۵. تغییر رمز -->
+            <h3>🔑 تغییر رمز</h3>
+            <input type="password" id="old-pass" placeholder="رمز فعلی">
+            <input type="password" id="new-pass" placeholder="رمز جدید ۳۲ رقمی">
+            <button class="action-btn btn-add" onclick="changePass()">تغییر رمز</button>
+            <p id="pass-msg" class="status-ok"></p>
+        </div>
+    </div>
+
+    <script>
+        let ADMIN_PASS = "VORTEX9X7K2P4R8M3N5L6J1H9G8F7D6S5A4D3B";
+        let selectedLogo = null, selectedCover = null, selectedContentImg = null;
+        let activeCategory = 'همه';
+
+        // بارگذاری همه چیز
+        function loadAll() {
+            const savedPass = localStorage.getItem('admin_pass');
+            if(savedPass) ADMIN_PASS = savedPass;
+
+            // تنظیمات سایت
+            document.getElementById('title-text').textContent = localStorage.getItem('site_title') || 'VORTEXPLAY';
+            document.getElementById('desc-text').textContent = localStorage.getItem('site_desc') || 'درگاه سلطنتی محتوا و بازی‌ها';
+            const logo = localStorage.getItem('site_logo');
+            if(logo) document.getElementById('site-logo').src = logo;
+            const cover = localStorage.getItem('site_cover');
+            if(cover) document.getElementById('site-cover').src = cover;
+            const bg = localStorage.getItem('site_bg');
+            if(bg) document.body.style.background = bg;
+
+            renderButtons();
+            renderCategories();
+            renderContent();
+        }
+
+        // === دکمه‌های سفارشی ===
+        function getButtons() { return JSON.parse(localStorage.getItem('custom_buttons') || '[]'); }
+        function saveButtons(arr) { localStorage.setItem('custom_buttons', JSON.stringify(arr)); }
+
+        function renderButtons() {
+            const list = document.getElementById('top-buttons');
+            list.innerHTML = '';
+            getButtons().forEach((b, i) => {
+                const btn = document.createElement('a');
+                btn.href = b.link;
+                btn.target = '_blank';
+                btn.className = `custom-btn ${b.style === 'gold' ? 'btn-gold' : 'btn-royal'}`;
+                btn.textContent = b.name;
+                list.appendChild(btn);
+            });
+        }
+
+        function addCustomButton() {
+            const name = document.getElementById('btn-name').value.trim();
+            const link = document.getElementById('btn-link').value.trim();
+            const style = document.getElementById('btn-style').value;
+            if(!name || !link) return alert('نام و لینک را وارد کن!');
+            
+            const btns = getButtons();
+            btns.push({name, link, style});
+            saveButtons(btns);
+            
+            document.getElementById('btn-name').value = '';
+            document.getElementById('btn-link').value = '';
+            renderButtons();
+            alert('✅ دکمه اضافه شد!');
+        }
+
+        // === دسته‌بندی‌ها ===
+        function getCategories() { return JSON.parse(localStorage.getItem('categories') || '["همه"]'); }
+        function saveCategories(c) { localStorage.setItem('categories', JSON.stringify(c)); }
+
+        function renderCategories() {
+            const cats = getCategories();
+            const bar = document.getElementById('categories-bar');
+            bar.innerHTML = '';
+            cats.forEach(cat => {
+                const tab = document.createElement('span');
+                tab.className = 'category-tab' + (cat === activeCategory ? ' active' : '');
+                tab.textContent = cat;
+                tab.onclick = () => { activeCategory = cat; renderCategories(); renderContent(); };
+                bar.appendChild(tab);
+            });
+            const select = document.getElementById('content-cat');
+            select.innerHTML = '';
+            cats.filter(c => c !== 'همه').forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c; opt.textContent = c; select.appendChild(opt);
+            });
+        }
+
+        function addCategory() {
+            const name = document.getElementById('new-cat').value.trim();
+            if(!name) return alert('نام دسته را بنویس!');
+            const cats = getCategories();
+            if(cats.includes(name)) return alert('قبلاً هست!');
+            cats.push(name);
+            saveCategories(cats);
+            document.getElementById('new-cat').value = '';
+            renderCategories();
+        }
+
+        // === محتوا ===
+        function getContents() { return JSON.parse(localStorage.getItem('contents') || '[]'); }
+        function saveContents(arr) { localStorage.setItem('contents', JSON.stringify(arr)); }
+
+        function renderContent() {
+            let items = getContents();
+            if(activeCategory !== 'همه') items = items.filter(i => i.cat === activeCategory);
+            const list = document.getElementById('content-list');
+            list.innerHTML = items.length ? '' : '<p style="text-align:center; color:#776699; padding:20px;">هنوز محتوایی نیست</p>';
+            items.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'content-card';
+                card.innerHTML = `
+                    ${item.img ? `<img src="${item.img}" class="content-img" alt="">` : ''}
+                    <h3 class="content-title">${item.name}</h3>
+                    <p class="content-text">${item.desc}</p>
+                    <a href="${item.link}" target="_blank" class="custom-btn btn-gold">ورود / دانلود 📥</a>
+                `;
+                list.appendChild(card);
+            });
+        }
+
+        function addContent() {
+            const cat = document.getElementById('content-cat').value;
+            const name = document.getElementById('content-name').value.trim();
+            const desc = document.getElementById('content-desc').value.trim();
+            const link = document.getElementById('content-link').value.trim();
+            if(!cat || !name || !link) return alert('همه قسمت‌ها را پر کن!');
+            
+            const items = getContents();
+            items.unshift({cat, name, desc, link, img: selectedContentImg});
+            saveContents(items);
+            
+            document.getElementById('content-name').value = '';
+            document.getElementById('content-desc').value = '';
+            document.getElementById('content-link').value = '';
+            selectedContentImg = null;
+            document.getElementById('content-img-status').textContent = '';
+            
+            renderContent();
+            document.getElementById('content-msg').textContent = '✅ منتشر شد!';
+            setTimeout(() => document.getElementById('content-msg').textContent = '', 3000);
+        }
+
+        // === پیش‌نمایش عکس‌ها ===
+        function previewLogo(e) {
+            const r = new FileReader();
+            r.onload = ev => { selectedLogo = ev.target.result; document.getElementById('logo-status').textContent = '✅ آماده ذخیره'; };
+            r.readAsDataURL(e.target.files[0]);
+        }
+        function previewCover(e) {
+            const r = new FileReader();
+            r.onload = ev => { selectedCover = ev.target.result; document.getElementById('cover-status').textContent = '✅ آماده ذخیره'; };
+            r.readAsDataURL(e.target.files[0]);
+        }
+        function previewContentImg(e) {
+            const r = new FileReader();
+            r.onload = ev => { selectedContentImg = ev.target.result; document.getElementById('content-img-status').textContent = '✅ عکس انتخاب شد'; };
+            r.readAsDataURL(e.target.files[0]);
+        }
+
+        // === ذخیره تنظیمات ===
+        function saveSiteSettings() {
+            const t = document.getElementById('edit-title').value.trim();
+            const d = document.getElementById('edit-desc').value.trim();
+            if(t) { localStorage.setItem('site_title', t); document.getElementById('title-text').textContent = t; }
+            if(d) { localStorage.setItem('site_desc', d); document.getElementById('desc-text').textContent = d; }
+            if(selectedLogo) { localStorage.setItem('site_logo', selectedLogo); document.getElementById('site-logo').src = selectedLogo; selectedLogo = null; }
+            if(selectedCover) { localStorage.setItem('site_cover', selectedCover); document.getElementById('site-cover').src = selectedCover; selectedCover = null; }
+            document.getElementById('site-msg').textContent = '✅ ذخیره شد!';
+            setTimeout(() => document.getElementById('site-msg').textContent = '', 3000);
+        }
+
+        function changeBgColor() {
+            const c = document.getElementById('bg-color-picker').value;
+            document.body.style.background = c;
+            localStorage.setItem('site_bg', c);
+            alert('✅ پس‌زمینه تغییر کرد!');
+        }
+
+        // === ورود و مدیریت ===
+        function showAdmin() {
+            document.getElementById('main-page').classList.add('hidden');
+            document.getElementById('admin-page').classList.remove('hidden');
+            document.getElementById('admin-panel').classList.add('hidden');
+            document.getElementById('login-box').classList.remove('hidden');
+        }
+        function hideAdmin() {
+            document.getElementById('admin-page').classList.add('hidden');
+            document.getElementById('main-page').classList.remove('hidden');
+            document.getElementById('pass-input').value = '';
+        }
+        function checkPass() {
+            const inp = document.getElementById('pass-input').value.trim();
+            if(inp === ADMIN_PASS) {
+                document.getElementById('login-box').classList.add('hidden');
+                document.getElementById('admin-panel').classList.remove('hidden');
+                document.getElementById('edit-title').value = localStorage.getItem('site_title') || 'VORTEXPLAY';
+                document.getElementById('edit-desc').value = localStorage.getItem('site_desc') || 'درگاه سلطنتی محتوا و بازی‌ها';
+            } else {
+                document.getElementById('login-msg').textContent = '❌ رمز اشتباه!';
+            }
+        }
+        function changePass() {
+            const o = document.getElementById('old-pass').value.trim();
+            const n = document.getElementById('new-pass').value.trim();
+            if(o !== ADMIN_PASS) return alert('❌ رمز فعلی اشتباه!');
+            if(n.length < 32) return alert('❌ ۳۲ کاراکتر لازم است!');
+            ADMIN_PASS = n;
+            localStorage.setItem('admin_pass', n);
+            alert('✅ رمز عوض شد!');
+            document.getElementById('old-pass').value = '';
+            document.getElementById('new-pass').value = '';
+        }
+
+        loadAll();
+    </script>
 </body>
 </html>
-HTMLEOF
-
-# ========================================
-# صفحه دسته‌بندی
-# ========================================
-cat > templates/category.html << 'HTMLEOF'
-<!DOCTYPE html>
-<html lang="fa" dir="rtl">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>{{ cat_info.display_name }}</title>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Rajdhani:wght@600;700&display=swap');
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Rajdhani',sans-serif;min-height:100vh;color:#1a1a2e;
-{% if s.bg_type=='image' and s.bg_image %}background:url('/uploads/{{ s.bg_image }}') center/cover fixed;
-{% elif s.bg_type=='color' %}background:{{ s.bg_color }};
-{% else %}background:linear-gradient(135deg,#e0f7ff,#fff5e6,#f0e6ff);{% endif %}}
-header{position:sticky;top:0;z-index:50;padding:14px 16px;display:flex;align-items:center;gap:12px;
-    background:rgba(255,255,255,.9);backdrop-filter:blur(12px);border-bottom:3px solid #ff7700}
-.back{background:linear-gradient(135deg,#ff7700,#ff0066);color:#fff;padding:9px 18px;border-radius:10px;
-    text-decoration:none;font-family:'Orbitron';font-size:12px;box-shadow:0 3px 15px rgba(255,120,0,.4)}
-h1{font-family:'Orbitron';font-size:16px;flex:1;text-align:center;color:#1a1a2e}
-.items{max-width:720px;margin:25px auto;padding:0 16px;display:grid;gap:20px}
-.card{background:rgba(255,255,255,.85);backdrop-filter:blur(10px);border:3px solid rgba(255,255,255,.9);
-    border-radius:16px;padding:16px;box-shadow:0 5px 25px rgba(0,0,0,.1)}
-.card img{width:100%;height:190px;object-fit:cover;border-radius:12px;margin-bottom:10px;border:2px solid #fff}
-.card h3{font-family:'Orbitron';font-size:16px;margin-bottom:6px;color:#1a1a2e}
-.card p{font-size:13px;line-height:1.8;margin-bottom:10px;color:#444}
-.dl{display:inline-block;padding:10px 20px;border-radius:10px;
-    background:linear-gradient(135deg,#ff7700,#ff0066);color:#fff;text-decoration:none;
-    font-family:'Orbitron';font-weight:700;font-size:12px;box-shadow:0 3px 15px rgba(255,120,0,.4)}
-.empty{text-align:center;padding:70px 20px;color:#666}
-.empty .big{font-size:55px;display:block;margin-bottom:12px}
-</style>
-</head>
-<body>
-<header><a href="/" class="back">◄ برگشت</a><h1>{{ cat_info.icon }} {{ cat_info.display_name }}</h1></header>
-<div class="items">
-{% for it in items %}
-<div class="card">
-{% if it.cover_image %}<img src="/uploads/{{ it.cover_image }}">{% endif %}
-<h3>{{ it.title }}</h3>
-{% if it.description %}<p>{{ it.description }}</p>{% endif %}
-{% if it.download_link %}<a href="{{ it.download_link }}" target="_blank" class="dl">⬇️ دانلود</a>{% endif %}
-</div>
-{% else %}
-<div class="empty"><span class="big">🎮</span>هنوز چیزی نیست!</div>
-{% endfor %}
-</div>
-</body>
-</html>
-HTMLEOF
-
-# ========================================
-# پنل مدیریت (بدون رمز - همه چیز قابل تغییر)
-# ========================================
-cat > templates/admin.html << 'HTMLEOF'
-<!DOCTYPE html>
-<html lang="fa" dir="rtl">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>پنل مدیریت</title>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@600;700&display=swap');
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:'Rajdhani',sans-serif;background:linear-gradient(135deg,#f5f7fa,#e8ecf1);color:#1a1a2e;padding:20px}
-h1{text-align:center;margin-bottom:8px;color:#ff7700}
-.home{display:block;text-align:center;color:#666;margin-bottom:20px;text-decoration:none}
-.sec{background:#fff;border:2px solid #e0e0e0;border-radius:14px;padding:20px;margin-bottom:20px;box-shadow:0 5px 20px rgba(0,0,0,.08)}
-h2{color:#ff7700;font-size:17px;margin-bottom:14px}
-label{display:block;color:#666;font-size:13px;margin:10px 0 4px}
-input,select,textarea{width:100%;padding:10px;border:2px solid #ddd;border-radius:8px;background:#fafafa;color:#1a1a2e;font-size:14px}
-textarea{min-height:70px}
-button{background:linear-gradient(90deg,#ff7700,#ff0066);color:#fff;border:none;padding:12px 22px;border-radius:10px;font-weight:800;font-size:14px;cursor:pointer;margin-top:12px;box-shadow:0 3px 15px rgba(255,120,0,.3)}
-.row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
-.item{background:#fafafa;border:1px solid #e0e0e0;border-radius:10px;padding:12px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
-.del{color:#ff5577;text-decoration:none;font-weight:700}
-.cat-item{background:#f0f8ff;border:1px solid #cce5ff;border-radius:10px;padding:12px;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center}
-</style>
-</head>
-<body>
-<h1>⚙️ پنل مدیریت</h1>
-<a href="/" class="home">🏠 بازگشت به سایت</a>
-
-<div class="sec">
-<h2>🎨 ظاهر سایت</h2>
-<form action="/admin/save" method="POST">
-<label>عنوان سایت</label><input name="site_title" value="{{ s.site_title }}">
-<label>زیرعنوان</label><input name="subtitle" value="{{ s.subtitle }}">
-<label>نوع پس‌زمینه</label>
-<select name="bg_type">
-<option value="neon" {% if s.bg_type=='neon' %}selected{% endif %}>روشن (پیش‌فرض)</option>
-<option value="color" {% if s.bg_type=='color' %}selected{% endif %}>رنگ ساده</option>
-<option value="image" {% if s.bg_type=='image' %}selected{% endif %}>تصویر</option>
-</select>
-<label>رنگ پس‌زمینه</label><input type="color" name="bg_color" value="{{ s.bg_color }}">
-<div class="row" style="margin-top:12px">
-<div><label>آیکون ۱</label><input name="b1_icon" value="{{ s.b1_icon }}"></div>
-<div><label>عنوان ۱</label><input name="b1_title" value="{{ s.b1_title }}"></div>
-<div><label>لینک ۱</label><input name="b1_link" value="{{ s.b1_link }}"></div>
-<div><label>آیکون ۲</label><input name="b2_icon" value="{{ s.b2_icon }}"></div>
-<div><label>عنوان ۲</label><input name="b2_title" value="{{ s.b2_title }}"></div>
-<div><label>لینک ۲</label><input name="b2_link" value="{{ s.b2_link }}"></div>
-<div><label>آیکون ۳</label><input name="b3_icon" value="{{ s.b3_icon }}"></div>
-<div><label>عنوان </label><input name="b3_title" value="{{ s.b3_title }}"></div>
-<div><label>لینک ۳</label><input name="b3_link" value="{{ s.b3_link }}"></div>
-<div><label>آیکون ۴</label><input name="b4_icon" value="{{ s.b4_icon }}"></div>
-<div><label>عنوان ۴</label><input name="b4_title" value="{{ s.b4_title }}"></div>
-<div><label>لینک ۴</label><input name="b4_link" value="{{ s.b4_link }}"></div>
-</div>
-<button>💾 ذخیره ظاهر</button>
-</form>
-<form action="/admin/upload-bg" method="POST" enctype="multipart/form-data" style="margin-top:14px">
-<label>آپلود تصویر پس‌زمینه</label><input type="file" name="bg_file" accept="image/*">
-<button>🖼️ آپلود پس‌زمینه</button>
-</form>
-</div>
-
-<div class="sec">
-<h2>📂 مدیریت دسته‌بندی‌ها</h2>
-<form action="/admin/add-cat" method="POST">
-<div class="row">
-<div><label>نام فنی</label><input name="cat_name" placeholder="مثلاً: news" required></div>
-<div><label>نام نمایشی</label><input name="cat_display" placeholder="مثلاً: اخبار" required></div>
-<div><label>آیکون</label><input name="cat_icon" placeholder="📰"></div>
-</div>
-<label>ترتیب</label><input type="number" name="cat_sort" value="5">
-<button>➕ افزودن دسته‌بندی</button>
-</form>
-<div style="margin-top:15px">
-{% for c in cats %}
-<div class="cat-item"><span>{{ c.icon }} {{ c.display_name }} ({{ c.name }})</span><a class="del" href="/admin/delete-cat/{{ c.id }}" onclick="return confirm('حذف؟')">🗑</a></div>
-{% endfor %}
-</div>
-</div>
-
-<div class="sec">
-<h2>➕ افزودن محتوا</h2>
-<form action="/admin/add" method="POST" enctype="multipart/form-data">
-<label>دسته‌بندی</label>
-<select name="category">
-{% for c in cats %}<option value="{{ c.name }}">{{ c.display_name }}</option>{% endfor %}
-</select>
-<label>عنوان</label><input name="title" required>
-<label>توضیحات / پیام</label><textarea name="description"></textarea>
-<label>لینک دانلود</label><input name="download_link">
-<label>عکس کاور</label><input type="file" name="cover" accept="image/*">
-<button>➕ افزودن</button>
-</form>
-</div>
-
-<div class="sec">
-<h2>📋 محتوای موجود</h2>
-{% for it in items %}
-<div class="item"><span>{{ it.title }} ({{ it.category }})</span><a class="del" href="/admin/delete/{{ it.id }}" onclick="return confirm('حذف؟')">🗑</a></div>
-{% else %}<p>خالی است</p>{% endfor %}
-</div>
-</body>
-</html>
-HTMLEOF
-
-echo ""
-echo "═══════════════════════════════════════"
-echo "✅ سایت کامل ساخته شد!"
-echo "═══════════════════════════════════════"
-echo " اجرا:"
-echo "   cd ~/vortexplay && python app.py"
-echo ""
-echo " سایت:    http://127.0.0.1:5000"
-echo "⚙️ پنل:    http://127.0.0.1:5000/admin  (بدون رمز)"
-echo "═══════════════════════════════════════"
