@@ -3,25 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VORTEXPLAY | سلطنتی</title>
+    <title>VORTEXPLAY | تم سلطنتی</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, sans-serif;
-        }
+        * {margin: 0; padding: 0; box-sizing: border-box; font-family: Tahoma, sans-serif;}
 
         :root {
             --gold: #D4AF37;
             --gold-light: #FFD700;
-            --gold-dark: #B8860B;
             --royal: #4B0082;
             --royal-light: #8A2BE2;
             --bg-main: #1A0E2B;
             --bg-card: #2B1447;
             --text-light: #FFFFFF;
-            --text-gold: #FFE55C;
         }
 
         body {
@@ -31,663 +24,360 @@
             background-image: 
                 radial-gradient(circle at 20% 20%, rgba(212,175,55,0.1) 0%, transparent 40%),
                 radial-gradient(circle at 80% 80%, rgba(75,0,130,0.15) 0%, transparent 40%);
-            transition: background 0.5s ease;
         }
 
-        .container {
-            max-width: 900px;
-            margin: 0 auto;
-            padding: 30px 20px;
-        }
+        .container {max-width: 900px; margin: 0 auto; padding: 30px 20px;}
 
-        /* === کاور بالای صفحه === */
-        .cover-container {
-            width: 100%;
-            height: 220px;
-            border-radius: 16px;
-            overflow: hidden;
-            margin-bottom: -60px;
-            position: relative;
+        /* کاور */
+        .cover {
+            width: 100%; height: 200px; border-radius: 16px; overflow: hidden;
+            margin-bottom: -60px; position: relative; z-index: 1;
             box-shadow: 0 0 25px rgba(212,175,55,0.3);
         }
+        .cover img {width: 100%; height: 100%; object-fit: cover;}
 
-        .cover-img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            background: linear-gradient(135deg, var(--royal), var(--gold));
-        }
-
-        /* === دایره نئونی سلطنتی دور لوگو === */
-        .logo-circle {
-            width: 140px;
-            height: 140px;
-            margin: 0 auto;
-            border-radius: 50%;
-            background: var(--bg-main);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            position: relative;
-            z-index: 10;
+        /* دایره نئونی لوگو */
+        .logo-wrap {
+            width: 140px; height: 140px; margin: 0 auto; border-radius: 50%;
+            background: var(--bg-main); display: flex; align-items: center; justify-content: center;
+            position: relative; z-index: 2;
             box-shadow: 
                 0 0 0 4px var(--gold),
                 0 0 25px rgba(255,215,0,0.5),
-                0 0 40px rgba(138,43,226,0.3),
-                inset 0 0 20px rgba(255,215,0,0.2);
-            animation: royalGlow 3s ease-in-out infinite alternate;
+                0 0 40px rgba(138,43,226,0.3);
+            animation: pulse 3s ease-in-out infinite alternate;
         }
+        @keyframes pulse {
+            from {box-shadow: 0 0 0 4px var(--gold), 0 0 25px rgba(255,215,0,0.5);}
+            to   {box-shadow: 0 0 0 4px var(--royal-light), 0 0 30px rgba(138,43,226,0.6);}
+        }
+        .logo-wrap img {width: 115px; height: 115px; border-radius: 50%; object-fit: cover; border: 3px solid var(--gold);}
 
-        @keyframes royalGlow {
-            from {
-                box-shadow: 
-                    0 0 0 4px var(--gold),
-                    0 0 25px rgba(255,215,0,0.5),
-                    0 0 40px rgba(138,43,226,0.3),
-                    inset 0 0 20px rgba(255,215,0,0.2);
-            }
-            to {
-                box-shadow: 
-                    0 0 0 4px var(--royal-light),
-                    0 0 30px rgba(138,43,226,0.6),
-                    0 0 50px rgba(255,215,0,0.4),
-                    inset 0 0 25px rgba(138,43,226,0.2);
-            }
-        }
-
-        .logo-img {
-            width: 115px;
-            height: 115px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 3px solid var(--gold);
-        }
-
-        header {
-            text-align: center;
-            padding: 20px 0 30px;
-        }
-
-        .site-title {
-            font-size: 2.5rem;
-            font-weight: 900;
-            color: var(--gold-light);
-            text-shadow: 0 0 15px rgba(255,215,0,0.5);
-            margin: 10px 0 5px;
-        }
-
-        .site-desc {
-            color: #D0B8F0;
-            font-size: 1.05rem;
-        }
+        header {text-align: center; padding: 20px 0 30px;}
+        h1 {font-size: 2.4rem; color: var(--gold-light); text-shadow: 0 0 15px rgba(255,215,0,0.5); margin: 10px 0 5px;}
+        .desc {color: #D0B8F0; font-size: 1rem;}
 
         .divider {
-            height: 2px;
+            height: 2px; border: none;
             background: linear-gradient(90deg, transparent, var(--gold), var(--royal-light), var(--gold), transparent);
-            margin: 25px 0;
-            box-shadow: 0 0 10px rgba(255,215,0,0.4);
+            margin: 25px 0; box-shadow: 0 0 10px rgba(255,215,0,0.4);
         }
 
-        /* === دسته‌بندی‌ها === */
-        .categories {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 25px;
+        /* دسته‌بندی */
+        .cats {display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 25px;}
+        .cat {
+            padding: 10px 20px; background: var(--bg-card); border-radius: 30px; cursor: pointer;
+            color: #D0B8F0; border: 2px solid transparent; transition: 0.3s;
         }
+        .cat:hover, .cat.active {border-color: var(--gold); color: var(--gold-light); box-shadow: 0 0 12px rgba(255,215,0,0.3);}
 
-        .category-tab {
-            padding: 10px 20px;
-            background: var(--bg-card);
-            border: 2px solid transparent;
-            border-radius: 30px;
-            cursor: pointer;
-            font-weight: bold;
-            color: #D0B8F0;
-            transition: all 0.3s;
-        }
-
-        .category-tab:hover, .category-tab.active {
-            border-color: var(--gold);
-            color: var(--gold-light);
-            box-shadow: 0 0 12px rgba(255,215,0,0.3);
-        }
-
-        /* === کارت محتوا === */
-        .content-card {
-            background: var(--bg-card);
-            border-radius: 16px;
-            padding: 20px;
-            margin-bottom: 15px;
-            border: 1px solid rgba(212,175,55,0.2);
-            transition: all 0.3s;
-        }
-
-        .content-card:hover {
-            border-color: var(--gold);
-            box-shadow: 0 0 20px rgba(255,215,0,0.2);
-            transform: translateY(-3px);
-        }
-
-        .content-img {
-            width: 100%;
-            height: 160px;
-            border-radius: 10px;
-            object-fit: cover;
-            margin-bottom: 12px;
-            background: linear-gradient(135deg, var(--royal), var(--gold));
-        }
-
-        .content-title {
-            font-size: 1.15rem;
-            color: var(--gold-light);
-            margin-bottom: 6px;
-        }
-
-        .content-text {
-            color: #C0B0D0;
-            font-size: 0.95rem;
-            margin-bottom: 12px;
-            line-height: 1.7;
-        }
-
-        .custom-buttons {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin: 12px 0;
-        }
-
-        .custom-btn {
-            padding: 10px 20px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: bold;
-            transition: all 0.3s;
-            display: inline-block;
-            border: 2px solid transparent;
-        }
-
+        /* دکمه‌های بالایی */
+        .top-btns {display: flex; flex-wrap: wrap; gap: 10px; margin: 15px 0;}
         .btn-gold {
-            background: linear-gradient(135deg, var(--gold-dark), var(--gold));
-            color: white;
-            border-color: var(--gold);
+            padding: 10px 20px; background: linear-gradient(135deg, #B8860B, #FFD700); color: white;
+            border-radius: 8px; text-decoration: none; font-weight: bold; transition: 0.3s;
             box-shadow: 0 0 10px rgba(255,215,0,0.3);
         }
-
-        .btn-gold:hover {
-            box-shadow: 0 0 20px rgba(255,215,0,0.6);
-            transform: scale(1.03);
-        }
-
+        .btn-gold:hover {transform: scale(1.03); box-shadow: 0 0 20px rgba(255,215,0,0.6);}
         .btn-royal {
-            background: linear-gradient(135deg, var(--royal), var(--royal-light));
-            color: white;
-            border-color: var(--royal-light);
+            padding: 10px 20px; background: linear-gradient(135deg, #4B0082, #8A2BE2); color: white;
+            border-radius: 8px; text-decoration: none; font-weight: bold; transition: 0.3s;
             box-shadow: 0 0 10px rgba(138,43,226,0.3);
         }
+        .btn-royal:hover {transform: scale(1.03); box-shadow: 0 0 20px rgba(138,43,226,0.6);}
 
-        .btn-royal:hover {
-            box-shadow: 0 0 20px rgba(138,43,226,0.6);
-            transform: scale(1.03);
+        /* کارت‌ها */
+        .card {
+            background: var(--bg-card); border-radius: 16px; padding: 20px; margin-bottom: 15px;
+            border: 1px solid rgba(212,175,55,0.2); transition: 0.3s;
         }
+        .card:hover {border-color: var(--gold); box-shadow: 0 0 20px rgba(255,215,0,0.2); transform: translateY(-3px);}
+        .card-img {width: 100%; height: 160px; border-radius: 10px; object-fit: cover; margin-bottom: 12px; background: linear-gradient(135deg, var(--royal), var(--gold));}
+        .card h3 {color: var(--gold-light); margin-bottom: 6px;}
+        .card p {color: #C0B0D0; margin-bottom: 12px; line-height: 1.7;}
 
-        /* === پنل مدیریت === */
-        .admin-section {
-            text-align: center;
-            margin-top: 40px;
+        /* پنل مدیریت */
+        .admin-link {text-align: center; margin-top: 40px;}
+        .admin-btn {
+            padding: 12px 30px; background: transparent; border: 2px solid var(--gold);
+            color: var(--gold-light); border-radius: 10px; font-weight: bold; cursor: pointer;
+            transition: 0.3s; font-size: 1rem;
         }
+        .admin-btn:hover {background: var(--gold); color: var(--bg-main); box-shadow: 0 0 20px rgba(255,215,0,0.5);}
 
-        .admin-btn-main {
-            padding: 14px 35px;
-            background: transparent;
-            border: 2px solid var(--gold);
-            color: var(--gold-light);
-            border-radius: 10px;
-            font-weight: bold;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-size: 1rem;
-        }
-
-        .admin-btn-main:hover {
-            background: var(--gold);
-            color: var(--bg-main);
-            box-shadow: 0 0 20px rgba(255,215,0,0.5);
-        }
-
-        .panel-box {
-            background: var(--bg-card);
-            border-radius: 20px;
-            padding: 25px;
-            margin-top: 20px;
-            border: 1px solid rgba(212,175,55,0.3);
-        }
-
-        .back-link {
-            color: var(--gold-light);
-            text-decoration: none;
-            display: inline-block;
-            margin-bottom: 20px;
-        }
-
+        .panel {background: var(--bg-card); border-radius: 20px; padding: 25px; border: 1px solid rgba(212,175,55,0.3); margin-top: 20px;}
+        .back {color: var(--gold-light); text-decoration: none; display: inline-block; margin-bottom: 20px;}
         input, textarea, select {
-            width: 100%;
-            padding: 12px 15px;
-            margin: 8px 0;
-            border: 2px solid rgba(212,175,55,0.3);
-            border-radius: 8px;
-            font-size: 0.95rem;
-            background: rgba(0,0,0,0.2);
-            color: white;
+            width: 100%; padding: 12px; margin: 8px 0; border: 2px solid rgba(212,175,55,0.3);
+            border-radius: 8px; background: rgba(0,0,0,0.2); color: white; font-size: 0.95rem;
         }
-
-        input:focus, textarea:focus, select:focus {
-            outline: none;
-            border-color: var(--gold);
-            box-shadow: 0 0 10px rgba(255,215,0,0.3);
-        }
-
-        textarea {
-            min-height: 90px;
-            resize: vertical;
-        }
-
+        input:focus, textarea:focus {outline: none; border-color: var(--gold); box-shadow: 0 0 10px rgba(255,215,0,0.3);}
+        textarea {min-height: 90px; resize: vertical;}
         .file-label {
-            display: block;
-            padding: 12px;
-            background: rgba(212,175,55,0.1);
-            border: 2px dashed var(--gold);
-            border-radius: 8px;
-            text-align: center;
-            cursor: pointer;
-            margin: 10px 0;
+            display: block; padding: 12px; background: rgba(212,175,55,0.1); border: 2px dashed var(--gold);
+            border-radius: 8px; text-align: center; cursor: pointer; margin: 10px 0;
         }
+        .act-btn {padding: 12px 25px; border: none; border-radius: 8px; font-weight: bold; cursor: pointer; margin: 5px; transition: 0.3s;}
+        .gold-btn {background: linear-gradient(135deg, #B8860B, #FFD700); color: white;}
+        .gold-btn:hover {box-shadow: 0 0 15px rgba(255,215,0,0.5);}
+        .purple-btn {background: linear-gradient(135deg, #4B0082, #8A2BE2); color: white;}
+        .purple-btn:hover {box-shadow: 0 0 15px rgba(138,43,226,0.5);}
+        .ok {color: #00FF88; margin-top: 8px;}
+        .err {color: #FF5566; margin-top: 8px;}
+        .hidden {display: none !important;}
 
-        .action-btn {
-            padding: 12px 25px;
-            border: none;
-            border-radius: 8px;
-            font-weight: bold;
-            cursor: pointer;
-            margin: 5px;
-            transition: all 0.3s;
-        }
-
-        .btn-save {
-            background: linear-gradient(135deg, var(--gold-dark), var(--gold));
-            color: white;
-        }
-
-        .btn-save:hover {
-            box-shadow: 0 0 15px rgba(255,215,0,0.5);
-        }
-
-        .btn-add {
-            background: linear-gradient(135deg, var(--royal), var(--royal-light));
-            color: white;
-        }
-
-        .btn-add:hover {
-            box-shadow: 0 0 15px rgba(138,43,226,0.5);
-        }
-
-        .btn-del {
-            background: #aa2233;
-            color: white;
-        }
-
-        .status-ok { color: #00FF88; margin-top: 8px; }
-        .status-err { color: #FF5566; margin-top: 8px; }
-
-        .hidden { display: none !important; }
-
-        footer {
-            text-align: center;
-            margin-top: 50px;
-            padding: 20px;
-            color: #776699;
-            font-size: 0.9rem;
-            border-top: 1px solid rgba(212,175,55,0.15);
-        }
+        footer {text-align: center; margin-top: 50px; padding: 20px; color: #776699; font-size: 0.9rem; border-top: 1px solid rgba(212,175,55,0.15);}
     </style>
 </head>
 <body>
-    <div class="container" id="main-page">
+    <div class="container" id="main">
         <!-- کاور -->
-        <div class="cover-container">
-            <img id="site-cover" src="" alt="کاور" class="cover-img"
-                 onerror="this.src='https://via.placeholder.com/900x220/4B0082/FFD700?text=VORTEXPLAY'">
+        <div class="cover">
+            <img id="cover-img" src="" alt="کاور" onerror="this.src='https://via.placeholder.com/900x200/4B0082/FFD700?text=VORTEXPLAY'">
         </div>
 
         <header>
-            <div class="logo-circle">
-                <img id="site-logo" src="" alt="لوگو" class="logo-img"
-                     onerror="this.src='https://via.placeholder.com/115/D4AF37/FFFFFF?text=V'">
+            <div class="logo-wrap">
+                <img id="logo-img" src="" alt="لوگو" onerror="this.src='https://via.placeholder.com/115/D4AF37/FFFFFF?text=V'">
             </div>
-            <h1 class="site-title" id="title-text">VORTEXPLAY</h1>
-            <p class="site-desc" id="desc-text">درگاه سلطنتی محتوا و بازی‌ها</p>
+            <h1 id="site-title">VORTEXPLAY</h1>
+            <p class="desc" id="site-desc">درگاه سلطنتی محتوا و بازی‌ها</p>
         </header>
 
-        <div class="divider"></div>
+        <hr class="divider">
 
-        <!-- دسته‌بندی‌ها -->
-        <div class="categories" id="categories-bar"></div>
+        <!-- دسته‌بندی -->
+        <div class="cats" id="cats-bar"></div>
 
-        <!-- دکمه‌های سفارشی بالای سایت -->
-        <div class="custom-buttons" id="top-buttons"></div>
+        <!-- دکمه‌های سفارشی -->
+        <div class="top-btns" id="top-buttons"></div>
 
         <!-- لیست محتوا -->
         <div id="content-list" style="margin-top:25px;"></div>
 
-        <div class="admin-section">
-            <button class="admin-btn-main" onclick="showAdmin()">🔐 پنل مدیریت سلطنتی</button>
+        <div class="admin-link">
+            <button class="admin-btn" onclick="showAdmin()">🔐 پنل مدیریت</button>
         </div>
 
         <footer>
-            <p>© ۱۴۰۵ VORTEXPLAY | تم سلطنتی طلایی 💜👑</p>
+            <p>© ۱۴۰۵ VORTEXPLAY | تم سلطنتی طلایی 👑</p>
         </footer>
     </div>
 
     <!-- صفحه مدیریت -->
-    <div class="container hidden" id="admin-page">
-        <a href="javascript:hideAdmin()" class="back-link">← بازگشت به سایت</a>
+    <div class="container hidden" id="admin">
+        <a href="javascript:hideAdmin()" class="back">← بازگشت</a>
 
-        <!-- ورود -->
-        <div id="login-box" class="panel-box">
-            <h2>🔐 ورود به پنل سلطنتی</h2>
-            <input type="password" id="pass-input" placeholder="رمز ۳۲ رقمی را وارد کنید...">
-            <button class="action-btn btn-save" onclick="checkPass()">ورود</button>
-            <p id="login-msg" class="status-err"></p>
+        <div id="login-box" class="panel">
+            <h2>🔐 ورود</h2>
+            <input type="password" id="pass-in" placeholder="رمز ۳۲ رقمی">
+            <button class="act-btn gold-btn" onclick="checkPass()">ورود</button>
+            <p id="login-msg" class="err"></p>
         </div>
 
-        <!-- پنل اصلی -->
-        <div id="admin-panel" class="panel-box hidden">
-            <h2>👑 کنترل کامل سایت</h2>
+        <div id="panel-main" class="panel hidden">
+            <h2>👑 کنترل کامل</h2>
             <hr style="border:none; border-top:1px solid rgba(212,175,55,0.2); margin:20px 0;">
 
-            <!-- ۱. تغییر لوگو و کاور و پس‌زمینه -->
+            <!-- ظاهر -->
             <h3>🎨 ظاهر سایت</h3>
-            
-            <label class="file-label">
-                📷 انتخاب لوگو از گالری
-                <input type="file" id="logo-file" accept="image/*" style="display:none" onchange="previewLogo(event)">
-            </label>
-            <p id="logo-status" class="status-ok"></p>
-
-            <label class="file-label">
-                🖼️ انتخاب کاور بالای صفحه
-                <input type="file" id="cover-file" accept="image/*" style="display:none" onchange="previewCover(event)">
-            </label>
-            <p id="cover-status" class="status-ok"></p>
-
-            <label>کد رنگ پس‌زمینه:</label>
-            <input type="color" id="bg-color-picker" value="#1A0E2B">
-            <button class="action-btn btn-save" onclick="changeBgColor()">اعمال پس‌زمینه</button>
-
-            <input type="text" id="edit-title" placeholder="نام سایت">
-            <input type="text" id="edit-desc" placeholder="توضیح کوتاه سایت">
-            <button class="action-btn btn-save" onclick="saveSiteSettings()">ذخیره تنظیمات</button>
-            <p id="site-msg" class="status-ok"></p>
+            <label class="file-label">📷 انتخاب لوگو <input type="file" id="logo-file" accept="image/*" style="display:none" onchange="readLogo(event)"></label>
+            <p id="logo-status" class="ok"></p>
+            <label class="file-label">🖼️ انتخاب کاور <input type="file" id="cover-file" accept="image/*" style="display:none" onchange="readCover(event)"></label>
+            <p id="cover-status" class="ok"></p>
+            <label>رنگ پس‌زمینه:</label>
+            <input type="color" id="bg-pick" value="#1A0E2B">
+            <button class="act-btn gold-btn" onclick="applyBg()">اعمال</button>
+            <input type="text" id="in-title" placeholder="نام سایت">
+            <input type="text" id="in-desc" placeholder="توضیح سایت">
+            <button class="act-btn gold-btn" onclick="saveSettings()">ذخیره تنظیمات</button>
+            <p id="sett-msg" class="ok"></p>
 
             <hr style="border:none; border-top:1px solid rgba(212,175,55,0.2); margin:25px 0;">
 
-            <!-- ۲. دکمه‌های سفارشی -->
-            <h3>🔘 دکمه‌های سفارشی بالای سایت</h3>
+            <!-- دکمه -->
+            <h3>🔘 دکمه جدید</h3>
             <input type="text" id="btn-name" placeholder="متن دکمه">
-            <input type="url" id="btn-link" placeholder="لینک مقصد">
-            <select id="btn-style">
+            <input type="url" id="btn-link" placeholder="لینک">
+            <select id="btn-col">
                 <option value="gold">طلایی</option>
-                <option value="royal">بنفش سلطنتی</option>
+                <option value="royal">بنفش</option>
             </select>
-            <button class="action-btn btn-add" onclick="addCustomButton()">اضافه کردن دکمه</button>
-            <div id="btn-list" style="margin-top:10px;"></div>
+            <button class="act-btn purple-btn" onclick="addBtn()">اضافه کردن</button>
 
             <hr style="border:none; border-top:1px solid rgba(212,175,55,0.2); margin:25px 0;">
 
-            <!-- ۳. دسته‌بندی‌ها -->
-            <h3>📂 دسته‌بندی‌ها</h3>
-            <input type="text" id="new-cat" placeholder="نام دسته‌بندی">
-            <button class="action-btn btn-add" onclick="addCategory()">اضافه کردن</button>
-            <div id="cat-list" style="margin-top:10px;"></div>
+            <!-- دسته -->
+            <h3>📂 دسته‌بندی</h3>
+            <input type="text" id="cat-name" placeholder="نام دسته">
+            <button class="act-btn purple-btn" onclick="addCat()">اضافه کردن</button>
 
             <hr style="border:none; border-top:1px solid rgba(212,175,55,0.2); margin:25px 0;">
 
-            <!-- ۴. محتوای جدید -->
+            <!-- محتوا -->
             <h3>➕ محتوای جدید</h3>
-            <select id="content-cat"></select>
-            <input type="text" id="content-name" placeholder="عنوان / نام">
-            <textarea id="content-desc" placeholder="توضیحات..."></textarea>
-            
-            <label class="file-label">
-                📷 انتخاب عکس محتوا
-                <input type="file" id="content-img-file" accept="image/*" style="display:none" onchange="previewContentImg(event)">
-            </label>
-            <p id="content-img-status" class="status-ok"></p>
-            
-            <input type="url" id="content-link" placeholder="لینک دانلود / ورود">
-            <button class="action-btn btn-save" onclick="addContent()">انتشار محتوا</button>
-            <p id="content-msg" class="status-ok"></p>
+            <select id="sel-cat"></select>
+            <input type="text" id="cont-title" placeholder="عنوان">
+            <textarea id="cont-desc" placeholder="توضیحات"></textarea>
+            <label class="file-label">📷 عکس محتوا <input type="file" id="cont-img" accept="image/*" style="display:none" onchange="readContImg(event)"></label>
+            <p id="cont-img-status" class="ok"></p>
+            <input type="url" id="cont-link" placeholder="لینک دانلود">
+            <button class="act-btn gold-btn" onclick="addCont()">انتشار</button>
+            <p id="cont-msg" class="ok"></p>
 
             <hr style="border:none; border-top:1px solid rgba(212,175,55,0.2); margin:25px 0;">
 
-            <!-- ۵. تغییر رمز -->
+            <!-- رمز -->
             <h3>🔑 تغییر رمز</h3>
             <input type="password" id="old-pass" placeholder="رمز فعلی">
             <input type="password" id="new-pass" placeholder="رمز جدید ۳۲ رقمی">
-            <button class="action-btn btn-add" onclick="changePass()">تغییر رمز</button>
-            <p id="pass-msg" class="status-ok"></p>
+            <button class="act-btn purple-btn" onclick="changePass()">تغییر</button>
         </div>
     </div>
 
     <script>
-        let ADMIN_PASS = "VORTEX9X7K2P4R8M3N5L6J1H9G8F7D6S5A4D3B";
-        let selectedLogo = null, selectedCover = null, selectedContentImg = null;
-        let activeCategory = 'همه';
+        let PASS = "VORTEX9X7K2P4R8M3N5L6J1H9G8F7D6S5A4D3B";
+        let logoData, coverData, contImgData;
+        let activeCat = 'همه';
 
-        // بارگذاری همه چیز
-        function loadAll() {
-            const savedPass = localStorage.getItem('admin_pass');
-            if(savedPass) ADMIN_PASS = savedPass;
-
-            // تنظیمات سایت
-            document.getElementById('title-text').textContent = localStorage.getItem('site_title') || 'VORTEXPLAY';
-            document.getElementById('desc-text').textContent = localStorage.getItem('site_desc') || 'درگاه سلطنتی محتوا و بازی‌ها';
-            const logo = localStorage.getItem('site_logo');
-            if(logo) document.getElementById('site-logo').src = logo;
-            const cover = localStorage.getItem('site_cover');
-            if(cover) document.getElementById('site-cover').src = cover;
-            const bg = localStorage.getItem('site_bg');
-            if(bg) document.body.style.background = bg;
-
-            renderButtons();
-            renderCategories();
-            renderContent();
+        // بارگذاری
+        function load() {
+            if(localStorage.getItem('admin_pass')) PASS = localStorage.getItem('admin_pass');
+            document.getElementById('site-title').textContent = localStorage.getItem('site_title') || 'VORTEXPLAY';
+            document.getElementById('site-desc').textContent = localStorage.getItem('site_desc') || 'درگاه سلطنتی محتوا و بازی‌ها';
+            if(localStorage.getItem('site_logo')) document.getElementById('logo-img').src = localStorage.getItem('site_logo');
+            if(localStorage.getItem('site_cover')) document.getElementById('cover-img').src = localStorage.getItem('site_cover');
+            if(localStorage.getItem('site_bg')) document.body.style.background = localStorage.getItem('site_bg');
+            
+            renderBtns();
+            renderCats();
+            renderCont();
         }
 
-        // === دکمه‌های سفارشی ===
-        function getButtons() { return JSON.parse(localStorage.getItem('custom_buttons') || '[]'); }
-        function saveButtons(arr) { localStorage.setItem('custom_buttons', JSON.stringify(arr)); }
-
-        function renderButtons() {
-            const list = document.getElementById('top-buttons');
-            list.innerHTML = '';
-            getButtons().forEach((b, i) => {
-                const btn = document.createElement('a');
-                btn.href = b.link;
-                btn.target = '_blank';
-                btn.className = `custom-btn ${b.style === 'gold' ? 'btn-gold' : 'btn-royal'}`;
-                btn.textContent = b.name;
-                list.appendChild(btn);
+        // دکمه‌های بالایی
+        function getBtns() {return JSON.parse(localStorage.getItem('btns')||'[]');}
+        function saveBtns(d) {localStorage.setItem('btns',JSON.stringify(d));}
+        function renderBtns() {
+            const w = document.getElementById('top-buttons'); w.innerHTML='';
+            getBtns().forEach(b=>{
+                const a = document.createElement('a');
+                a.href=b.link; a.target='_blank';
+                a.className = b.style==='gold'?'btn-gold':'btn-royal';
+                a.textContent = b.name; w.appendChild(a);
             });
         }
-
-        function addCustomButton() {
-            const name = document.getElementById('btn-name').value.trim();
-            const link = document.getElementById('btn-link').value.trim();
-            const style = document.getElementById('btn-style').value;
-            if(!name || !link) return alert('نام و لینک را وارد کن!');
-            
-            const btns = getButtons();
-            btns.push({name, link, style});
-            saveButtons(btns);
-            
-            document.getElementById('btn-name').value = '';
-            document.getElementById('btn-link').value = '';
-            renderButtons();
-            alert('✅ دکمه اضافه شد!');
+        function addBtn() {
+            const n=document.getElementById('btn-name').value.trim();
+            const l=document.getElementById('btn-link').value.trim();
+            const s=document.getElementById('btn-col').value;
+            if(!n||!l) return alert('پر کن!');
+            const arr=getBtns(); arr.push({name:n,link:l,style:s}); saveBtns(arr);
+            document.getElementById('btn-name').value=''; document.getElementById('btn-link').value='';
+            renderBtns(); alert('✅ اضافه شد!');
         }
 
-        // === دسته‌بندی‌ها ===
-        function getCategories() { return JSON.parse(localStorage.getItem('categories') || '["همه"]'); }
-        function saveCategories(c) { localStorage.setItem('categories', JSON.stringify(c)); }
-
-        function renderCategories() {
-            const cats = getCategories();
-            const bar = document.getElementById('categories-bar');
-            bar.innerHTML = '';
-            cats.forEach(cat => {
-                const tab = document.createElement('span');
-                tab.className = 'category-tab' + (cat === activeCategory ? ' active' : '');
-                tab.textContent = cat;
-                tab.onclick = () => { activeCategory = cat; renderCategories(); renderContent(); };
-                bar.appendChild(tab);
+        // دسته‌بندی
+        function getCats() {return JSON.parse(localStorage.getItem('cats')||'["همه"]');}
+        function saveCats(d) {localStorage.setItem('cats',JSON.stringify(d));}
+        function renderCats() {
+            const c=getCats();
+            const w=document.getElementById('cats-bar'); w.innerHTML='';
+            c.forEach(x=>{
+                const s=document.createElement('span');
+                s.className='cat'+(x===activeCat?' active':'');
+                s.textContent=x; s.onclick=()=>{activeCat=x; renderCats(); renderCont();};
+                w.appendChild(s);
             });
-            const select = document.getElementById('content-cat');
-            select.innerHTML = '';
-            cats.filter(c => c !== 'همه').forEach(c => {
-                const opt = document.createElement('option');
-                opt.value = c; opt.textContent = c; select.appendChild(opt);
+            const sel=document.getElementById('sel-cat'); sel.innerHTML='';
+            c.filter(x=>x!=='همه').forEach(x=>{
+                const o=document.createElement('option'); o.value=x; o.textContent=x; sel.appendChild(o);
             });
         }
-
-        function addCategory() {
-            const name = document.getElementById('new-cat').value.trim();
-            if(!name) return alert('نام دسته را بنویس!');
-            const cats = getCategories();
-            if(cats.includes(name)) return alert('قبلاً هست!');
-            cats.push(name);
-            saveCategories(cats);
-            document.getElementById('new-cat').value = '';
-            renderCategories();
+        function addCat() {
+            const n=document.getElementById('cat-name').value.trim();
+            if(!n) return alert('نام بنویس!');
+            const c=getCats(); if(c.includes(n)) return alert('هست!');
+            c.push(n); saveCats(c); document.getElementById('cat-name').value=''; renderCats();
         }
 
-        // === محتوا ===
-        function getContents() { return JSON.parse(localStorage.getItem('contents') || '[]'); }
-        function saveContents(arr) { localStorage.setItem('contents', JSON.stringify(arr)); }
-
-        function renderContent() {
-            let items = getContents();
-            if(activeCategory !== 'همه') items = items.filter(i => i.cat === activeCategory);
-            const list = document.getElementById('content-list');
-            list.innerHTML = items.length ? '' : '<p style="text-align:center; color:#776699; padding:20px;">هنوز محتوایی نیست</p>';
-            items.forEach(item => {
-                const card = document.createElement('div');
-                card.className = 'content-card';
-                card.innerHTML = `
-                    ${item.img ? `<img src="${item.img}" class="content-img" alt="">` : ''}
-                    <h3 class="content-title">${item.name}</h3>
-                    <p class="content-text">${item.desc}</p>
-                    <a href="${item.link}" target="_blank" class="custom-btn btn-gold">ورود / دانلود 📥</a>
-                `;
-                list.appendChild(card);
+        // محتوا
+        function getCont() {return JSON.parse(localStorage.getItem('contents')||'[]');}
+        function saveCont(d) {localStorage.setItem('contents',JSON.stringify(d));}
+        function renderCont() {
+            let arr=getCont();
+            if(activeCat!=='همه') arr=arr.filter(x=>x.cat===activeCat);
+            const w=document.getElementById('content-list'); w.innerHTML='';
+            if(!arr.length) {w.innerHTML='<p style="text-align:center; color:#776699; padding:20px;">هنوز محتوایی نیست</p>'; return;}
+            arr.forEach(x=>{
+                const d=document.createElement('div'); d.className='card';
+                d.innerHTML=`
+                    ${x.img?`<img src="${x.img}" class="card-img">`:""}
+                    <h3>${x.title}</h3>
+                    <p>${x.desc}</p>
+                    <a href="${x.link}" target="_blank" class="btn-gold">دانلود 📥</a>
+                `; w.appendChild(d);
             });
         }
-
-        function addContent() {
-            const cat = document.getElementById('content-cat').value;
-            const name = document.getElementById('content-name').value.trim();
-            const desc = document.getElementById('content-desc').value.trim();
-            const link = document.getElementById('content-link').value.trim();
-            if(!cat || !name || !link) return alert('همه قسمت‌ها را پر کن!');
-            
-            const items = getContents();
-            items.unshift({cat, name, desc, link, img: selectedContentImg});
-            saveContents(items);
-            
-            document.getElementById('content-name').value = '';
-            document.getElementById('content-desc').value = '';
-            document.getElementById('content-link').value = '';
-            selectedContentImg = null;
-            document.getElementById('content-img-status').textContent = '';
-            
-            renderContent();
-            document.getElementById('content-msg').textContent = '✅ منتشر شد!';
-            setTimeout(() => document.getElementById('content-msg').textContent = '', 3000);
+        function addCont() {
+            const cat=document.getElementById('sel-cat').value;
+            const t=document.getElementById('cont-title').value.trim();
+            const d=document.getElementById('cont-desc').value.trim();
+            const l=document.getElementById('cont-link').value.trim();
+            if(!cat||!t||!l) return alert('پر کن!');
+            const arr=getCont(); arr.unshift({cat,title:t,desc:d,link:l,img:contImgData});
+            saveCont(arr);
+            document.getElementById('cont-title').value=''; document.getElementById('cont-desc').value='';
+            document.getElementById('cont-link').value=''; contImgData=null;
+            renderCont();
+            document.getElementById('cont-msg').textContent='✅ منتشر شد!';
+            setTimeout(()=>document.getElementById('cont-msg').textContent='',3000);
         }
 
-        // === پیش‌نمایش عکس‌ها ===
-        function previewLogo(e) {
-            const r = new FileReader();
-            r.onload = ev => { selectedLogo = ev.target.result; document.getElementById('logo-status').textContent = '✅ آماده ذخیره'; };
-            r.readAsDataURL(e.target.files[0]);
+        // خواندن عکس
+        function readLogo(e) {const r=new FileReader(); r.onload=e=>{logoData=e.target.result; document.getElementById('logo-status').textContent='✅ آماده ذخیره';}; r.readAsDataURL(e.target.files[0]);}
+        function readCover(e) {const r=new FileReader(); r.onload=e=>{coverData=e.target.result; document.getElementById('cover-status').textContent='✅ آماده ذخیره';}; r.readAsDataURL(e.target.files[0]);}
+        function readContImg(e) {const r=new FileReader(); r.onload=e=>{contImgData=e.target.result; document.getElementById('cont-img-status').textContent='✅ عکس انتخاب شد';}; r.readAsDataURL(e.target.files[0]);}
+
+        // ذخیره تنظیمات
+        function saveSettings() {
+            const t=document.getElementById('in-title').value.trim();
+            const d=document.getElementById('in-desc').value.trim();
+            if(t) {localStorage.setItem('site_title',t); document.getElementById('site-title').textContent=t;}
+            if(d) {localStorage.setItem('site_desc',d); document.getElementById('site-desc').textContent=d;}
+            if(logoData) {localStorage.setItem('site_logo',logoData); document.getElementById('logo-img').src=logoData; logoData=null;}
+            if(coverData) {localStorage.setItem('site_cover',coverData); document.getElementById('cover-img').src=coverData; coverData=null;}
+            document.getElementById('sett-msg').textContent='✅ ذخیره شد!';
+            setTimeout(()=>document.getElementById('sett-msg').textContent='',3000);
         }
-        function previewCover(e) {
-            const r = new FileReader();
-            r.onload = ev => { selectedCover = ev.target.result; document.getElementById('cover-status').textContent = '✅ آماده ذخیره'; };
-            r.readAsDataURL(e.target.files[0]);
-        }
-        function previewContentImg(e) {
-            const r = new FileReader();
-            r.onload = ev => { selectedContentImg = ev.target.result; document.getElementById('content-img-status').textContent = '✅ عکس انتخاب شد'; };
-            r.readAsDataURL(e.target.files[0]);
+        function applyBg() {
+            const c=document.getElementById('bg-pick').value;
+            document.body.style.background=c; localStorage.setItem('site_bg',c); alert('✅ پس‌زمینه عوض شد!');
         }
 
-        // === ذخیره تنظیمات ===
-        function saveSiteSettings() {
-            const t = document.getElementById('edit-title').value.trim();
-            const d = document.getElementById('edit-desc').value.trim();
-            if(t) { localStorage.setItem('site_title', t); document.getElementById('title-text').textContent = t; }
-            if(d) { localStorage.setItem('site_desc', d); document.getElementById('desc-text').textContent = d; }
-            if(selectedLogo) { localStorage.setItem('site_logo', selectedLogo); document.getElementById('site-logo').src = selectedLogo; selectedLogo = null; }
-            if(selectedCover) { localStorage.setItem('site_cover', selectedCover); document.getElementById('site-cover').src = selectedCover; selectedCover = null; }
-            document.getElementById('site-msg').textContent = '✅ ذخیره شد!';
-            setTimeout(() => document.getElementById('site-msg').textContent = '', 3000);
-        }
-
-        function changeBgColor() {
-            const c = document.getElementById('bg-color-picker').value;
-            document.body.style.background = c;
-            localStorage.setItem('site_bg', c);
-            alert('✅ پس‌زمینه تغییر کرد!');
-        }
-
-        // === ورود و مدیریت ===
-        function showAdmin() {
-            document.getElementById('main-page').classList.add('hidden');
-            document.getElementById('admin-page').classList.remove('hidden');
-            document.getElementById('admin-panel').classList.add('hidden');
-            document.getElementById('login-box').classList.remove('hidden');
-        }
-        function hideAdmin() {
-            document.getElementById('admin-page').classList.add('hidden');
-            document.getElementById('main-page').classList.remove('hidden');
-            document.getElementById('pass-input').value = '';
-        }
+        // ورود و خروج
+        function showAdmin() {document.getElementById('main').classList.add('hidden'); document.getElementById('admin').classList.remove('hidden'); document.getElementById('panel-main').classList.add('hidden');}
+        function hideAdmin() {document.getElementById('admin').classList.add('hidden'); document.getElementById('main').classList.remove('hidden'); document.getElementById('pass-in').value='';}
         function checkPass() {
-            const inp = document.getElementById('pass-input').value.trim();
-            if(inp === ADMIN_PASS) {
+            const inp=document.getElementById('pass-in').value.trim();
+            if(inp===PASS) {
                 document.getElementById('login-box').classList.add('hidden');
-                document.getElementById('admin-panel').classList.remove('hidden');
-                document.getElementById('edit-title').value = localStorage.getItem('site_title') || 'VORTEXPLAY';
-                document.getElementById('edit-desc').value = localStorage.getItem('site_desc') || 'درگاه سلطنتی محتوا و بازی‌ها';
+                document.getElementById('panel-main').classList.remove('hidden');
+                document.getElementById('in-title').value=localStorage.getItem('site_title')||'VORTEXPLAY';
+                document.getElementById('in-desc').value=localStorage.getItem('site_desc')||'درگاه سلطنتی محتوا و بازی‌ها';
             } else {
-                document.getElementById('login-msg').textContent = '❌ رمز اشتباه!';
+                document.getElementById('login-msg').textContent='❌ اشتباه!';
             }
         }
         function changePass() {
-            const o = document.getElementById('old-pass').value.trim();
-            const n = document.getElementById('new-pass').value.trim();
-            if(o !== ADMIN_PASS) return alert('❌ رمز فعلی اشتباه!');
-            if(n.length < 32) return alert('❌ ۳۲ کاراکتر لازم است!');
-            ADMIN_PASS = n;
-            localStorage.setItem('admin_pass', n);
-            alert('✅ رمز عوض شد!');
-            document.getElementById('old-pass').value = '';
-            document.getElementById('new-pass').value = '';
+            const o=document.getElementById('old-pass').value.trim();
+            const n=document.getElementById('new-pass').value.trim();
+            if(o!==PASS) return alert('❌ رمز فعلی اشتباه!');
+            if(n.length<32) return alert('❌ ۳۲ کاراکتر لازم است!');
+            PASS=n; localStorage.setItem('admin_pass',n); alert('✅ عوض شد!');
+            document.getElementById('old-pass').value=''; document.getElementById('new-pass').value='';
         }
 
-        loadAll();
+        load();
     </script>
 </body>
 </html>
