@@ -3,30 +3,29 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VORTEXPLAY | دنیای بازی‌ها</title>
+    <title>VORTEXPLAY | پایگاه گیمینگ</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, sans-serif;
+            font-family: Tahoma, sans-serif;
         }
 
         :root {
-            --neon-orange: #ff6b00;
-            --neon-blue: #00d4ff;
-            --neon-purple: #a800ff;
-            --dark-bg: #050508;
-            --card-bg: #0f0f1a;
+            --neon-orange: #ff7a00;
+            --neon-blue: #00bfff;
+            --neon-purple: #9933ff;
+            --light-bg: #f8f9fc;
+            --card-bg: #ffffff;
+            --text-dark: #1a1a2e;
+            --text-gray: #555566;
         }
 
         body {
-            background: var(--dark-bg);
-            color: white;
+            background: var(--light-bg);
+            color: var(--text-dark);
             min-height: 100vh;
-            background-image: 
-                radial-gradient(circle at 20% 20%, rgba(255,107,0,0.08) 0%, transparent 40%),
-                radial-gradient(circle at 80% 80%, rgba(0,212,255,0.08) 0%, transparent 40%);
         }
 
         .container {
@@ -37,173 +36,180 @@
 
         header {
             text-align: center;
-            padding: 40px 0 50px;
+            padding: 30px 0 40px;
         }
 
-        .logo {
-            font-size: 3.5rem;
+        /* === دایره نئونی دور لوگو === */
+        .logo-circle {
+            width: 160px;
+            height: 160px;
+            margin: 0 auto 20px;
+            border-radius: 50%;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 
+                0 0 0 4px var(--neon-orange),
+                0 0 25px rgba(255,122,0,0.6),
+                0 0 45px rgba(0,191,255,0.4),
+                inset 0 0 15px rgba(255,122,0,0.2);
+            animation: neonPulse 2.5s ease-in-out infinite alternate;
+            overflow: hidden;
+        }
+
+        @keyframes neonPulse {
+            from {
+                box-shadow: 
+                    0 0 0 4px var(--neon-orange),
+                    0 0 25px rgba(255,122,0,0.6),
+                    0 0 45px rgba(0,191,255,0.4),
+                    inset 0 0 15px rgba(255,122,0,0.2);
+            }
+            to {
+                box-shadow: 
+                    0 0 0 4px var(--neon-blue),
+                    0 0 30px rgba(0,191,255,0.7),
+                    0 0 55px rgba(153,51,255,0.5),
+                    inset 0 0 20px rgba(0,191,255,0.2);
+            }
+        }
+
+        .logo-img {
+            width: 130px;
+            height: 130px;
+            border-radius: 50%;
+            object-fit: cover;
+            background: linear-gradient(135deg, var(--neon-orange), var(--neon-blue));
+        }
+
+        .site-title {
+            font-size: 2.4rem;
             font-weight: 900;
             background: linear-gradient(135deg, var(--neon-orange), var(--neon-blue), var(--neon-purple));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
             background-clip: text;
-            text-shadow: 0 0 40px rgba(255,107,0,0.3);
-            letter-spacing: 2px;
-            margin-bottom: 10px;
-            animation: glow 3s ease-in-out infinite alternate;
-        }
-
-        @keyframes glow {
-            from { filter: drop-shadow(0 0 8px rgba(255,107,0,0.4)); }
-            to { filter: drop-shadow(0 0 20px rgba(0,212,255,0.6)); }
-        }
-
-        .subtitle {
-            color: #889;
-            font-size: 1.1rem;
             letter-spacing: 1px;
+            margin-bottom: 8px;
         }
 
-        .neon-line {
-            height: 3px;
-            background: linear-gradient(90deg, var(--neon-orange), var(--neon-blue), var(--neon-purple));
-            border-radius: 2px;
-            margin: 20px auto;
-            width: 200px;
-            box-shadow: 0 0 15px rgba(255,107,0,0.5);
+        .site-desc {
+            color: var(--text-gray);
+            font-size: 1.05rem;
         }
 
-        .section-title {
-            font-size: 1.4rem;
-            margin: 40px 0 20px;
+        /* === دسته‌بندی‌ها === */
+        .categories {
             display: flex;
-            align-items: center;
+            flex-wrap: wrap;
             gap: 10px;
-            color: var(--neon-blue);
+            margin-bottom: 30px;
         }
 
-        .game-card {
-            background: var(--card-bg);
+        .category-tab {
+            padding: 10px 20px;
+            background: white;
+            border: 2px solid transparent;
+            border-radius: 30px;
+            cursor: pointer;
+            font-weight: bold;
+            color: var(--text-gray);
+            transition: all 0.3s;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        .category-tab:hover, .category-tab.active {
+            border-color: var(--neon-orange);
+            color: var(--neon-orange);
+            box-shadow: 0 0 12px rgba(255,122,0,0.3);
+        }
+
+        /* === کارت‌های محتوا === */
+        .content-card {
+            background: white;
             border-radius: 16px;
             padding: 20px;
             margin-bottom: 15px;
-            border: 1px solid rgba(255,107,0,0.2);
-            transition: all 0.3s ease;
-            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.06);
+            border-right: 4px solid var(--neon-blue);
+            transition: all 0.3s;
         }
 
-        .game-card:hover {
-            transform: translateY(-5px);
-            border-color: var(--neon-orange);
-            box-shadow: 0 0 25px rgba(255,107,0,0.3), inset 0 0 15px rgba(255,107,0,0.1);
+        .content-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+            border-right-color: var(--neon-orange);
         }
 
-        .game-card h3 {
-            font-size: 1.2rem;
-            margin-bottom: 5px;
-            color: #fff;
+        .content-img {
+            width: 100%;
+            height: 160px;
+            border-radius: 10px;
+            object-fit: cover;
+            margin-bottom: 12px;
+            background: linear-gradient(135deg, #f0f0f0, #e0f0ff);
         }
 
-        .game-card p {
-            color: #889;
-            font-size: 0.9rem;
-            margin-bottom: 10px;
+        .content-title {
+            font-size: 1.15rem;
+            margin-bottom: 6px;
+            color: var(--text-dark);
+        }
+
+        .content-text {
+            color: var(--text-gray);
+            font-size: 0.95rem;
+            margin-bottom: 12px;
+            line-height: 1.7;
         }
 
         .download-btn {
             display: inline-block;
-            padding: 10px 25px;
-            background: linear-gradient(135deg, var(--neon-orange), #ff8c00);
+            padding: 10px 24px;
+            background: linear-gradient(135deg, var(--neon-orange), #ff9500);
             color: white;
             border-radius: 8px;
             text-decoration: none;
             font-weight: bold;
             transition: all 0.3s;
-            box-shadow: 0 0 10px rgba(255,107,0,0.4);
+            box-shadow: 0 4px 12px rgba(255,122,0,0.35);
         }
 
         .download-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 0 20px rgba(255,107,0,0.7);
+            transform: scale(1.03);
+            box-shadow: 0 6px 20px rgba(255,122,0,0.5);
         }
 
-        .admin-link {
+        /* === پنل مدیریت === */
+        .admin-section {
             text-align: center;
             margin-top: 50px;
         }
 
         .admin-btn {
-            display: inline-block;
             padding: 12px 30px;
             background: transparent;
             border: 2px solid var(--neon-purple);
             color: var(--neon-purple);
-            border-radius: 8px;
-            text-decoration: none;
+            border-radius: 10px;
             font-weight: bold;
+            cursor: pointer;
             transition: all 0.3s;
         }
 
         .admin-btn:hover {
             background: var(--neon-purple);
             color: white;
-            box-shadow: 0 0 20px rgba(168,0,255,0.5);
+            box-shadow: 0 0 15px rgba(153,51,255,0.4);
         }
 
-        footer {
-            text-align: center;
-            margin-top: 60px;
-            padding: 20px;
-            color: #555;
-            font-size: 0.85rem;
-            border-top: 1px solid rgba(255,255,255,0.05);
-        }
-
-        /* صفحه مدیریت */
-        .panel-container {
-            background: var(--card-bg);
+        .panel-box {
+            background: white;
             border-radius: 20px;
-            padding: 30px;
-            border: 1px solid rgba(0,212,255,0.2);
-            box-shadow: 0 0 30px rgba(0,212,255,0.1);
-        }
-
-        input, textarea {
-            width: 100%;
-            padding: 14px;
-            margin: 10px 0;
-            background: rgba(255,255,255,0.05);
-            border: 1px solid rgba(255,255,255,0.1);
-            border-radius: 8px;
-            color: white;
-            font-size: 1rem;
-        }
-
-        input:focus, textarea:focus {
-            outline: none;
-            border-color: var(--neon-blue);
-            box-shadow: 0 0 10px rgba(0,212,255,0.3);
-        }
-
-        .btn {
-            padding: 12px 30px;
-            border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            font-weight: bold;
-            cursor: pointer;
-            margin: 5px;
-            transition: all 0.3s;
-        }
-
-        .btn-primary {
-            background: linear-gradient(135deg, var(--neon-orange), #ff8c00);
-            color: white;
-            box-shadow: 0 0 10px rgba(255,107,0,0.4);
-        }
-
-        .btn-primary:hover {
-            box-shadow: 0 0 20px rgba(255,107,0,0.7);
+            padding: 25px;
+            margin-top: 20px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.1);
         }
 
         .back-link {
@@ -213,131 +219,370 @@
             margin-bottom: 20px;
         }
 
-        .success-msg {
-            color: #00ff88;
-            margin-top: 10px;
+        input, textarea, select {
+            width: 100%;
+            padding: 12px 15px;
+            margin: 8px 0;
+            border: 2px solid #e5e5ee;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            background: white;
         }
 
-        .error-msg {
-            color: #ff4466;
-            margin-top: 10px;
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: var(--neon-orange);
+            box-shadow: 0 0 8px rgba(255,122,0,0.2);
         }
+
+        textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .file-label {
+            display: block;
+            padding: 12px;
+            background: #f0f4ff;
+            border: 2px dashed var(--neon-blue);
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+
+        .action-btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 5px;
+            transition: all 0.3s;
+        }
+
+        .btn-orange {
+            background: linear-gradient(135deg, var(--neon-orange), #ff9500);
+            color: white;
+        }
+
+        .btn-orange:hover {
+            box-shadow: 0 4px 15px rgba(255,122,0,0.4);
+        }
+
+        .btn-purple {
+            background: linear-gradient(135deg, var(--neon-purple), #7a22dd);
+            color: white;
+        }
+
+        .btn-purple:hover {
+            box-shadow: 0 4px 15px rgba(153,51,255,0.4);
+        }
+
+        .btn-red {
+            background: #ff4455;
+            color: white;
+        }
+
+        .status-ok { color: #00aa44; margin-top: 8px; }
+        .status-err { color: #ff4455; margin-top: 8px; }
 
         .hidden { display: none !important; }
+
+        footer {
+            text-align: center;
+            margin-top: 60px;
+            padding: 20px;
+            color: #999;
+            font-size: 0.9rem;
+        }
     </style>
 </head>
 <body>
     <div class="container" id="main-page">
         <header>
-            <h1 class="logo">VORTEXPLAY</h1>
-            <p class="subtitle">مرکز دانلود بازی‌ها و محتوای گیمینگ</p>
-            <div class="neon-line"></div>
+            <div class="logo-circle">
+                <img id="site-logo" src="" alt="لوگو" class="logo-img" 
+                     onerror="this.src='https://via.placeholder.com/130/ff7a00/ffffff?text=V'">
+            </div>
+            <h1 class="site-title" id="title-text">VORTEXPLAY</h1>
+            <p class="site-desc" id="desc-text">مرکز دانلود بازی‌ها و محتوای گیمینگ</p>
         </header>
 
-        <h2 class="section-title">🎮 بازی‌ها و محتوا</h2>
-        <div id="games-list">
-            <!-- کارت‌های اینجا اضافه میشن -->
-            <div class="game-card">
-                <h3>بازی شماره یک</h3>
-                <p>توضیحات و مشخصات بازی</p>
-                <a href="#" class="download-btn">دانلود 📥</a>
-            </div>
+        <!-- دسته‌بندی‌ها -->
+        <div class="categories" id="categories-bar">
+            <!-- از پنل اضافه میشه -->
         </div>
 
-        <div class="admin-link">
-            <a href="javascript:showAdmin()" class="admin-btn">🔐 پنل مدیریت</a>
+        <!-- لیست محتوا -->
+        <div id="content-list">
+            <!-- کارت‌ها اینجا نمایش داده میشن -->
+        </div>
+
+        <div class="admin-section">
+            <button class="admin-btn" onclick="showAdmin()">🔐 پنل مدیریت</button>
         </div>
 
         <footer>
-            <p>© ۲۰۲۶ VORTEXPLAY | طراحی شده با عشق و نئون 💜</p>
+            <p>© ۱۴۰۵ VORTEXPLAY — همه حقوق محفوظ است</p>
         </footer>
     </div>
 
     <!-- صفحه مدیریت -->
     <div class="container hidden" id="admin-page">
-        <a href="javascript:showMain()" class="back-link">← بازگشت به سایت</a>
-        
-        <div id="login-box" class="panel-container">
+        <a href="javascript:hideAdmin()" class="back-link">← بازگشت به سایت</a>
+
+        <!-- ورود -->
+        <div id="login-box" class="panel-box">
             <h2>🔐 ورود به پنل مدیریت</h2>
-            <input type="password" id="admin-pass" placeholder="رمز ۳۲ رقمی را وارد کنید...">
-            <button class="btn btn-primary" onclick="checkPassword()">ورود</button>
-            <p id="login-error" class="error-msg"></p>
+            <input type="password" id="pass-input" placeholder="رمز ۳۲ رقمی را وارد کنید...">
+            <button class="action-btn btn-orange" onclick="checkPass()">ورود</button>
+            <p id="login-msg" class="status-err"></p>
         </div>
 
-        <div id="admin-panel" class="panel-container hidden">
-            <h2>✅ خوش اومدی!</h2>
-            <hr style="border-color: rgba(255,255,255,0.1); margin: 20px 0;">
+        <!-- پنل اصلی -->
+        <div id="admin-panel" class="panel-box hidden">
+            <h2>✅ کنترل کامل سایت</h2>
+            <hr style="border:none; border-top:1px solid #eee; margin:20px 0;">
 
-            <h3>➕ اضافه کردن لینک جدید</h3>
-            <input type="text" id="game-name" placeholder="نام بازی / محتوا">
-            <textarea id="game-desc" placeholder="توضیحات کوتاه..."></textarea>
-            <input type="url" id="game-link" placeholder="لینک دانلود (مثل: https://... )">
-            <button class="btn btn-primary" onclick="addGame()">انتشار لینک</button>
-            <p id="add-status" class="success-msg"></p>
+            <!-- ۱. تنظیمات کلی سایت -->
+            <h3>🏷️ تنظیمات سایت</h3>
+            <label class="file-label">
+                📷 انتخاب لوگو از گالری
+                <input type="file" id="logo-file" accept="image/*" style="display:none" onchange="previewLogo(event)">
+            </label>
+            <p id="logo-preview" style="color:green; font-size:0.9rem;"></p>
+            
+            <input type="text" id="edit-title" placeholder="نام سایت">
+            <input type="text" id="edit-desc" placeholder="توضیح کوتاه سایت">
+            <button class="action-btn btn-orange" onclick="saveSiteSettings()">ذخیره تنظیمات</button>
+            <p id="site-msg" class="status-ok"></p>
 
-            <hr style="border-color: rgba(255,255,255,0.1); margin: 25px 0;">
+            <hr style="border:none; border-top:1px solid #eee; margin:25px 0;">
 
-            <h3>🎨 تغییر ظاهر</h3>
-            <input type="text" id="new-logo-text" placeholder="متن لوگو (مثال: VORTEXPLAY)">
-            <button class="btn btn-primary" onclick="changeLogoText()">تغییر نام</button>
+            <!-- ۲. مدیریت دسته‌بندی‌ها -->
+            <h3>📂 دسته‌بندی‌ها</h3>
+            <input type="text" id="new-cat" placeholder="نام دسته‌بندی جدید">
+            <button class="action-btn btn-purple" onclick="addCategory()">اضافه کردن</button>
+            <div id="cat-list" style="margin-top:10px;"></div>
 
-            <hr style="border-color: rgba(255,255,255,0.1); margin: 25px 0;">
+            <hr style="border:none; border-top:1px solid #eee; margin:25px 0;">
 
+            <!-- ۳. اضافه کردن محتوا -->
+            <h3>➕ محتوای جدید</h3>
+            <select id="content-cat">
+                <!-- دسته‌ها اینجا پر میشن -->
+            </select>
+            <input type="text" id="content-name" placeholder="عنوان / نام بازی">
+            <textarea id="content-desc" placeholder="توضیحات و معرفی..."></textarea>
+            
+            <label class="file-label">
+                📷 انتخاب عکس از گالری
+                <input type="file" id="content-img-file" accept="image/*" style="display:none" onchange="previewContentImg(event)">
+            </label>
+            <p id="content-img-status" style="color:green; font-size:0.9rem;"></p>
+            
+            <input type="url" id="content-link" placeholder="لینک دانلود (https://...)">
+            <button class="action-btn btn-orange" onclick="addContent()">انتشار محتوا</button>
+            <p id="content-msg" class="status-ok"></p>
+
+            <hr style="border:none; border-top:1px solid #eee; margin:25px 0;">
+
+            <!-- ۴. تغییر رمز -->
             <h3>🔑 تغییر رمز</h3>
             <input type="password" id="old-pass" placeholder="رمز فعلی">
             <input type="password" id="new-pass" placeholder="رمز جدید ۳۲ رقمی">
-            <button class="btn btn-primary" onclick="changeAdminPass()">تغییر رمز</button>
-            <p id="pass-status" class="success-msg"></p>
+            <button class="action-btn btn-purple" onclick="changePass()">تغییر رمز</button>
+            <p id="pass-msg" class="status-ok"></p>
         </div>
     </div>
 
     <script>
-        let ADMIN_PASSWORD = "VORTEX9X7K2P4R8M3N5L6J1H9G8F7D6S5A4D3B";
+        let ADMIN_PASS = "VORTEX9X7K2P4R8M3N5L6J1H9G8F7D6S5A4D3B";
+        let selectedLogo = null;
+        let selectedContentImg = null;
+        let activeCategory = 'همه';
 
-        function loadGames() {
-            const saved = localStorage.getItem('vortex_games');
-            const games = saved ? JSON.parse(saved) : [
-                {name: 'بازی شماره یک', desc: 'توضیحات و مشخصات بازی', link: '#'}
-            ];
-            renderGames(games);
+        // بارگذاری داده‌ها
+        function loadAll() {
+            const savedPass = localStorage.getItem('admin_pass');
+            if(savedPass) ADMIN_PASS = savedPass;
+
+            const title = localStorage.getItem('site_title') || 'VORTEXPLAY';
+            const desc = localStorage.getItem('site_desc') || 'مرکز دانلود بازی‌ها و محتوای گیمینگ';
+            const logo = localStorage.getItem('site_logo');
+            
+            document.getElementById('title-text').textContent = title;
+            document.getElementById('desc-text').textContent = desc;
+            if(logo) document.getElementById('site-logo').src = logo;
+
+            renderCategories();
+            renderContent();
         }
 
-        function renderGames(games) {
-            const list = document.getElementById('games-list');
+        // === دسته‌بندی‌ها ===
+        function getCategories() {
+            return JSON.parse(localStorage.getItem('categories') || '["همه"]');
+        }
+
+        function saveCategories(cats) {
+            localStorage.setItem('categories', JSON.stringify(cats));
+        }
+
+        function renderCategories() {
+            const cats = getCategories();
+            const bar = document.getElementById('categories-bar');
+            bar.innerHTML = '';
+            
+            cats.forEach(cat => {
+                const tab = document.createElement('span');
+                tab.className = 'category-tab' + (cat === activeCategory ? ' active' : '');
+                tab.textContent = cat;
+                tab.onclick = () => {
+                    activeCategory = cat;
+                    renderCategories();
+                    renderContent();
+                };
+                bar.appendChild(tab);
+            });
+
+            // آپدیت منوی انتخاب در پنل
+            const select = document.getElementById('content-cat');
+            select.innerHTML = '';
+            cats.filter(c => c !== 'همه').forEach(c => {
+                const opt = document.createElement('option');
+                opt.value = c;
+                opt.textContent = c;
+                select.appendChild(opt);
+            });
+        }
+
+        function addCategory() {
+            const name = document.getElementById('new-cat').value.trim();
+            if(!name) return alert('نام دسته را بنویس!');
+            
+            const cats = getCategories();
+            if(cats.includes(name)) return alert('قبلاً وجود دارد!');
+            
+            cats.push(name);
+            saveCategories(cats);
+            document.getElementById('new-cat').value = '';
+            renderCategories();
+        }
+
+        // === محتواها ===
+        function getContents() {
+            return JSON.parse(localStorage.getItem('contents') || '[]');
+        }
+
+        function saveContents(arr) {
+            localStorage.setItem('contents', JSON.stringify(arr));
+        }
+
+        function renderContent() {
+            const list = document.getElementById('content-list');
             list.innerHTML = '';
-            games.forEach((g, i) => {
+            
+            let items = getContents();
+            if(activeCategory !== 'همه') {
+                items = items.filter(i => i.category === activeCategory);
+            }
+
+            if(items.length === 0) {
+                list.innerHTML = '<p style="text-align:center; color:#999; padding:20px;">هنوز محتوایی اضافه نشده</p>';
+                return;
+            }
+
+            items.forEach(item => {
                 const card = document.createElement('div');
-                card.className = 'game-card';
+                card.className = 'content-card';
                 card.innerHTML = `
-                    <h3>${g.name}</h3>
-                    <p>${g.desc}</p>
-                    <a href="${g.link}" target="_blank" class="download-btn">دانلود 📥</a>
+                    ${item.image ? `<img src="${item.image}" class="content-img" alt="">` : ''}
+                    <h3 class="content-title">${item.name}</h3>
+                    <p class="content-text">${item.desc}</p>
+                    <a href="${item.link}" target="_blank" class="download-btn">دانلود 📥</a>
                 `;
                 list.appendChild(card);
             });
         }
 
-        function addGame() {
-            const name = document.getElementById('game-name').value.trim();
-            const desc = document.getElementById('game-desc').value.trim();
-            const link = document.getElementById('game-link').value.trim();
+        function addContent() {
+            const cat = document.getElementById('content-cat').value;
+            const name = document.getElementById('content-name').value.trim();
+            const desc = document.getElementById('content-desc').value.trim();
+            const link = document.getElementById('content-link').value.trim();
             
-            if(!name || !link) return alert('نام و لینک را وارد کن!');
+            if(!cat || !name || !link) return alert('تمام قسمت‌های ضروری را پر کن!');
             
-            const saved = localStorage.getItem('vortex_games');
-            const games = saved ? JSON.parse(saved) : [];
-            games.unshift({name, desc, link});
-            localStorage.setItem('vortex_games', JSON.stringify(games));
+            const items = getContents();
+            items.unshift({
+                category: cat,
+                name: name,
+                desc: desc,
+                link: link,
+                image: selectedContentImg
+            });
+            saveContents(items);
             
-            renderGames(games);
-            document.getElementById('game-name').value = '';
-            document.getElementById('game-desc').value = '';
-            document.getElementById('game-link').value = '';
+            // پاک کردن فرم
+            document.getElementById('content-name').value = '';
+            document.getElementById('content-desc').value = '';
+            document.getElementById('content-link').value = '';
+            selectedContentImg = null;
+            document.getElementById('content-img-status').textContent = '✅ عکس انتخاب شد';
             
-            document.getElementById('add-status').textContent = '✅ لینک اضافه شد!';
-            setTimeout(() => document.getElementById('add-status').textContent = '', 3000);
+            renderContent();
+            document.getElementById('content-msg').textContent = '✅ محتوا منتشر شد!';
+            setTimeout(() => document.getElementById('content-msg').textContent = '', 3000);
         }
 
+        // === پیش‌نمایش عکس‌ها ===
+        function previewLogo(e) {
+            const file = e.target.files[0];
+            if(!file) return;
+            const reader = new FileReader();
+            reader.onload = ev => {
+                selectedLogo = ev.target.result;
+                document.getElementById('logo-preview').textContent = '✅ لوگو آماده ذخیره است';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function previewContentImg(e) {
+            const file = e.target.files[0];
+            if(!file) return;
+            const reader = new FileReader();
+            reader.onload = ev => {
+                selectedContentImg = ev.target.result;
+                document.getElementById('content-img-status').textContent = '✅ عکس انتخاب شد';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        // === ذخیره تنظیمات سایت ===
+        function saveSiteSettings() {
+            const title = document.getElementById('edit-title').value.trim();
+            const desc = document.getElementById('edit-desc').value.trim();
+            
+            if(title) {
+                localStorage.setItem('site_title', title);
+                document.getElementById('title-text').textContent = title;
+            }
+            if(desc) {
+                localStorage.setItem('site_desc', desc);
+                document.getElementById('desc-text').textContent = desc;
+            }
+            if(selectedLogo) {
+                localStorage.setItem('site_logo', selectedLogo);
+                document.getElementById('site-logo').src = selectedLogo;
+                selectedLogo = null;
+            }
+            
+            document.getElementById('site-msg').textContent = '✅ تنظیمات ذخیره شد!';
+            setTimeout(() => document.getElementById('site-msg').textContent = '', 3000);
+        }
+
+        // === مدیریت صفحه ===
         function showAdmin() {
             document.getElementById('main-page').classList.add('hidden');
             document.getElementById('admin-page').classList.remove('hidden');
@@ -345,44 +590,42 @@
             document.getElementById('login-box').classList.remove('hidden');
         }
 
-        function showMain() {
+        function hideAdmin() {
             document.getElementById('admin-page').classList.add('hidden');
             document.getElementById('main-page').classList.remove('hidden');
-            document.getElementById('admin-pass').value = '';
+            document.getElementById('pass-input').value = '';
         }
 
-        function checkPassword() {
-            const input = document.getElementById('admin-pass').value.trim();
-            if(input === ADMIN_PASSWORD) {
+        function checkPass() {
+            const input = document.getElementById('pass-input').value.trim();
+            if(input === ADMIN_PASS) {
                 document.getElementById('login-box').classList.add('hidden');
                 document.getElementById('admin-panel').classList.remove('hidden');
-                document.getElementById('login-error').textContent = '';
+                document.getElementById('login-msg').textContent = '';
+                // پر کردن فرم‌ها با مقادیر فعلی
+                document.getElementById('edit-title').value = localStorage.getItem('site_title') || 'VORTEXPLAY';
+                document.getElementById('edit-desc').value = localStorage.getItem('site_desc') || 'مرکز دانلود بازی‌ها و محتوای گیمینگ';
             } else {
-                document.getElementById('login-error').textContent = '❌ رمز اشتباه!';
+                document.getElementById('login-msg').textContent = '❌ رمز اشتباه است!';
             }
         }
 
-        function changeLogoText() {
-            const text = document.getElementById('new-logo-text').value.trim();
-            if(!text) return;
-            document.querySelector('.logo').textContent = text;
-            alert('✅ نام تغییر کرد!');
-        }
-
-        function changeAdminPass() {
+        function changePass() {
             const oldP = document.getElementById('old-pass').value.trim();
             const newP = document.getElementById('new-pass').value.trim();
             
-            if(oldP !== ADMIN_PASSWORD) return alert('❌ رمز فعلی اشتباه!');
-            if(newP.length < 32) return alert('❌ باید ۳۲ کاراکتر باشد!');
+            if(oldP !== ADMIN_PASS) return alert('❌ رمز فعلی اشتباه!');
+            if(newP.length < 32) return alert('❌ رمز باید ۳۲ کاراکتر باشد!');
             
-            ADMIN_PASSWORD = newP;
-            alert('✅ رمز عوض شد!');
+            ADMIN_PASS = newP;
+            localStorage.setItem('admin_pass', newP);
+            alert('✅ رمز تغییر کرد!');
             document.getElementById('old-pass').value = '';
             document.getElementById('new-pass').value = '';
         }
 
-        loadGames();
+        // شروع
+        loadAll();
     </script>
 </body>
 </html>
