@@ -257,21 +257,42 @@
             color: var(--text-white); font-size: 14px;
         }
         .preview-area {
-            margin-top: 12px; display: none;
+            margin-top: 15px; display: none;
         }
         .preview-area.active { display: block; }
         .preview-img {
             max-width: 100%; border-radius: 6px;
             border: 1px solid rgba(0, 240, 255, 0.3);
+            margin-bottom: 10px;
         }
         input[type="file"] { display: none; }
+        .btn-confirm {
+            width: 100%; padding: 12px; border: none; border-radius: 6px;
+            background: linear-gradient(90deg, var(--cyber-green), #00CC66);
+            color: #000; font-weight: 800; font-size: 14px; cursor: pointer;
+            box-shadow: 0 0 15px rgba(0, 255, 136, 0.4);
+            margin-bottom: 8px;
+            transition: 0.3s;
+        }
+        .btn-confirm:hover {
+            box-shadow: 0 0 25px rgba(0, 255, 136, 0.7);
+            transform: scale(1.02);
+        }
+        .btn-confirm:disabled {
+            opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none;
+        }
         .reset-btn {
-            margin-top: 10px; padding: 8px 16px;
+            width: 100%; padding: 10px;
             background: rgba(255, 46, 151, 0.15);
             border: 1px solid rgba(255, 46, 151, 0.4);
             color: var(--cyber-pink); border-radius: 4px;
             cursor: pointer; font-size: 13px;
         }
+        .status-text {
+            font-size: 12px; margin-top: 8px;
+            color: var(--cyber-green); display: none;
+        }
+        .status-text.show { display: block; }
     </style>
 </head>
 <body id="bodyEl">
@@ -383,7 +404,7 @@
                 <p class="note danger" id="delNote">✅ دسته حذف شد!</p>
             </div>
 
-            <!-- === دو بخش مجزا: پس‌زمینه و لوگو === -->
+            <!-- === دو بخش مجزا: پس‌زمینه و لوگو با دکمه تایید === -->
             <div class="two-parts">
                 <!-- بخش اول: پس‌زمینه -->
                 <div class="part-card">
@@ -399,7 +420,11 @@
                     <div class="preview-area" id="bgPreviewArea">
                         <p style="font-size:12px; color:var(--text-dim); margin:8px 0;">پیش‌نمایش:</p>
                         <img id="bgPreviewImg" class="preview-img" alt="پیش‌نمایش پس‌زمینه">
+                        <button class="btn-confirm" id="confirmBgBtn" disabled>
+                            <i class="fas fa-check"></i> تایید و اعمال پس‌زمینه
+                        </button>
                         <button class="reset-btn" id="resetBgBtn">حذف پس‌زمینه</button>
+                        <p class="status-text" id="bgStatus">✅ پس‌زمینه اعمال شد!</p>
                     </div>
                 </div>
 
@@ -417,7 +442,11 @@
                     <div class="preview-area" id="logoPreviewArea">
                         <p style="font-size:12px; color:var(--text-dim); margin:8px 0;">پیش‌نمایش:</p>
                         <img id="logoPreviewImg" class="preview-img" alt="پیش‌نمایش لوگو" style="border-radius:50%; max-width:120px;">
+                        <button class="btn-confirm" id="confirmLogoBtn" disabled>
+                            <i class="fas fa-check"></i> تایید و اعمال لوگو
+                        </button>
                         <button class="reset-btn" id="resetLogoBtn">حذف لوگو</button>
+                        <p class="status-text" id="logoStatus">✅ لوگو اعمال شد!</p>
                     </div>
                 </div>
             </div>
@@ -436,33 +465,43 @@
                 { id: 3, name: 'تصاویر و والپیپر', desc: 'گالری تصاویر رسمی بازی‌ها', messages: [] }
             ],
             bgImage: null,
-            logoImage: null
+            logoImage: null,
+            tempBgPreview: null,
+            tempLogoPreview: null
         };
 
         // === ذخیره و بارگذاری ===
         function save() {
-            localStorage.setItem('vortex_data', JSON.stringify(data));
+            localStorage.setItem('vortex_data', JSON.stringify({
+                categories: data.categories,
+                bgImage: data.bgImage,
+                logoImage: data.logoImage
+            }));
         }
         function load() {
             const saved = localStorage.getItem('vortex_data');
             if (saved) {
                 const parsed = JSON.parse(saved);
-                data = { ...data, ...parsed };
+                data.bgImage = parsed.bgImage || null;
+                data.logoImage = parsed.logoImage || null;
+                data.categories = parsed.categories || data.categories;
             }
             applyImages();
             renderMain();
         }
 
-        // === اعمال تصاویر ===
+        // === اعمال تصاویر در سایت ===
         function applyImages() {
             // پس‌زمینه
             if (data.bgImage) {
                 document.getElementById('bodyEl').style.backgroundImage = `url(${data.bgImage})`;
                 document.getElementById('bgPreviewImg').src = data.bgImage;
                 document.getElementById('bgPreviewArea').classList.add('active');
+                document.getElementById('bgStatus').classList.add('show');
             } else {
                 document.getElementById('bodyEl').style.backgroundImage = '';
                 document.getElementById('bgPreviewArea').classList.remove('active');
+                document.getElementById('bgStatus').classList.remove('show');
             }
 
             // لوگو
@@ -472,10 +511,12 @@
                 document.getElementById('logoText').style.display = 'none';
                 document.getElementById('logoPreviewImg').src = data.logoImage;
                 document.getElementById('logoPreviewArea').classList.add('active');
+                document.getElementById('logoStatus').classList.add('show');
             } else {
                 document.getElementById('logoImg').style.display = 'none';
                 document.getElementById('logoText').style.display = 'block';
                 document.getElementById('logoPreviewArea').classList.remove('active');
+                document.getElementById('logoStatus').classList.remove('show');
             }
         }
 
@@ -569,9 +610,14 @@
         function closePanel() {
             document.getElementById('adminPanel').classList.remove('active');
             hideAllSections();
+            // پاک کردن پیش‌نمایش‌های موقت هنگام بستن پنل
+            data.tempBgPreview = null;
+            data.tempLogoPreview = null;
+            document.getElementById('confirmBgBtn').disabled = true;
+            document.getElementById('confirmLogoBtn').disabled = true;
         }
 
-        // === تبدیل تصویر به متن ===
+        // === تبدیل تصویر به Base64 ===
         function fileToBase64(file) {
             return new Promise((resolve) => {
                 const reader = new FileReader();
@@ -641,41 +687,77 @@
                 showNote('delNote');
             };
 
-            // === بخش اول: پس‌زمینه ===
+            // === بخش پس‌زمینه ===
             document.getElementById('bgUpload').onclick = () => {
                 document.getElementById('bgInput').click();
             };
+            // انتخاب عکس → فقط پیش‌نمایش، هنوز اعمال نمی‌شود
             document.getElementById('bgInput').onchange = async (e) => {
                 const file = e.target.files[0];
                 if (!file) return;
-                data.bgImage = await fileToBase64(file);
-                save();
-                applyImages();
-                alert('✅ پس‌زمینه تنظیم شد!');
+                data.tempBgPreview = await fileToBase64(file);
+                // نمایش پیش‌نمایش
+                document.getElementById('bgPreviewImg').src = data.tempBgPreview;
+                document.getElementById('bgPreviewArea').classList.add('active');
+                // فعال کردن دکمه تایید
+                document.getElementById('confirmBgBtn').disabled = false;
             };
-            document.getElementById('resetBgBtn').onclick = () => {
-                data.bgImage = null;
+            // تایید پس‌زمینه → اعمال و ذخیره
+            document.getElementById('confirmBgBtn').onclick = () => {
+                if (!data.tempBgPreview) return;
+                data.bgImage = data.tempBgPreview;
+                data.tempBgPreview = null;
                 save();
                 applyImages();
+                document.getElementById('confirmBgBtn').disabled = true;
+                alert('✅ پس‌زمینه با موفقیت اعمال و ذخیره شد!');
+            };
+            // حذف پس‌زمینه
+            document.getElementById('resetBgBtn').onclick = () => {
+                if (!confirm('پس‌زمینه حذف شود؟')) return;
+                data.bgImage = null;
+                data.tempBgPreview = null;
+                save();
+                applyImages();
+                document.getElementById('confirmBgBtn').disabled = true;
+                document.getElementById('bgInput').value = '';
                 alert('✅ پس‌زمینه حذف شد!');
             };
 
-            // === بخش دوم: لوگو ===
+            // === بخش لوگو ===
             document.getElementById('logoUpload').onclick = () => {
                 document.getElementById('logoInput').click();
             };
+            // انتخاب عکس → فقط پیش‌نمایش
             document.getElementById('logoInput').onchange = async (e) => {
                 const file = e.target.files[0];
                 if (!file) return;
-                data.logoImage = await fileToBase64(file);
-                save();
-                applyImages();
-                alert('✅ لوگو تنظیم شد!');
+                data.tempLogoPreview = await fileToBase64(file);
+                // نمایش پیش‌نمایش
+                document.getElementById('logoPreviewImg').src = data.tempLogoPreview;
+                document.getElementById('logoPreviewArea').classList.add('active');
+                // فعال کردن دکمه تایید
+                document.getElementById('confirmLogoBtn').disabled = false;
             };
-            document.getElementById('resetLogoBtn').onclick = () => {
-                data.logoImage = null;
+            // تایید لوگو → اعمال و ذخیره
+            document.getElementById('confirmLogoBtn').onclick = () => {
+                if (!data.tempLogoPreview) return;
+                data.logoImage = data.tempLogoPreview;
+                data.tempLogoPreview = null;
                 save();
                 applyImages();
+                document.getElementById('confirmLogoBtn').disabled = true;
+                alert('✅ لوگو با موفقیت اعمال و ذخیره شد!');
+            };
+            // حذف لوگو
+            document.getElementById('resetLogoBtn').onclick = () => {
+                if (!confirm('لوگو حذف شود؟')) return;
+                data.logoImage = null;
+                data.tempLogoPreview = null;
+                save();
+                applyImages();
+                document.getElementById('confirmLogoBtn').disabled = true;
+                document.getElementById('logoInput').value = '';
                 alert('✅ لوگو حذف شد!');
             };
         });
