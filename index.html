@@ -1,562 +1,349 @@
+import os
+import sys
+import asyncio
+import threading
+import logging
+from flask import Flask, render_template_string, request, redirect, url_for, session
+from werkzeug.security import generate_password_hash, check_password_hash
+from rubpy import Client
+
+logging.basicConfig(level=logging.INFO, format='[%(asctime)s] [%(levelname)s]: %(message)s', stream=sys.stdout)
+logger = logging.getLogger("VortexPlayApp")
+
+app = Flask(__name__)
+app.secret_key = os.urandom(24)
+
+# نام کاربری و رمز عبور ۳۲ رقمی امن برای پنل مدیریت
+ADMIN_USERNAME = "admin"
+ADMIN_PASSWORD_HASH = generate_password_hash("p7K#m9X$vL2@zQ4!wR8*yT3&bN5%cH1-j")
+
+# اطلاعات پیش‌فرض سایت
+site_data = {
+    "logo_url": "https://i.ibb.co/5W2Q429/vortex-logo.png",
+    "main_title": "VORTEXPLAY",
+    "subtitle": "♦ GAMING EMPIRE ♦",
+    "status": "SYSTEM STATUS: ONLINE",
+    "categories": [
+        {"title": "BACKUP & TUTORIALS", "desc": "Guides & System Files", "icon": "📚"},
+        {"title": "PS5 GAME", "desc": "PlayStation 5 Games & PKGs", "icon": "🎮"},
+        {"title": "GAME PHOTOS", "desc": "Wallpapers & Screenshots", "icon": "🖼️"}
+    ]
+}
+
+system_stats = {"messages_count": 0}
+
+# قالب صفحه اصلی (طراحی نئونی، تاریک و کاملاً ریسپانسیو برای موبایل)
+INDEX_HTML = """
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VORTEXPLAY</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>{{ data.main_title }} - Gaming Empire</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Segoe UI', sans-serif; }
-        :root {
-            --gold: #ffd700; --orange: #ff8c00; --cyan: #00d9ff; --purple: #8b5cf6;
-            --bg-dark: #05051a; --card-bg: rgba(15,23,42,0.8);
-        }
         body {
-            min-height: 100vh; position: relative; overflow-x: hidden; color: #fff;
-            background: 
-                radial-gradient(ellipse at top left, rgba(255,120,0,0.45) 0%, transparent 55%),
-                radial-gradient(ellipse at bottom left, rgba(0,120,255,0.45) 0%, transparent 55%),
-                linear-gradient(180deg, #05051a, #0f172a, #05051a);
-            transition: background 0.4s ease;
+            background: linear-gradient(135deg, #05070c 0%, #0b0f19 50%, #11081f 100%);
+            color: #ffffff;
+            font-family: Tahoma, sans-serif;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
-        .custom-bg {
-            position: fixed; inset: 0; z-index: 0;
-            background-size: cover; background-position: center;
-            opacity: 0.4; pointer-events: none; display: none;
+        .main-container {
+            width: 100%;
+            max-width: 450px;
+            text-align: center;
+            padding-bottom: 40px;
         }
-        .custom-bg.active { display: block; }
-
-        .container { position: relative; z-index: 10; max-width: 480px; margin: 0 auto; padding: 30px 20px 50px; }
-        
-        .logo-wrapper { position: relative; margin-bottom: 15px; display: flex; justify-content: center; }
-        .logo-ring {
-            width: 130px; height: 130px; border-radius: 50%; padding: 4px;
-            background: linear-gradient(45deg, #ff9500, #00d9ff, #8b5cf6, #ff9500);
-            background-size: 300% 300%; animation: logoGlow 4s linear infinite;
-            box-shadow: 0 0 25px rgba(0,217,255,0.35);
+        .logo-box {
+            width: 120px;
+            height: 120px;
+            margin: 20px auto 10px auto;
+            border-radius: 50%;
+            border: 3px solid #00f0ff;
+            box-shadow: 0 0 25px rgba(0, 240, 255, 0.6);
+            overflow: hidden;
+            background: #000;
         }
-        @keyframes logoGlow { 0%{background-position:0% 50%} 100%{background-position:300% 50%} }
-        .logo-inner {
-            width: 100%; height: 100%; border-radius: 50%; background: #05051a;
-            display: flex; flex-direction: column; align-items: center; justify-content: center; overflow: hidden;
+        .logo-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
-        .logo-inner img { width: 100%; height: 100%; object-fit: cover; display: none; }
-        .logo-inner.show-img .logo-text { display: none; }
-        .logo-inner.show-img img { display: block; }
-        .logo-vp { font-size: 2.6rem; font-weight: 900; background: linear-gradient(90deg,#ffd700,#ff8c00); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
-        .logo-text-below { font-size: 0.65rem; letter-spacing: 2px; color: #00d9ff; margin-top: 2px; }
-
-        .site-title { font-size: 2rem; font-weight: 900; letter-spacing: 2px; margin-bottom: 5px; text-align: center; text-shadow: 0 0 15px rgba(0,217,255,0.45); }
-        .site-subtitle { font-size: 0.85rem; color: #60a5fa; margin-bottom: 20px; text-align: center; display: flex; justify-content: center; gap: 8px; }
-        .site-subtitle::before, .site-subtitle::after { content:'◆'; color: #00d9ff; }
-
-        .status-bar {
-            width: 100%; padding: 12px; border-radius: 50px; text-align: center; font-weight: 700;
-            border: 2px solid rgba(0,217,255,0.6); background: rgba(0,50,80,0.4); color: #00ffff;
-            margin-bottom: 20px; display: flex; align-items: center; justify-content: center; gap: 8px;
+        h1 {
+            font-weight: 900;
+            letter-spacing: 2px;
+            color: #ffffff;
+            margin-bottom: 5px;
+            font-size: 1.8rem;
+            text-shadow: 0 0 10px rgba(255,255,255,0.5);
         }
-        .status-dot { width:10px; height:10px; border-radius:50%; background:#00ff88; box-shadow:0 0 8px #00ff88; animation: pulse 2s infinite; }
-        @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.3} }
-
-        .banner-card {
-            width: 100%; height: 110px; border-radius: 14px; border: 2px solid rgba(0,217,255,0.5);
-            background: linear-gradient(90deg, rgba(30,60,120,0.65), rgba(120,60,30,0.65));
-            margin-bottom: 18px; display: flex; align-items: center; justify-content: center;
-            font-size: 2.5rem; color: #ffd700; overflow: hidden; position: relative;
+        .subtitle {
+            color: #00f0ff;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+            margin-bottom: 20px;
         }
-        .banner-card img { width: 100%; height: 100%; object-fit: cover; display: none; }
-        .banner-card.show-img .banner-text { display: none; }
-        .banner-card.show-img img { display: block; }
-
-        .cat-card {
-            width: 100%; padding: 18px 22px; border-radius: 14px; margin-bottom: 14px;
-            border: 2px solid transparent; background: var(--card-bg); cursor: pointer; transition: 0.3s;
+        .status-badge {
+            border: 2px solid #00f0ff;
+            border-radius: 30px;
+            padding: 8px 20px;
+            font-size: 0.85rem;
+            font-weight: bold;
+            color: #ffffff;
+            background: rgba(0, 240, 255, 0.1);
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.3);
+            display: inline-block;
+            margin-bottom: 25px;
+            letter-spacing: 1px;
         }
-        .cat-card:nth-child(1) { border-color: rgba(0,200,255,0.5); }
-        .cat-card:nth-child(2) { border-color: rgba(255,200,0,0.5); }
-        .cat-card:nth-child(3) { border-color: rgba(139,92,246,0.5); }
-        .cat-card:hover { transform: translateY(-3px); box-shadow: 0 5px 20px rgba(0,0,0,0.3); }
-        .cat-card-title { font-size: 1.15rem; font-weight: 800; margin-bottom: 5px; }
-        .cat-card-desc { font-size: 0.85rem; color: #94a3b8; }
-
-        .admin-open-btn {
-            margin-top: 25px; padding: 12px 30px; background: rgba(80,60,180,0.3);
-            border: 1px solid rgba(139,92,246,0.5); border-radius: 50px; color: #a78bfa;
-            cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 0.9rem; width: 100%;
+        .category-card {
+            background: rgba(17, 24, 39, 0.85);
+            border: 2px solid #00f0ff;
+            border-radius: 14px;
+            padding: 15px 20px;
+            margin-bottom: 15px;
+            text-align: right;
+            box-shadow: 0 0 15px rgba(0, 240, 255, 0.15);
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: block;
         }
-        .admin-open-btn:hover { background: rgba(139,92,246,0.35); color: #e9d5ff; }
-
-        /* === صفحه پیام‌ها === */
-        .page-overlay {
-            position: fixed; inset: 0; z-index: 2000; background: rgba(0,0,0,0.95);
-            display: none; flex-direction: column;
+        .category-card:hover {
+            border-color: #facc15;
+            box-shadow: 0 0 20px rgba(250, 204, 21, 0.4);
+            transform: translateY(-2px);
         }
-        .page-overlay.active { display: flex; }
-        .page-header {
-            padding: 15px 20px; background: linear-gradient(90deg, #0f172a, #1e293b);
-            border-bottom: 1px solid rgba(0,217,255,0.3); display: flex; align-items: center; justify-content: space-between;
+        .category-title {
+            color: #00f0ff;
+            font-weight: bold;
+            font-size: 1rem;
+            margin-bottom: 3px;
         }
-        .page-back {
-            background: rgba(255,255,255,0.1); border: none; color: #fff; width: 36px; height: 36px; border-radius: 50%; cursor: pointer; font-size: 1rem;
+        .category-desc {
+            color: #9ca3af;
+            font-size: 0.8rem;
+            margin: 0;
         }
-        .page-title { font-size: 1.1rem; font-weight: 700; color: #ffd700; }
-        .page-content {
-            flex: 1; overflow-y: auto; padding: 20px;
+        .admin-btn {
+            border: 1px dashed #00f0ff;
+            background: rgba(0, 0, 0, 0.5);
+            color: #00f0ff;
+            padding: 8px 25px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            text-decoration: none;
+            display: inline-block;
+            margin-top: 20px;
+            transition: 0.3s;
         }
-        .msg-bubble {
-            background: rgba(30,64,175,0.2); border: 1px solid rgba(96,165,250,0.3);
-            border-radius: 14px; padding: 14px 16px; margin-bottom: 12px; line-height: 1.6;
-        }
-        .msg-empty { text-align: center; color: #6b7280; padding: 40px 20px; }
-
-        /* === مودال ورود === */
-        .modal-overlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 3000;
-            display: none; align-items: center; justify-content: center; padding: 20px;
-        }
-        .modal-overlay.active { display: flex; }
-        .modal-box {
-            width: 100%; max-width: 420px; background: linear-gradient(180deg, #0f172a, #020617);
-            border: 2px solid rgba(139,92,246,0.4); border-radius: 20px; padding: 25px;
-        }
-        .modal-title { font-size: 1.3rem; font-weight: 800; color: #ffd700; text-align: center; margin-bottom: 20px; }
-        .form-input {
-            width: 100%; padding: 12px 15px; margin-bottom: 12px;
-            background: rgba(15,23,42,0.8); border: 1px solid rgba(96,165,250,0.3);
-            border-radius: 10px; color: #fff; font-size: 0.9rem;
-        }
-        .form-input:focus { outline: none; border-color: #00d9ff; box-shadow: 0 0 10px rgba(0,217,255,0.2); }
-        .btn {
-            width: 100%; padding: 13px; border: none; border-radius: 10px;
-            font-weight: 700; font-size: 0.95rem; cursor: pointer;
-        }
-        .btn-primary { background: linear-gradient(90deg, #0099ff, #8b5cf6); color: #fff; }
-        .btn-danger { background: linear-gradient(90deg, #b91c1c, #dc2626); color: #fff; margin-top: 8px; }
-        .btn-success { background: linear-gradient(90deg, #059669, #10b981); color: #fff; margin-top: 8px; }
-        .error-msg { color: #ff6b6b; text-align: center; margin-top: 10px; display: none; }
-
-        /* === پنل مدیریت === */
-        .admin-panel {
-            position: fixed; inset: 0; z-index: 4000; background: rgba(0,0,0,0.95);
-            display: none; overflow-y: auto;
-        }
-        .admin-panel.active { display: block; }
-        .panel-inner {
-            max-width: 480px; margin: 0 auto; padding: 25px 20px 50px;
-            background: linear-gradient(180deg, #0f172a, #020617); min-height: 100vh;
-        }
-        .panel-header {
-            display: flex; justify-content: space-between; align-items: center;
-            margin-bottom: 25px; padding-bottom: 15px; border-bottom: 1px solid rgba(139,92,246,0.3);
-        }
-        .panel-title { font-size: 1.4rem; font-weight: 900; color: #ffd700; }
-        .panel-close {
-            width: 38px; height: 38px; border-radius: 50%; background: rgba(255,255,255,0.05);
-            border: none; color: #fff; font-size: 1.1rem; cursor: pointer;
-        }
-        .panel-section { margin-bottom: 30px; }
-        .section-title {
-            font-size: 1.05rem; font-weight: 700; color: #00d9ff; margin-bottom: 15px;
-            display: flex; align-items: center; gap: 8px;
-        }
-        .file-input { display: none; }
-        .upload-btn {
-            display: inline-flex; align-items: center; gap: 8px; padding: 10px 18px;
-            background: rgba(139,92,246,0.2); border: 1px solid rgba(139,92,246,0.4);
-            border-radius: 10px; color: #a78bfa; cursor: pointer; font-size: 0.85rem; margin-bottom: 12px; width: 100%;
-        }
-        .upload-btn:hover { background: rgba(139,92,246,0.3); }
-        label { font-size: 0.85rem; color: #94a3b8; margin-bottom: 6px; display: block; }
-        .cat-item {
-            background: rgba(30,64,175,0.15); padding: 14px; border-radius: 10px; margin-bottom: 10px;
-        }
-        select.form-input { height: 44px; }
-        .save-note {
-            margin-top: 15px; padding: 12px; background: rgba(0,255,136,0.1);
-            border: 1px solid rgba(0,255,136,0.4); border-radius: 10px; color: #00ff88;
-            text-align: center; display: none;
+        .admin-btn:hover {
+            background: #00f0ff;
+            color: #000;
         }
     </style>
 </head>
 <body>
-    <div class="custom-bg" id="customBg"></div>
+    <div class="main-container">
+        <div class="logo-box">
+            <img src="{{ data.logo_url }}" alt="Logo">
+        </div>
+        <h1>{{ data.main_title }}</h1>
+        <div class="subtitle">{{ data.subtitle }}</div>
 
-    <!-- صفحه اصلی -->
-    <div class="container" id="mainPage">
-        <div class="logo-wrapper">
-            <div class="logo-ring">
-                <div class="logo-inner" id="logoDisplay">
-                    <div class="logo-text">
-                        <span class="logo-vp">VP</span>
-                        <span class="logo-text-below">VORTEX PLAY</span>
-                    </div>
-                    <img id="logoImg" alt="لوگو">
+        <div>
+            <span class="status-badge">⚡ {{ data.status }} ⚡</span>
+        </div>
+
+        {% for cat in data.categories %}
+        <a href="#" class="category-card">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <div class="category-title">{{ cat.title }}</div>
+                    <p class="category-desc">{{ cat.desc }}</p>
                 </div>
+                <div style="font-size: 1.5rem;">{{ cat.icon }}</div>
             </div>
-        </div>
+        </a>
+        {% endfor %}
 
-        <h1 class="site-title" id="siteNameDisplay">VORTEXPLAY</h1>
-        <p class="site-subtitle" id="siteSubDisplay">GAMING EMPIRE</p>
-
-        <div class="status-bar">
-            <span class="status-dot"></span>
-            <span id="statusDisplay">SYSTEM STATUS: ONLINE</span>
-        </div>
-
-        <div class="banner-card" id="bannerDisplay">
-            <span class="banner-text">VP</span>
-            <img id="bannerImg" alt="کاور">
-        </div>
-
-        <div id="categoriesList"></div>
-
-        <button class="admin-open-btn" id="openAdminBtn">
-            <i class="fas fa-cog"></i> ورود به پنل مدیریت
-        </button>
-    </div>
-
-    <!-- صفحه پیام‌های هر دسته -->
-    <div class="page-overlay" id="categoryPage">
-        <div class="page-header">
-            <button class="page-back" id="backBtn"><i class="fas fa-arrow-right"></i></button>
-            <h2 class="page-title" id="catPageTitle">عنوان دسته</h2>
-            <div></div>
-        </div>
-        <div class="page-content" id="catMessages">
-            <!-- پیام‌ها اینجا نمایش داده میشن -->
+        <div>
+            <a href="/dashboard" class="admin-btn">⚙️ ورود به پنل مدیریت</a>
         </div>
     </div>
-
-    <!-- مودال ورود رمز -->
-    <div class="modal-overlay" id="loginModal">
-        <div class="modal-box">
-            <h2 class="modal-title">ورود به پنل مدیریت</h2>
-            <input type="password" class="form-input" id="passInput" placeholder="رمز ۳۲ رقمی" maxlength="32">
-            <div class="error-msg" id="passError">رمز نادرست است!</div>
-            <button class="btn btn-primary" id="loginBtn">ورود</button>
-        </div>
-    </div>
-
-    <!-- پنل مدیریت -->
-    <div class="admin-panel" id="adminPanel">
-        <div class="panel-inner">
-            <div class="panel-header">
-                <h2 class="panel-title">پنل مدیریت</h2>
-                <button class="panel-close" id="closePanelBtn"><i class="fas fa-times"></i></button>
-            </div>
-
-            <div class="panel-section">
-                <h3 class="section-title"><i class="fas fa-palette"></i> تنظیمات ظاهری</h3>
-
-                <label>تصویر پس‌زمینه</label>
-                <label class="upload-btn">
-                    <input type="file" class="file-input" accept="image/*" id="bgUpload">
-                    <i class="fas fa-upload"></i> انتخاب از گالری
-                </label>
-
-                <label>لوگو سایت</label>
-                <label class="upload-btn">
-                    <input type="file" class="file-input" accept="image/*" id="logoUpload">
-                    <i class="fas fa-image"></i> انتخاب از گالری
-                </label>
-
-                <label>کاور بنر</label>
-                <label class="upload-btn">
-                    <input type="file" class="file-input" accept="image/*" id="bannerUpload">
-                    <i class="fas fa-file-image"></i> انتخاب از گالری
-                </label>
-
-                <label>نام سایت</label>
-                <input type="text" class="form-input" id="siteNameInput">
-
-                <label>زیرنویس سایت</label>
-                <input type="text" class="form-input" id="siteSubInput">
-
-                <label>متن وضعیت</label>
-                <input type="text" class="form-input" id="statusInput">
-
-                <button class="btn btn-primary" id="saveAppearanceBtn">ذخیره ظاهر</button>
-                <div class="save-note" id="appearanceNote">✅ تغییرات اعمال شد!</div>
-            </div>
-
-            <div class="panel-section">
-                <h3 class="section-title"><i class="fas fa-th-large"></i> مدیریت دسته‌بندی‌ها</h3>
-                <div id="adminCatList"></div>
-                <hr style="border-color:rgba(96,165,250,0.2); margin:15px 0;">
-                <h5 style="color:#ffd700; margin-bottom:10px;">افزودن دسته جدید</h5>
-                <label>عنوان</label>
-                <input type="text" class="form-input" id="newCatTitle" placeholder="مثال: MOVIES">
-                <label>توضیح</label>
-                <input type="text" class="form-input" id="newCatDesc" placeholder="توضیح کوتاه">
-                <button class="btn btn-success" id="addCatBtn">افزودن دسته</button>
-                <div class="save-note" id="catNote">✅ دسته اضافه شد!</div>
-            </div>
-
-            <div class="panel-section">
-                <h3 class="section-title"><i class="fas fa-paper-plane"></i> ارسال پیام</h3>
-                <label>انتخاب دسته</label>
-                <select class="form-input" id="targetCatSelect"></select>
-                <label>متن پیام</label>
-                <textarea class="form-input" id="newMessageText" rows="3" placeholder="متن پیام..."></textarea>
-                <button class="btn btn-primary" id="sendMsgBtn">ارسال پیام</button>
-                <div class="save-note" id="msgNote">✅ پیام ارسال شد!</div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        const ADMIN_PASSWORD = 'a1b2c3d4e5f6g7h8i9j0k1l2m3n4o5p6';
-
-        let siteData = {
-            siteName: 'VORTEXPLAY',
-            siteSub: 'GAMING EMPIRE',
-            statusText: 'SYSTEM STATUS: ONLINE',
-            bgImage: null,
-            logoImage: null,
-            bannerImage: null,
-            categories: [
-                { id: 1, title: 'BACKUP & TUTORIALS', desc: 'راهنماها و فایل‌های سیستمی', messages: [] },
-                { id: 2, title: 'PS5 GAME', desc: 'بازی‌های پلی‌استیشن ۵', messages: [] },
-                { id: 3, title: 'GAME PHOTOS', desc: 'تصاویر و والپیپرها', messages: [] }
-            ]
-        };
-
-        // === ذخیره و بارگذاری ===
-        function saveData() {
-            localStorage.setItem('vortexData', JSON.stringify(siteData));
-        }
-        function loadData() {
-            const saved = localStorage.getItem('vortexData');
-            if (saved) siteData = JSON.parse(saved);
-            renderMainPage();
-        }
-        function showNote(id) {
-            const el = document.getElementById(id);
-            el.style.display = 'block';
-            setTimeout(() => el.style.display = 'none', 3000);
-        }
-
-        // === صفحه اصلی ===
-        function renderMainPage() {
-            document.getElementById('siteNameDisplay').textContent = siteData.siteName;
-            document.getElementById('siteSubDisplay').textContent = siteData.siteSub;
-            document.getElementById('statusDisplay').textContent = siteData.statusText;
-
-            // پس‌زمینه
-            const bgEl = document.getElementById('customBg');
-            if (siteData.bgImage) {
-                bgEl.style.backgroundImage = `url(${siteData.bgImage})`;
-                bgEl.classList.add('active');
-            } else {
-                bgEl.classList.remove('active');
-            }
-
-            // لوگو
-            const logoDisplay = document.getElementById('logoDisplay');
-            const logoImg = document.getElementById('logoImg');
-            if (siteData.logoImage) {
-                logoImg.src = siteData.logoImage;
-                logoDisplay.classList.add('show-img');
-            } else {
-                logoDisplay.classList.remove('show-img');
-            }
-
-            // بنر
-            const bannerDisplay = document.getElementById('bannerDisplay');
-            const bannerImg = document.getElementById('bannerImg');
-            if (siteData.bannerImage) {
-                bannerImg.src = siteData.bannerImage;
-                bannerDisplay.classList.add('show-img');
-            } else {
-                bannerDisplay.classList.remove('show-img');
-            }
-
-            // لیست دسته‌بندی‌ها
-            const catList = document.getElementById('categoriesList');
-            catList.innerHTML = '';
-            siteData.categories.forEach((cat, index) => {
-                const card = document.createElement('div');
-                card.className = 'cat-card';
-                card.innerHTML = `
-                    <h3 class="cat-card-title">${cat.title}</h3>
-                    <p class="cat-card-desc">${cat.desc}</p>
-                `;
-                card.onclick = () => openCategoryPage(index);
-                catList.appendChild(card);
-            });
-
-            renderAdminLists();
-        }
-
-        // === صفحه پیام‌های یک دسته ===
-        function openCategoryPage(index) {
-            const cat = siteData.categories[index];
-            document.getElementById('catPageTitle').textContent = cat.title;
-            const msgContainer = document.getElementById('catMessages');
-            msgContainer.innerHTML = '';
-            
-            if (cat.messages.length === 0) {
-                msgContainer.innerHTML = '<p class="msg-empty">هنوز پیامی ارسال نشده</p>';
-            } else {
-                cat.messages.forEach(msg => {
-                    const bubble = document.createElement('div');
-                    bubble.className = 'msg-bubble';
-                    bubble.textContent = msg;
-                    msgContainer.appendChild(bubble);
-                });
-            }
-            
-            document.getElementById('categoryPage').classList.add('active');
-        }
-        function closeCategoryPage() {
-            document.getElementById('categoryPage').classList.remove('active');
-        }
-
-        // === لیست‌های پنل مدیریت ===
-        function renderAdminLists() {
-            const list = document.getElementById('adminCatList');
-            const select = document.getElementById('targetCatSelect');
-            list.innerHTML = '';
-            select.innerHTML = '';
-
-            siteData.categories.forEach((cat, index) => {
-                const item = document.createElement('div');
-                item.className = 'cat-item';
-                item.innerHTML = `
-                    <div style="font-weight:700; margin-bottom:5px;">${cat.title}</div>
-                    <div style="font-size:0.8rem; color:#94a3b8; margin-bottom:8px;">${cat.desc}</div>
-                    <div style="font-size:0.75rem; color:#6b7280;">تعداد پیام: ${cat.messages.length}</div>
-                    <button class="btn-danger" data-index="${index}">حذف دسته</button>
-                `;
-                list.appendChild(item);
-
-                const opt = document.createElement('option');
-                opt.value = index;
-                opt.textContent = cat.title;
-                select.appendChild(opt);
-            });
-
-            // اتصال دکمه‌های حذف
-            list.querySelectorAll('button.btn-danger').forEach(btn => {
-                btn.onclick = function() {
-                    if (confirm('مطمئنی؟')) {
-                        const idx = parseInt(this.dataset.index);
-                        siteData.categories.splice(idx, 1);
-                        saveData(); renderMainPage();
-                    }
-                };
-            });
-        }
-
-        // === ورود و خروج از پنل ===
-        function openLoginModal() {
-            document.getElementById('loginModal').classList.add('active');
-            document.getElementById('passInput').value = '';
-            document.getElementById('passError').style.display = 'none';
-        }
-        function checkLogin() {
-            if (document.getElementById('passInput').value.trim() === ADMIN_PASSWORD) {
-                document.getElementById('loginModal').classList.remove('active');
-                openAdminPanel();
-            } else {
-                document.getElementById('passError').style.display = 'block';
-            }
-        }
-        function openAdminPanel() {
-            document.getElementById('siteNameInput').value = siteData.siteName;
-            document.getElementById('siteSubInput').value = siteData.siteSub;
-            document.getElementById('statusInput').value = siteData.statusText;
-            renderAdminLists();
-            document.getElementById('adminPanel').classList.add('active');
-        }
-        function closeAdminPanel() {
-            document.getElementById('adminPanel').classList.remove('active');
-        }
-
-        // === تبدیل تصویر ===
-        function readImage(file, callback) {
-            const reader = new FileReader();
-            reader.onload = e => callback(e.target.result);
-            reader.readAsDataURL(file);
-        }
-
-        // === اتصال همه رویدادها ===
-        document.addEventListener('DOMContentLoaded', function() {
-            loadData();
-
-            // برگشت از صفحه دسته
-            document.getElementById('backBtn').onclick = closeCategoryPage;
-
-            // ورود به مدیریت
-            document.getElementById('openAdminBtn').onclick = openLoginModal;
-            document.getElementById('loginBtn').onclick = checkLogin;
-            document.getElementById('closePanelBtn').onclick = closeAdminPanel;
-
-            // آپلود پس‌زمینه
-            document.getElementById('bgUpload').onchange = e => {
-                if (e.target.files[0]) {
-                    readImage(e.target.files[0], dataUrl => {
-                        siteData.bgImage = dataUrl;
-                        saveData(); renderMainPage();
-                        showNote('appearanceNote');
-                    });
-                }
-            };
-            // آپلود لوگو
-            document.getElementById('logoUpload').onchange = e => {
-                if (e.target.files[0]) {
-                    readImage(e.target.files[0], dataUrl => {
-                        siteData.logoImage = dataUrl;
-                        saveData(); renderMainPage();
-                        showNote('appearanceNote');
-                    });
-                }
-            };
-            // آپلود بنر
-            document.getElementById('bannerUpload').onchange = e => {
-                if (e.target.files[0]) {
-                    readImage(e.target.files[0], dataUrl => {
-                        siteData.bannerImage = dataUrl;
-                        saveData(); renderMainPage();
-                        showNote('appearanceNote');
-                    });
-                }
-            };
-            // ذخیره متن‌های ظاهری
-            document.getElementById('saveAppearanceBtn').onclick = function() {
-                siteData.siteName = document.getElementById('siteNameInput').value.trim();
-                siteData.siteSub = document.getElementById('siteSubInput').value.trim();
-                siteData.statusText = document.getElementById('statusInput').value.trim();
-                saveData(); renderMainPage();
-                showNote('appearanceNote');
-            };
-            // افزودن دسته
-            document.getElementById('addCatBtn').onclick = function() {
-                const title = document.getElementById('newCatTitle').value.trim();
-                const desc = document.getElementById('newCatDesc').value.trim();
-                if (!title) return alert('عنوان را بنویس!');
-                siteData.categories.push({
-                    id: Date.now(),
-                    title,
-                    desc: desc || 'بدون توضیح',
-                    messages: []
-                });
-                document.getElementById('newCatTitle').value = '';
-                document.getElementById('newCatDesc').value = '';
-                saveData(); renderMainPage();
-                showNote('catNote');
-            };
-            // ارسال پیام
-            document.getElementById('sendMsgBtn').onclick = function() {
-                const idx = parseInt(document.getElementById('targetCatSelect').value);
-                const text = document.getElementById('newMessageText').value.trim();
-                if (!text) return alert('متن پیام را بنویس!');
-                siteData.categories[idx].messages.push(text);
-                document.getElementById('newMessageText').value = '';
-                saveData(); renderMainPage();
-                showNote('msgNote');
-            };
-        });
-    </script>
 </body>
 </html>
+"""
+
+# قالب پنل مدیریت
+ADMIN_HTML = """
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>پنل مدیریت VortexPlay</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background: #05070c; color: #fff; font-family: Tahoma, sans-serif; padding: 20px; }
+        .card { background: #111827; border: 1px solid #00f0ff; border-radius: 12px; padding: 20px; margin-bottom: 20px; box-shadow: 0 0 15px rgba(0,240,255,0.1); }
+        .form-control { background: #0b0f19; border-color: #374151; color: #fff; }
+        .form-control:focus { background: #0b0f19; color: #fff; border-color: #00f0ff; box-shadow: none; }
+        .btn-custom { background: #00f0ff; color: #000; font-weight: bold; }
+        .btn-custom:hover { background: #38bdf8; }
+        .cat-item { display: flex; justify-content: space-between; align-items: center; background: #0b0f19; padding: 10px 15px; border-radius: 8px; margin-bottom: 8px; border: 1px solid #374151; }
+    </style>
+</head>
+<body>
+    <div class="container" style="max-width: 700px;">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h3 style="color: #00f0ff;">اتاق فرمان مدیریت</h3>
+            <a href="/" class="btn btn-outline-light btn-sm">مشاهده سایت</a>
+        </div>
+
+        <div class="card">
+            <h5 class="text-info mb-3">تنظیمات گرافیکی و متن‌ها</h5>
+            <form method="POST" action="/update_content">
+                <div class="mb-3">
+                    <label class="form-label">لینک تصویر لوگو:</label>
+                    <input type="text" name="logo_url" class="form-control" value="{{ data.logo_url }}" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">عنوان اصلی:</label>
+                    <input type="text" name="main_title" class="form-control" value="{{ data.main_title }}" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">متن وضعیت:</label>
+                    <input type="text" name="status" class="form-control" value="{{ data.status }}" required>
+                </div>
+                <button type="submit" class="btn btn-custom w-100">ذخیره تغییرات</button>
+            </form>
+        </div>
+
+        <div class="card">
+            <h5 class="text-info mb-3">مدیریت دسته‌بندی‌ها</h5>
+            <form method="POST" action="/add_category" class="mb-3">
+                <div class="row g-2">
+                    <div class="col-md-5"><input type="text" name="title" class="form-control" placeholder="عنوان (مثل PS5 GAME)" required></div>
+                    <div class="col-md-5"><input type="text" name="desc" class="form-control" placeholder="توضیحات کوتاه" required></div>
+                    <div class="col-md-2"><button type="submit" class="btn btn-success w-100">افزودن</button></div>
+                </div>
+            </form>
+
+            <div>
+                {% for cat in data.categories %}
+                    <div class="cat-item">
+                        <div>
+                            <strong style="color: #00f0ff;">{{ cat.title }}</strong>
+                            <div class="text-muted" style="font-size: 0.75rem;">{{ cat.desc }}</div>
+                        </div>
+                        <form method="POST" action="/delete_category" style="margin:0;">
+                            <input type="hidden" name="title" value="{{ cat.title }}">
+                            <button type="submit" class="btn btn-danger btn-sm">حذف</button>
+                        </form>
+                    </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="text-center mt-3">
+            <a href="/logout" class="text-danger text-decoration-none">خروج از پنل</a>
+        </div>
+    </div>
+</body>
+</html>
+"""
+
+# قالب صفحه لاگین پنل مدیریت
+LOGIN_HTML = """
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title>ورود به پنل مدیریت</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body { background: #05070c; color: #fff; font-family: Tahoma, sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; }
+        .login-card { background: #111827; padding: 30px; border-radius: 15px; border: 1px solid #00f0ff; width: 100%; max-width: 400px; box-shadow: 0 0 20px rgba(0,240,255,0.2); }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <h3 class="text-center mb-4" style="color: #00f0ff;">ورود به پنل مدیریت</h3>
+        <form method="POST">
+            <div class="mb-3">
+                <label class="form-label">نام کاربری:</label>
+                <input type="text" name="username" class="form-control bg-dark text-light border-secondary" required>
+            </div>
+            <div class="mb-3">
+                <label class="form-label">رمز عبور ۳۲ رقمی:</label>
+                <input type="password" name="password" class="form-control bg-dark text-light border-secondary" required>
+            </div>
+            <button type="submit" class="btn w-100 fw-bold" style="background: #00f0ff; color: #000;">ورود امن</button>
+        </form>
+    </div>
+</body>
+</html>
+"""
+
+@app.route('/')
+def index():
+    return render_template_string(INDEX_HTML, data=site_data)
+
+@app.route('/dashboard', methods=['GET', 'POST'])
+def dashboard():
+    if not session.get('logged_in'):
+        if request.method == 'POST':
+            username = request.form.get('username')
+            password = request.form.get('password')
+            if username == ADMIN_USERNAME and check_password_hash(ADMIN_PASSWORD_HASH, password):
+                session['logged_in'] = True
+                return redirect(url_for('dashboard'))
+        return render_template_string(LOGIN_HTML)
+    return render_template_string(ADMIN_HTML, data=site_data)
+
+@app.route('/update_content', methods=['POST'])
+def update_content():
+    if not session.get('logged_in'): return redirect(url_for('dashboard'))
+    site_data["logo_url"] = request.form.get('logo_url')
+    site_data["main_title"] = request.form.get('main_title')
+    site_data["status"] = request.form.get('status')
+    return redirect(url_for('dashboard'))
+
+@app.route('/add_category', methods=['POST'])
+def add_category():
+    if not session.get('logged_in'): return redirect(url_for('dashboard'))
+    title = request.form.get('title')
+    desc = request.form.get('desc')
+    if title:
+        site_data["categories"].append({"title": title, "desc": desc, "icon": "🎮"})
+    return redirect(url_for('dashboard'))
+
+@app.route('/delete_category', methods=['POST'])
+def delete_category():
+    if not session.get('logged_in'): return redirect(url_for('dashboard'))
+    title_to_delete = request.form.get('title')
+    site_data["categories"] = [c for c in site_data["categories"] if c["title"] != title_to_delete]
+    return redirect(url_for('dashboard'))
+
+@app.route('/logout')
+def logout():
+    session.clear()
+    return redirect(url_for('index'))
+
+def run_bot():
+    async def main():
+        while True:
+            await asyncio.sleep(60)
+            system_stats["messages_count"] += 1
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    loop.run_until_complete(main())
+
+if __name__ == '__main__':
+    threading.Thread(target=run_bot, daemon=True).start()
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
