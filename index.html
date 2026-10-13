@@ -3,315 +3,168 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>VortexPlay - مدیریت کامل و محتوا</title>
-    <!-- Supabase JS Client -->
+    <title>VortexPlay - پلتفرم گیمینگ و وب‌هاستینک</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
     <style>
-        :root {
-            --bg-image: url('https://images.unsplash.com/photo-1550745165-9bc0b252726f?q=80&w=1920');
-            --glow-color1: rgba(168, 85, 247, 0.6);
-            --glow-color2: rgba(59, 130, 246, 0.6);
-            --card-bg: rgba(15, 23, 42, 0.85);
-            --text-color: #f8fafc;
-            --accent-color: #8b5cf6;
-            --border-color: rgba(255, 255, 255, 0.15);
+        @import url('https://v1.fontapi.ir/css/Vazirmatn');
+        body {
+            font-family: 'Vazirmatn', sans-serif;
+            background-color: #0b0f19;
+            color: #e2e8f0;
         }
-
-        * {
-            box-sizing: border-box;
+        .cyber-card {
+            background: rgba(17, 24, 39, 0.8);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
             transition: all 0.3s ease;
         }
-
-        body {
-            font-family: Tahoma, 'Segoe UI', sans-serif;
-            background: #090d16 var(--bg-image) center/cover no-repeat fixed;
-            color: var(--text-color);
-            margin: 0;
-            padding: 20px;
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
+        .cyber-card:hover {
+            border-color: #3b82f6;
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
         }
-
-        /* هاله دایره‌ای درخشان لوگو */
-        .logo-glow-wrapper {
-            position: relative;
-            width: 140px;
-            height: 140px;
-            margin: 20px auto;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-
-        .logo-glow-wrapper::before {
-            content: '';
-            position: absolute;
-            width: 100%;
-            height: 100%;
-            border-radius: 50%;
-            background: radial-gradient(circle, var(--glow-color1) 0%, var(--glow-color2) 70%, transparent 100%);
-            filter: blur(25px);
-            animation: pulseGlow 4s infinite alternate;
-            z-index: 1;
-        }
-
-        @keyframes pulseGlow {
-            0% { transform: scale(0.9); opacity: 0.7; }
-            100% { transform: scale(1.2); opacity: 1; }
-        }
-
-        .logo-img {
-            position: relative;
-            z-index: 2;
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            object-fit: cover;
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            box-shadow: 0 0 20px rgba(0,0,0,0.8);
-        }
-
-        header {
-            text-align: center;
-            margin-bottom: 25px;
-            backdrop-filter: blur(10px);
-            padding: 15px 30px;
-            border-radius: 20px;
-            background: rgba(0, 0, 0, 0.4);
-            border: 1px solid var(--border-color);
-        }
-
-        h1 {
-            margin: 10px 0 5px;
-            font-size: 2rem;
-            text-shadow: 0 0 10px var(--accent-color);
-        }
-
-        .container {
-            width: 100%;
-            max-width: 850px;
-        }
-
-        .card {
-            background: var(--card-bg);
-            backdrop-filter: blur(15px);
-            border: 1px solid var(--border-color);
-            border-radius: 16px;
-            padding: 20px;
-            margin-bottom: 25px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-        }
-
-        input, select, textarea {
-            width: 100%;
-            padding: 12px;
-            margin: 8px 0 16px;
-            background: rgba(15, 23, 42, 0.9);
-            border: 1px solid var(--border-color);
-            color: #fff;
-            border-radius: 8px;
-            outline: none;
-        }
-
-        input:focus, textarea:focus {
-            border-color: var(--accent-color);
-            box-shadow: 0 0 10px var(--accent-color);
-        }
-
-        button {
-            background: linear-gradient(135deg, var(--accent-color), #4c1d95);
-            color: white;
-            border: none;
-            padding: 12px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-weight: bold;
-            width: 100%;
-        }
-
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(139, 92, 246, 0.4);
-        }
-
-        .hidden { display: none !important; }
-
-        .category-box {
-            border-right: 4px solid var(--accent-color);
-            padding: 15px;
-            margin-bottom: 20px;
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 8px;
-        }
-
-        .message-card {
-            background: rgba(0, 0, 0, 0.4);
-            padding: 10px 15px;
-            margin: 8px 0;
-            border-radius: 6px;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .admin-toggle-btn {
-            background: rgba(255, 255, 255, 0.1);
-            margin-bottom: 15px;
-            width: auto;
-            float: left;
+        .cyber-glow {
+            text-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
         }
     </style>
 </head>
-<body>
+<body class="min-h-screen flex flex-col justify-between">
 
-    <!-- دکمه باز کردن ورود مدیریت -->
-    <div style="width:100%; max-width:850px;">
-        <button class="admin-toggle-btn" onclick="toggleAdminLogin()">🔐 ورود به مدیریت</button>
-    </div>
-
-    <!-- هاله دایره‌ای درخشان و لوگوی سایت -->
-    <div class="logo-glow-wrapper">
-        <img id="siteLogo" class="logo-img" src="https://via.placeholder.com/150/8b5cf6/ffffff?text=Vortex" alt="Vortex Logo">
-    </div>
-
-    <header>
-        <h1 id="siteTitle">VortexPlay</h1>
-        <p id="siteSubtitle">سامانه پویای مدیریت دسته‌بندی‌ها و محتوا</p>
+    <!-- Header -->
+    <header class="border-b border-gray-800 bg-gray-900/50 backdrop-filter blur-lg sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <i class="fa-solid fa-gamepad text-3xl text-blue-500 animate-pulse"></i>
+                <h1 class="text-2xl font-black tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-purple-500 cyber-glow">
+                    VortexPlay
+                </h1>
+            </div>
+            <button onclick="openAdminModal()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-semibold transition flex items-center gap-2 shadow-lg shadow-blue-500/20">
+                <i class="fa-solid fa-user-shield"></i>
+                پنل مدیریت
+            </button>
+        </div>
     </header>
 
-    <div class="container">
-
-        <!-- فرم ورود مدیریت (با رمز ۳۲ رقمی) -->
-        <div id="adminAuthCard" class="card hidden">
-            <h2>ورود به پنل مدیریت</h2>
-            <p style="font-size: 0.85rem; color: #aaa;">کلید ۳۲ رقمی امنیتی مدیریت را وارد کنید:</p>
-            <input type="password" id="adminKeyInput" maxlength="32" placeholder="رمز ۳۲ رقمی امنیتی">
-            <button onclick="verifyAdmin()">بررسی و ورود</button>
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 py-10 w-full flex-grow">
+        <div class="text-center mb-12">
+            <h2 class="text-4xl font-extrabold mb-4 text-white">به پلتفرم <span class="text-blue-500">VortexPlay</span> خوش آمدید</h2>
+            <p class="text-gray-400 max-w-xl mx-auto">ارائه‌دهنده سرویس‌های گیمینگ، فایل‌ها و ابزارهای بهینه‌سازی شبکه</p>
         </div>
 
-        <!-- پنل تنظیمات ظاهر و ارسال پیام (فقط پس از ورود نشان داده می‌شود) -->
-        <div id="adminPanel" class="card hidden">
-            <h2>⚙️ پنل مدیریت سایت</h2>
+        <!-- Dynamic Categories Grid -->
+        <div id="categories-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div class="cyber-card p-6 rounded-2xl text-center text-gray-400 col-span-full">
+                <i class="fa-solid fa-circle-notch fa-spin text-2xl text-blue-500 mb-2"></i>
+                <p>در حال بارگذاری دسته‌بندی‌ها...</p>
+            </div>
+        </div>
+    </main>
 
-            <!-- بخش مدیریت ظاهر -->
-            <details style="margin-bottom: 20px;">
-                <summary style="cursor:pointer; font-weight:bold; color:var(--accent-color);">🎨 تغییر تصویر پس‌زمینه و لوگو</summary>
-                <div style="margin-top: 15px;">
-                    <label>آدرس تصویر لوگو (URL):</label>
-                    <input type="url" id="logoUrlInput" placeholder="https://site.com/logo.png">
+    <!-- Footer -->
+    <footer class="border-t border-gray-800 bg-gray-900/30 py-6 text-center text-sm text-gray-500">
+        <p>© 2026 VortexPlay. تمامی حقوق محفوظ است.</p>
+    </footer>
 
-                    <label>آدرس تصویر پس‌زمینه (URL):</label>
-                    <input type="url" id="bgUrlInput" placeholder="https://site.com/bg.jpg">
-
-                    <button onclick="updateTheme()">اعمال تغییرات ظاهر</button>
+    <!-- Admin Modal -->
+    <div id="admin-modal" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4 z-50">
+        <div class="cyber-card bg-gray-900 border-gray-700 rounded-2xl p-6 w-full max-w-md shadow-2xl">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-xl font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-lock text-blue-500"></i>
+                    ورود مدیریت
+                </h3>
+                <button onclick="closeAdminModal()" class="text-gray-400 hover:text-white">
+                    <i class="fa-solid fa-xmark text-xl"></i>
+                </button>
+            </div>
+            <form id="admin-form" onsubmit="handleAdminLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-gray-300 mb-1">رمز عبور ۳۲ رقمی مدیریت:</label>
+                    <input type="password" id="admin-password" required class="w-full bg-gray-800 border border-gray-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500 transition" placeholder="رمز عبور امنیتی مدیریت">
                 </div>
-            </details>
-
-            <!-- بخش افزودن پیام به دسته‌بندی -->
-            <h3>📝 افزودن پیام جدید</h3>
-            <form id="addMessageForm">
-                <label>نام دسته‌بندی:</label>
-                <input type="text" id="categoryName" placeholder="مثلاً: اخبار، کدهای تخفیف" required>
-
-                <label>متن پیام:</label>
-                <textarea id="messageContent" rows="3" placeholder="متن پیام..." required></textarea>
-
-                <button type="submit">انتشار زنده پیام</button>
+                <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-bold py-3 rounded-xl shadow-lg hover:opacity-90 transition">
+                    تایید و ورود
+                </button>
             </form>
         </div>
-
-        <!-- بخش نمایش دسته‌بندی‌ها و پیام‌ها -->
-        <div class="card">
-            <h2>📂 دسته‌بندی‌ها و محتوا</h2>
-            <div id="contentDisplay">در حال دریافت اطلاعات...</div>
-        </div>
-
     </div>
 
+    <!-- Supabase Logic -->
     <script>
-        // ۱. تنظیمات اتصال به Supabase (اطلاعات خودت رو بگذار)
-        const SUPABASE_URL = 'https://YOUR_SUPABASE_PROJECT_URL.supabase.co';
-        const SUPABASE_KEY = 'YOUR_SUPABASE_ANON_KEY';
-        const supabaseClient = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        // Supabase Credentials
+        const SUPABASE_URL = 'https://tnihwoqvyvsrmdsbwavg.supabase.co';
+        const SUPABASE_ANON_KEY = 'sb_publishable_lZxCjOpnZcQkVDwM0l4O2w_tRut0juU';
 
-        // ۲. رمز عبور ۳۲ رقمی اختصاصی مدیریت
-        const ADMIN_32_KEY = "12345678901234567890123456789012"; 
+        // Initialize Supabase Client
+        const _supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        function toggleAdminLogin() {
-            document.getElementById('adminAuthCard').classList.toggle('hidden');
-        }
+        // Fetch and Render Content
+        async function fetchContent() {
+            const container = document.getElementById('categories-container');
+            try {
+                const { data, error } = await _supabase.from('categories').select('*');
+                if (error) throw error;
 
-        function verifyAdmin() {
-            const inputKey = document.getElementById('adminKeyInput').value;
-            if (inputKey === ADMIN_32_KEY) {
-                alert("ورود موفقیت‌آمیز بود!");
-                document.getElementById('adminAuthCard').classList.add('hidden');
-                document.getElementById('adminPanel').classList.remove('hidden');
-            } else {
-                alert("رمز عبور ۳۲ رقمی اشتباه است!");
+                if (data && data.length > 0) {
+                    container.innerHTML = data.map(cat => `
+                        <div class="cyber-card p-6 rounded-2xl flex flex-col justify-between">
+                            <div>
+                                <div class="text-blue-400 text-3xl mb-4">
+                                    <i class="${cat.icon || 'fa-solid fa-folder'}"></i>
+                                </div>
+                                <h3 class="text-xl font-bold text-white mb-2">${cat.title}</h3>
+                                <p class="text-gray-400 text-sm mb-4">${cat.description || 'توضیحاتی ثبت نشده است.'}</p>
+                            </div>
+                            <a href="${cat.link || '#'}" class="inline-flex justify-center items-center gap-2 bg-gray-800 hover:bg-blue-600 text-white py-2 px-4 rounded-xl text-sm font-semibold transition">
+                                مشاهده بیشتر
+                                <i class="fa-solid fa-arrow-left text-xs"></i>
+                            </a>
+                        </div>
+                    `).join('');
+                } else {
+                    container.innerHTML = `
+                        <div class="cyber-card p-8 rounded-2xl text-center text-gray-400 col-span-full">
+                            <i class="fa-solid fa-box-open text-4xl mb-3 text-gray-500"></i>
+                            <p>هنوز دسته‌بندی یا آیتمی ثبت نشده است.</p>
+                        </div>
+                    `;
+                }
+            } catch (err) {
+                console.error(err);
+                container.innerHTML = `
+                    <div class="cyber-card p-8 rounded-2xl text-center text-red-400 col-span-full border-red-500/30">
+                        <i class="fa-solid fa-triangle-exclamation text-4xl mb-3"></i>
+                        <p>خطا در دریافت اطلاعات از پایگاه داده.</p>
+                    </div>
+                `;
             }
         }
 
-        function updateTheme() {
-            const logo = document.getElementById('logoUrlInput').value;
-            const bg = document.getElementById('bgUrlInput').value;
-
-            if (logo) document.getElementById('siteLogo').src = logo;
-            if (bg) document.body.style.backgroundImage = `url('${bg}')`;
-
-            alert("ظاهر سایت به‌روزرسانی شد!");
+        // Modal Controls
+        function openAdminModal() {
+            document.getElementById('admin-modal').classList.remove('hidden');
         }
 
-        async function loadContent() {
-            const container = document.getElementById('contentDisplay');
-            const { data, error } = await supabaseClient
-                .from('messages')
-                .select('*')
-                .order('id', { ascending: false });
-
-            if (error || !data) {
-                container.innerHTML = '<p style="color:#f87171;">هنوز پیامی دریافت نشده یا دیتابیس متصل نیست.</p>';
-                return;
-            }
-
-            const categories = {};
-            data.forEach(item => {
-                if (!categories[item.category]) categories[item.category] = [];
-                categories[item.category].push(item.content);
-            });
-
-            let html = '';
-            for (let cat in categories) {
-                html += `<div class="category-box">`;
-                html += `<h3 style="color:var(--accent-color); margin-top:0;">📁 ${cat}</h3>`;
-                categories[cat].forEach(msg => {
-                    html += `<div class="message-card">${msg}</div>`;
-                });
-                html += `</div>`;
-            }
-
-            container.innerHTML = html || '<p>هیچ محتوایی وجود ندارد.</p>';
+        function closeAdminModal() {
+            document.getElementById('admin-modal').classList.add('hidden');
         }
 
-        document.getElementById('addMessageForm').addEventListener('submit', async (e) => {
+        function handleAdminLogin(e) {
             e.preventDefault();
-            const category = document.getElementById('categoryName').value;
-            const content = document.getElementById('messageContent').value;
-
-            const { error } = await supabaseClient
-                .from('messages')
-                .insert([{ category, content }]);
-
-            if (error) {
-                alert('خطا در ثبت: ' + error.message);
+            const pass = document.getElementById('admin-password').value;
+            if (pass.length === 32) {
+                alert('رمز عبور تایید شد. خوش آمدید مدیر!');
+                closeAdminModal();
             } else {
-                alert('پیام منتشر شد!');
-                document.getElementById('addMessageForm').reset();
-                loadContent();
+                alert('رمز عبور مدیریت باید دقیقاً ۳۲ کاراکتر باشد.');
             }
-        });
+        }
 
-        loadContent();
+        // Initial Load
+        document.addEventListener('DOMContentLoaded', fetchContent);
     </script>
 </body>
 </html>
