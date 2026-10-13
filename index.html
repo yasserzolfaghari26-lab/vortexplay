@@ -4,10 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>VortexPlay | وورتکس‌پلی</title>
-    <!-- Tailwind CSS برای طراحی سریع و مدرن -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- کتابخانه Supabase برای ارتباط با دیتابیس -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Vazirmatn:wght@400;700;900&display=swap');
@@ -30,7 +27,7 @@
             <h1 class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-500 to-purple-500">
                 <i class="fa-solid fa-gamepad ml-2"></i>VortexPlay
             </h1>
-            <span class="text-xs bg-indigo-900/50 text-indigo-300 px-3 py-1 rounded-full border border-indigo-700/50">نسخه گیمینگ</span>
+            <span class="text-xs bg-indigo-900/50 text-indigo-300 px-3 py-1 rounded-full border border-indigo-700/50">نسخه سریع و مدرن</span>
         </div>
     </header>
 
@@ -38,15 +35,14 @@
     <main class="max-w-7xl mx-auto px-4 py-10 flex-grow w-full">
         <div class="text-center mb-12">
             <h2 class="text-4xl font-extrabold mb-3">مرجع ابزارها و بازی‌ها</h2>
-            <p class="text-gray-400">به پلتفرم مدیریت و دانلود خوش آمدید؛ دسته‌بندی‌ها زیر از دیتابیس بارگذاری می‌شوند.</p>
+            <p class="text-gray-400">اطلاعات زیر به صورت مستقیم و آنلاین از MockAPI بارگذاری می‌شوند.</p>
         </div>
 
-        <!-- لیست دسته‌بندی‌ها (به صورت داینامیک از Supabase پر می‌شود) -->
-        <div id="categories-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            <!-- لودینگ اولیه -->
+        <!-- لیست آیتم‌ها -->
+        <div id="items-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             <div class="col-span-full text-center py-10 text-gray-500">
                 <i class="fa-solid fa-spinner fa-spin text-3xl mb-2"></i>
-                <p>در حال بارگذاری اطلاعات از دیتابیس...</p>
+                <p>در حال بارگذاری اطلاعات...</p>
             </div>
         </div>
     </main>
@@ -56,37 +52,31 @@
         <p>تمامی حقوق محفوظ است &copy; 2026 - VortexPlay</p>
     </footer>
 
-    <!-- اسکریپت اتصال به سوپابیس و بارگذاری داده‌ها -->
+    <!-- اسکریپت دریافت داده از MockAPI -->
     <script>
-        // اطلاعات اتصال خود را اینجا وارد کنید (یا از متغیرهای محیطی بگیرید)
-        const SUPABASE_URL = 'YOUR_SUPABASE_URL';
-        const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+        const API_URL = 'https://6ace6ba5f338359cf1c37fa1.mockapi.io/items'; // آدرس API شما
 
-        const { createClient } = supabase;
-        const _supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-        async function loadCategories() {
-            const grid = document.getElementById('categories-grid');
+        async function loadItems() {
+            const grid = document.getElementById('items-grid');
             
             try {
-                const { data, error } = await _supabase.from('categories').select('*');
-
-                if (error) throw error;
+                const response = await fetch(API_URL);
+                const data = await response.json();
 
                 if (!data || data.length === 0) {
-                    grid.innerHTML = '<div class="col-span-full text-center py-10 text-gray-400">هیچ دسته‌بندی‌ای هنوز ثبت نشده است.</div>';
+                    grid.innerHTML = '<div class="col-span-full text-center py-10 text-gray-400">هیچ آیتمی ثبت نشده است.</div>';
                     return;
                 }
 
                 grid.innerHTML = '';
-                data.forEach(cat => {
+                data.forEach(item => {
                     const card = `
-                        <a href="${cat.link || '#'}" class="bg-gray-900/60 border border-gray-800 rounded-2xl p-6 transition-all duration-300 glow-effect block group">
+                        <a href="${item.link || '#'}" class="bg-gray-900/60 border border-gray-800 rounded-2xl p-6 transition-all duration-300 glow-effect block group">
                             <div class="text-indigo-400 text-3xl mb-4 group-hover:scale-110 transition-transform">
-                                <i class="${cat.icon || 'fa-solid fa-folder'}"></i>
+                                <i class="${item.icon || 'fa-solid fa-folder'}"></i>
                             </div>
-                            <h3 class="text-xl font-bold mb-2 text-white">${cat.title || 'بدون عنوان'}</h3>
-                            <p class="text-gray-400 text-sm leading-relaxed">${cat.descr || cat.description || 'توضیحی ثبت نشده است.'}</p>
+                            <h3 class="text-xl font-bold mb-2 text-white">${item.title || 'بدون عنوان'}</h3>
+                            <p class="text-gray-400 text-sm leading-relaxed">${item.descr || 'توضیحی ثبت نشده است.'}</p>
                         </a>
                     `;
                     grid.innerHTML += card;
@@ -98,7 +88,7 @@
             }
         }
 
-        loadCategories();
+        loadItems();
     </script>
 </body>
 </html>
